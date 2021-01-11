@@ -54,10 +54,17 @@ impl Parser {
     }
 }
 
-pub fn compile(source: &str) -> &[Command] {
-    &[
-        Command::Push(Segment::CONSTANT, 5),
-        Command::Push(Segment::CONSTANT, 4),
-        Command::Operate(Operator::ADD),
-    ]
+pub fn compile(source: &str) -> Vec<Command> {
+    let mut program: Vec<Command> = Vec::new();
+
+    program.push(Command::Push(Segment::CONSTANT, 5));
+    program.push(Command::Push(Segment::CONSTANT, 4));
+    program.push(Command::Operate(Operator::ADD));
+
+    program
+    // &[
+    //     Command::Push(Segment::CONSTANT, 5),
+    //     Command::Push(Segment::CONSTANT, 4),
+    //     Command::Operate(Operator::ADD),
+    // ]
 }

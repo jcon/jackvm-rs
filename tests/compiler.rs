@@ -41,10 +41,10 @@ mod tests {
  push constant 4
  add";
         let prog = compile(&source[..]);
-        assert_eq!(&[
+        assert_eq!(vec!(
             Command::Push(Segment::CONSTANT, 5),
             Command::Push(Segment::CONSTANT, 4),
             Command::Operate(Operator::ADD),
-        ], prog);
+        ), prog);
     }
 }
