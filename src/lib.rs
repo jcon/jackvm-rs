@@ -1,4 +1,5 @@
 mod utils;
+pub mod compiler;
 
 use wasm_bindgen::prelude::*;
 
