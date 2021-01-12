@@ -129,21 +129,21 @@ impl<'a> Parser<'a> {
     }
 }
 
-fn parse_push(parser: &Parser) -> Command {
+fn parse_push(parser: &Parser) -> Result<Command, CompilationError> {
     let arg1 = parser.get_arg1().unwrap();
     let arg2 = parser.get_arg2().unwrap().parse::<i32>().unwrap();
     match arg1 {
-        "constant" => Command::Push(Segment::CONSTANT, arg2),
+        "constant" => Ok(Command::Push(Segment::CONSTANT, arg2)),
         // TODO: fix
-        _ => Command::Push(Segment::ARG, 3)
+        _ => Ok(Command::Push(Segment::ARG, 3))
     }
 }
 
-fn parse_operator(parser: &Parser) -> Command {
+fn parse_operator(parser: &Parser) -> Result<Command, CompilationError> {
     match parser.get_command_type() {
-        Some("add") => Command::Operate(Operator::ADD),
+        Some("add") => Ok(Command::Operate(Operator::ADD)),
         // TODO: fix
-        _ => Command::Push(Segment::ARG, 2)
+        _ => Ok(Command::Push(Segment::ARG, 2))
     }
 }
 
@@ -160,13 +160,13 @@ pub fn compile(source: &str) -> Result<Vec<Command>, CompilationError> {
             // todo fix
             Some(x) => {
                 println!("got {}", x);
-                Command::Push(Segment::ARG, 1)
+                Ok(Command::Push(Segment::ARG, 1))
             },
             None => {
                 println!("got NONE");
-                Command::Push(Segment::ARG, 1)
+                Ok(Command::Push(Segment::ARG, 1))
             },
-        };
+        }.unwrap();
         program.push(command);
     }
 
