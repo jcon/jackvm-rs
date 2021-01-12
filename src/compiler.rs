@@ -119,20 +119,18 @@ impl<'a> Parser<'a> {
 }
 
 fn parse_push(instruction: &Instruction) -> Result<Command, CompilationError> {
-    let arg1 = match instruction.arg1 {
-        Some(a1) => Ok(a1),
-        None => Err(CompilationError {
-            line_number: instruction.line_number,
-            message: "Expected a memory segment for push",
-        })
-    }?;
-    let arg2 = match instruction.arg2 { // parser.get_arg2().unwrap().parse::<i32>().unwrap
+    let line_number = instruction.line_number;
+    let arg1 = instruction.arg1.ok_or(CompilationError {
+        line_number,
+        message: "Expected a memory segment for push",
+    })?;
+    let arg2 = match instruction.arg2 {
         Some(a2) => a2.parse::<i32>().map_err(|_| CompilationError {
-            line_number: instruction.line_number,
+            line_number,
             message: "Expected a positive integer for argument",
         }),
         None => Err(CompilationError {
-            line_number: instruction.line_number,
+            line_number,
             message: "Expected a second argement for push",
         })
     }?;
@@ -146,7 +144,7 @@ fn parse_push(instruction: &Instruction) -> Result<Command, CompilationError> {
         "temp" => Ok(Segment::TEMP),
         "static" => Ok(Segment::STATIC),
         _ => Err(CompilationError {
-            line_number: instruction.line_number,
+            line_number,
             message: "Unexpected segment for push",
         })
     }?;
