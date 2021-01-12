@@ -190,7 +190,9 @@ mod tests {
 
     #[test]
     fn test_simple_add() {
-        let source = "push constant 5\npush constant 4\nadd";
+        let source = "push constant 5
+push constant 4
+add";
         let prog = compile(&source[..]);
         assert_eq!(vec!(
             Command::Push(Segment::CONSTANT, 5),
