@@ -136,14 +136,21 @@ fn parse_push(instruction: &Instruction) -> Result<Command, CompilationError> {
             message: "Expected a second argement for push",
         })
     }?;
-    match arg1 {
-        "constant" => Ok(Command::Push(Segment::CONSTANT, arg2)),
-        // TODO: fix
+    let segment = match arg1 {
+        "constant" => Ok(Segment::CONSTANT),
+        "argument" => Ok(Segment::ARG),
+        "local" => Ok(Segment::LOCAL),
+        "this" => Ok(Segment::THIS),
+        "that" => Ok(Segment::THAT),
+        "pointer" => Ok(Segment::POINTER),
+        "temp" => Ok(Segment::TEMP),
+        "static" => Ok(Segment::STATIC),
         _ => Err(CompilationError {
             line_number: instruction.line_number,
             message: "Unexpected segment for push",
         })
-    }
+    }?;
+    Ok(Command::Push(segment, arg2))
 }
 
 fn parse_operator(parser: &Parser) -> Result<Command, CompilationError> {
