@@ -97,12 +97,12 @@ impl<'a> Parser<'a> {
         next_pos < self.source.len()
     }
 
-    pub fn get_instruction(&self) -> Option<Instruction> {
+    pub fn get_instruction(&self) -> Option<Instruction<'a>> {
         self.current_instruction
     }
 
     pub fn get_line_number(&self) -> i32 {
-        self.position
+        self.position + 1
     }
 
     pub fn get_command_type(&self) -> Option<&str> {
@@ -115,6 +115,19 @@ impl<'a> Parser<'a> {
 
     pub fn get_arg2(&self) -> Option<&str> {
         self.current_instruction?.arg2
+    }
+}
+
+impl<'a> Iterator for Parser<'a> {
+    type Item = Instruction<'a>;
+
+    fn next(&mut self) -> Option<Instruction<'a>> {
+        if self.has_more_commands() {
+            self.advance();
+            self.get_instruction()
+        } else {
+            None
+        }
     }
 }
 
@@ -171,31 +184,34 @@ fn parse_arithmetic(instruction: &Instruction) -> Result<Command, CompilationErr
     Ok(Command::Arithmetic(operation))
 }
 
-pub fn compile(source: &str) -> Result<Vec<Command>, CompilationError> {
+pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
     let mut parser = Parser::new(source);
     let mut program: Vec<Command> = Vec::new();
+    let mut errors: Vec<CompilationError> = Vec::new();
 
     while parser.has_more_commands() {
         parser.advance();
         let ins = parser.get_instruction();
-        // println!("next command type is {:?}", parser.get_command_type());
-        let command = match parser.get_command_type() {
+        let line_number = parser.get_line_number();
+        let command_or_error = match parser.get_command_type() {
             Some("push") => parse_push(&ins.unwrap()),
             Some("add") => parse_arithmetic(&ins.unwrap()),
-            // todo fix
-            Some(x) => {
-                println!("got {}", x);
-                Ok(Command::Push(Segment::ARG, 1))
-            },
-            None => {
-                println!("got NONE");
-                Ok(Command::Push(Segment::ARG, 1))
-            },
-        }.unwrap();
-        program.push(command);
+            _ => Err(CompilationError {
+                line_number,
+                message: "Unrecognized instruction",
+            }),
+        };
+        match command_or_error {
+            Ok(command) => program.push(command),
+            Err(e) => errors.push(e),
+        }
     }
 
-    Ok(program)
+    if errors.len() == 0 {
+        Ok(program)
+    } else {
+        Err(errors)
+    }
 }
 
 #[cfg(test)]
@@ -296,5 +312,15 @@ add";
             Command::Push(Segment::CONSTANT, 4),
             Command::Arithmetic(Operator::ADD),
         )), prog);
+    }
+
+    #[test]
+    fn test_compile_simple_inccorect_program() {
+        let source = "foo constant 5";
+        let prog = compile(&source[..]);
+        assert_eq!(Err(vec!(CompilationError {
+            line_number: 1,
+            message: "Unrecognized instruction",
+        })), prog);
     }
 }
