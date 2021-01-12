@@ -86,7 +86,7 @@ impl<'a> Parser<'a> {
                 arg1: parts.next(),
                 arg2: parts.next(),
             });
-            println!("parts are {:?}", self.current_instruction);
+            // println!("parts are {:?}", self.current_instruction);
         } else {
             self.current_instruction = None;
         }
@@ -139,7 +139,10 @@ fn parse_push(instruction: &Instruction) -> Result<Command, CompilationError> {
     match arg1 {
         "constant" => Ok(Command::Push(Segment::CONSTANT, arg2)),
         // TODO: fix
-        _ => Ok(Command::Push(Segment::ARG, 3))
+        _ => Err(CompilationError {
+            line_number: instruction.line_number,
+            message: "Unexpected segment for push",
+        })
     }
 }
 
@@ -188,6 +191,18 @@ mod tests {
     fn test_segment_match() {
         let ct = Command::Push(Segment::LOCAL, 1);
         assert_matches!(ct, Command::Push(Segment::LOCAL, 1));
+    }
+
+    #[test]
+    fn test_parse_push_with_invalid_segment() {
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("push"),
+            arg1: Some("invalid"),
+            arg2: Some("10"),
+        };
+        assert_matches!(parse_push(&ins),
+            Err(CompilationError{ line_number: 3, message: "Unexpected segment for push" }));
     }
 
     #[test]
