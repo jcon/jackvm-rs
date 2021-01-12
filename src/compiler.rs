@@ -97,6 +97,10 @@ impl<'a> Parser<'a> {
         next_pos < self.source.len()
     }
 
+    pub fn get_instruction(&self) -> Option<Instruction> {
+        self.current_instruction
+    }
+
     pub fn get_line_number(&self) -> i32 {
         self.position
     }
@@ -114,9 +118,24 @@ impl<'a> Parser<'a> {
     }
 }
 
-fn parse_push(parser: &Parser) -> Result<Command, CompilationError> {
-    let arg1 = parser.get_arg1().unwrap();
-    let arg2 = parser.get_arg2().unwrap().parse::<i32>().unwrap();
+fn parse_push(instruction: &Instruction) -> Result<Command, CompilationError> {
+    let arg1 = match instruction.arg1 {
+        Some(a1) => Ok(a1),
+        None => Err(CompilationError {
+            line_number: instruction.line_number,
+            message: "Expected a memory segment for push",
+        })
+    }?;
+    let arg2 = match instruction.arg2 { // parser.get_arg2().unwrap().parse::<i32>().unwrap
+        Some(a2) => a2.parse::<i32>().map_err(|_| CompilationError {
+            line_number: instruction.line_number,
+            message: "Expected a positive integer for argument",
+        }),
+        None => Err(CompilationError {
+            line_number: instruction.line_number,
+            message: "Expected a second argement for push",
+        })
+    }?;
     match arg1 {
         "constant" => Ok(Command::Push(Segment::CONSTANT, arg2)),
         // TODO: fix
@@ -138,9 +157,10 @@ pub fn compile(source: &str) -> Result<Vec<Command>, CompilationError> {
 
     while parser.has_more_commands() {
         parser.advance();
+        let ins = parser.get_instruction();
         // println!("next command type is {:?}", parser.get_command_type());
         let command = match parser.get_command_type() {
-            Some("push") => parse_push(&parser),
+            Some("push") => parse_push(&ins.unwrap()),
             Some("add") => parse_operator(&parser),
             // todo fix
             Some(x) => {
@@ -168,6 +188,30 @@ mod tests {
     fn test_segment_match() {
         let ct = Command::Push(Segment::LOCAL, 1);
         assert_matches!(ct, Command::Push(Segment::LOCAL, 1));
+    }
+
+    #[test]
+    fn test_parse_push_with_no_arg2() {
+        let ins = Instruction {
+            line_number: 8,
+            command_type: Some("push"),
+            arg1: Some("doesntmatter"),
+            arg2: None,
+        };
+        assert_matches!(parse_push(&ins),
+            Err(CompilationError{ line_number: 8, message: "Expected a second argement for push"}));
+    }
+
+    #[test]
+    fn test_parse_push_with_no_arg1() {
+        let ins = Instruction {
+            line_number: 8,
+            command_type: Some("doesntmatter"),
+            arg1: None,
+            arg2: None,
+        };
+        assert_matches!(parse_push(&ins),
+            Err(CompilationError{ line_number: 8, message: "Expected a memory segment for push" }));
     }
 
     #[test]
