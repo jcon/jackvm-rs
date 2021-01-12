@@ -30,7 +30,7 @@ pub enum Operator {
 pub enum Command {
     Push(Segment, i32),
     Pop(Segment, i32),
-    Operate(Operator),
+    Arithmetic(Operator),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -151,12 +151,24 @@ fn parse_push(instruction: &Instruction) -> Result<Command, CompilationError> {
     Ok(Command::Push(segment, arg2))
 }
 
-fn parse_operator(parser: &Parser) -> Result<Command, CompilationError> {
-    match parser.get_command_type() {
-        Some("add") => Ok(Command::Operate(Operator::ADD)),
-        // TODO: fix
-        _ => Ok(Command::Push(Segment::ARG, 2))
-    }
+fn parse_arithmetic(instruction: &Instruction) -> Result<Command, CompilationError> {
+    let line_number = instruction.line_number;
+    let operation = match instruction.command_type {
+        Some("add") => Ok(Operator::ADD),
+        Some("sub") => Ok(Operator::SUB),
+        Some("eq") => Ok(Operator::EQ),
+        Some("gt") => Ok(Operator::GT),
+        Some("lt") => Ok(Operator::LT),
+        Some("and") => Ok(Operator::AND),
+        Some("or") => Ok(Operator::OR),
+        Some("neg") => Ok(Operator::NEG),
+        Some("not") => Ok(Operator::NOT),
+        _ => Err(CompilationError {
+            line_number,
+            message: "Unexpected arithmetic operation",
+        })
+    }?;
+    Ok(Command::Arithmetic(operation))
 }
 
 pub fn compile(source: &str) -> Result<Vec<Command>, CompilationError> {
@@ -169,7 +181,7 @@ pub fn compile(source: &str) -> Result<Vec<Command>, CompilationError> {
         // println!("next command type is {:?}", parser.get_command_type());
         let command = match parser.get_command_type() {
             Some("push") => parse_push(&ins.unwrap()),
-            Some("add") => parse_operator(&parser),
+            Some("add") => parse_arithmetic(&ins.unwrap()),
             // todo fix
             Some(x) => {
                 println!("got {}", x);
@@ -196,6 +208,45 @@ mod tests {
     fn test_segment_match() {
         let ct = Command::Push(Segment::LOCAL, 1);
         assert_matches!(ct, Command::Push(Segment::LOCAL, 1));
+    }
+
+    #[test]
+    fn test_parse_arithmetic_valid_operations() {
+        for (text, op) in &[
+            ("add", Operator::ADD),
+            ("sub", Operator::SUB),
+            ("eq", Operator::EQ),
+            ("lt", Operator::LT),
+            ("gt", Operator::GT),
+            ("and", Operator::AND),
+            ("or", Operator::OR),
+            ("neg", Operator::NEG),
+            ("not", Operator::NOT),
+        ] {
+            let ins = Instruction {
+                line_number: 3,
+                command_type: Some(text),
+                arg1: None,
+                arg2: None,
+            };
+            assert_eq!(parse_arithmetic(&ins), Ok(Command::Arithmetic(*op)));
+        }
+    }
+
+    #[test]
+    fn test_parse_arithmetic_invalid_operations() {
+        for text in &["foo", "bar", "baz"] {
+            let ins = Instruction {
+                line_number: 3,
+                command_type: Some(text),
+                arg1: None,
+                arg2: None,
+            };
+            assert_eq!(parse_arithmetic(&ins), Err(CompilationError{
+                line_number: 3,
+                message: "Unexpected arithmetic operation"
+            }));
+        }
     }
 
     #[test]
@@ -243,7 +294,7 @@ add";
         assert_eq!(Ok(vec!(
             Command::Push(Segment::CONSTANT, 5),
             Command::Push(Segment::CONSTANT, 4),
-            Command::Operate(Operator::ADD),
+            Command::Arithmetic(Operator::ADD),
         )), prog);
     }
 }
