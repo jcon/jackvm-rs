@@ -33,17 +33,25 @@ pub enum Command {
     Operate(Operator),
 }
 
-#[allow(dead_code)]
-pub struct Parser<'a> {
-    position: i32,
-    source: Vec<&'a str>,
-    current_line: Vec<&'a str>,
-}
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CompilationError {
     message: &'static str,
     line_number: i32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Instruction<'a> {
+    line_number: i32,
+    command_type: Option<&'a str>,
+    arg1: Option<&'a str>,
+    arg2: Option<&'a str>,
+}
+
+#[allow(dead_code)]
+pub struct Parser<'a> {
+    position: i32,
+    source: Vec<&'a str>,
+    current_instruction: Option<Instruction<'a>>,
 }
 
 // use std::fmt;
@@ -60,37 +68,27 @@ impl<'a> Parser<'a> {
         for line in source.lines() {
             lines.push(line);
         }
-        // let mut parser = Parser {
-        //     position: 0,
-        //     source: lines,
-        //     current_line: vec!(),
-        // };
-        // parser.parse_line();
-        // parser
         Parser {
             position: -1,
             source: lines,
-            current_line: vec!(),
+            current_instruction: None,
         }
     }
-
-    // pub fn parse_line(&mut self) -> () {
-    //     if self.position >= 0 && (self.position as usize) < self.source.len() {
-    //         let parts: Vec<&str> = self.source[self.position as usize].split(' ').collect();
-    //         println!("parts are {:?}", parts);
-    //         self.current_line = parts
-    //     }
-    // }
 
     pub fn advance(&mut self) -> () {
         self.position = self.position + 1;
         let pos = self.position as usize;
         if pos < self.source.len() {
-            let parts: Vec<&str> = self.source[pos].split(' ').collect();
-            println!("parts are {:?}", parts);
-            self.current_line = parts
+            let mut parts = self.source[pos].split(' ');
+            self.current_instruction = Some(Instruction {
+                line_number: self.position + 1,
+                command_type: parts.next(),
+                arg1: parts.next(),
+                arg2: parts.next(),
+            });
+            println!("parts are {:?}", self.current_instruction);
         } else {
-            self.current_line = vec!()
+            self.current_instruction = None;
         }
     }
 
@@ -104,28 +102,15 @@ impl<'a> Parser<'a> {
     }
 
     pub fn get_command_type(&self) -> Option<&str> {
-        let pos = self.position as usize;
-        if pos < self.source.len() {
-            Some(self.current_line[0])
-        } else {
-            None
-        }
+        self.current_instruction?.command_type
     }
 
     pub fn get_arg1(&self) -> Option<&str> {
-        if self.has_more_commands() && self.current_line.len() > 1 {
-            Some(self.current_line[1])
-        } else {
-            None
-        }
+        self.current_instruction?.arg1
     }
 
     pub fn get_arg2(&self) -> Option<&str> {
-        if self.has_more_commands() && self.current_line.len() > 2 {
-            Some(self.current_line[2])
-        } else {
-            None
-        }
+        self.current_instruction?.arg2
     }
 }
 
