@@ -3,7 +3,7 @@ use crate::compiler::Segment;
 use crate::compiler::Operator;
 
 pub struct VirtualMachine {
-    memory: [i16; KEYBOARD_START + 1], // Vec<i16>,
+    memory: [i16; KEYBOARD_START + 1],
     pc: usize,
     program: Vec<Command>,
 }
@@ -42,7 +42,7 @@ impl VirtualMachine {
 
         let command = self.program[self.pc];
         match command {
-            Command::Push(segment, arg2) => self.stack_push(self.lookup_val(segment, arg2 as i16)),
+            Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
             Command::Arithmetic(operator) => self.process_arithmetic(operator),
             _ => println!("un implemented command"),
         };
@@ -54,6 +54,14 @@ impl VirtualMachine {
         self.memory[SP] = self.memory[SP] + 1;
     }
 
+    fn stack_push_segment(&mut self, segment: Segment, offset: i16) -> () {
+        let val = match segment {
+            Segment::CONSTANT => offset,
+            _ => 0
+        };
+        self.stack_push(val);
+    }
+
     fn stack_pop(&mut self) -> i16 {
         let address = (self.memory[SP] - 1) as usize;
         self.memory[SP] = address as i16;
@@ -63,13 +71,6 @@ impl VirtualMachine {
     fn stack_peek(&self) -> i16 {
         let address = (self.memory[SP] - 1) as usize;
         self.memory[address]
-    }
-
-    fn lookup_val(&self, segment: Segment, offset: i16) -> i16 {
-        match segment {
-            Segment::CONSTANT => offset,
-            _ => 0
-        }
     }
 
     fn process_arithmetic(&mut self, operator: Operator) -> () {
