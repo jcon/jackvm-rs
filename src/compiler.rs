@@ -184,6 +184,12 @@ fn parse_arithmetic(instruction: &Instruction) -> Result<Command, CompilationErr
     Ok(Command::Arithmetic(operation))
 }
 
+// TODO: find out how to set a statically defined set
+fn is_arithmetic(command_type: &str) -> bool {
+    let ct = command_type;
+    ct == "add" || ct == "sub" || ct == "eq" || ct == "gt" || ct == "lt" || ct == "and" || ct == "or" || ct == "neg" || ct == "not"
+}
+
 pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
     let mut parser = Parser::new(source);
     let mut program: Vec<Command> = Vec::new();
@@ -195,7 +201,7 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
         let line_number = parser.get_line_number();
         let command_or_error = match parser.get_command_type() {
             Some("push") => parse_push(&ins.unwrap()),
-            Some("add") => parse_arithmetic(&ins.unwrap()),
+            Some(ct) if is_arithmetic(ct) => parse_arithmetic(&ins.unwrap()),
             _ => Err(CompilationError {
                 line_number,
                 message: "Unrecognized instruction",
