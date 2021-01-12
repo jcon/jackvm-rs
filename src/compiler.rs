@@ -40,6 +40,12 @@ pub struct Parser<'a> {
     current_line: Vec<&'a str>,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct CompilationError {
+    message: &'static str,
+    line_number: i32,
+}
+
 // use std::fmt;
 
 // impl fmt::Display for Vec<&str> {
@@ -93,6 +99,10 @@ impl<'a> Parser<'a> {
         next_pos < self.source.len()
     }
 
+    pub fn get_line_number(&self) -> i32 {
+        self.position
+    }
+
     pub fn get_command_type(&self) -> Option<&str> {
         let pos = self.position as usize;
         if pos < self.source.len() {
@@ -137,17 +147,13 @@ fn parse_operator(parser: &Parser) -> Command {
     }
 }
 
-pub fn compile(source: &str) -> Vec<Command> {
-    // let lines = source.split('\n');
+pub fn compile(source: &str) -> Result<Vec<Command>, CompilationError> {
     let mut parser = Parser::new(source);
     let mut program: Vec<Command> = Vec::new();
 
-    // for line in source.lines() {
-
-    // }
     while parser.has_more_commands() {
         parser.advance();
-        println!("next command type is {:?}", parser.get_command_type());
+        // println!("next command type is {:?}", parser.get_command_type());
         let command = match parser.get_command_type() {
             Some("push") => parse_push(&parser),
             Some("add") => parse_operator(&parser),
@@ -164,16 +170,7 @@ pub fn compile(source: &str) -> Vec<Command> {
         program.push(command);
     }
 
-    // program.push(Command::Push(Segment::CONSTANT, 5));
-    // program.push(Command::Push(Segment::CONSTANT, 4));
-    // program.push(Command::Operate(Operator::ADD));
-
-    program
-    // &[
-    //     Command::Push(Segment::CONSTANT, 5),
-    //     Command::Push(Segment::CONSTANT, 4),
-    //     Command::Operate(Operator::ADD),
-    // ]
+    Ok(program)
 }
 
 #[cfg(test)]
@@ -194,10 +191,10 @@ mod tests {
 push constant 4
 add";
         let prog = compile(&source[..]);
-        assert_eq!(vec!(
+        assert_eq!(Ok(vec!(
             Command::Push(Segment::CONSTANT, 5),
             Command::Push(Segment::CONSTANT, 4),
             Command::Operate(Operator::ADD),
-        ), prog);
+        )), prog);
     }
 }
