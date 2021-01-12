@@ -175,3 +175,27 @@ pub fn compile(source: &str) -> Vec<Command> {
     //     Command::Operate(Operator::ADD),
     // ]
 }
+
+#[cfg(test)]
+mod tests {
+    // Note this useful idiom: importing names from outer (for mod tests) scope.
+    use super::*;
+    use assert_matches::assert_matches;
+
+    #[test]
+    fn test_segment_match() {
+        let ct = Command::Push(Segment::LOCAL, 1);
+        assert_matches!(ct, Command::Push(Segment::LOCAL, 1));
+    }
+
+    #[test]
+    fn test_simple_add() {
+        let source = "push constant 5\npush constant 4\nadd";
+        let prog = compile(&source[..]);
+        assert_eq!(vec!(
+            Command::Push(Segment::CONSTANT, 5),
+            Command::Push(Segment::CONSTANT, 4),
+            Command::Operate(Operator::ADD),
+        ), prog);
+    }
+}
