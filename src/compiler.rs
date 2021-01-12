@@ -131,22 +131,12 @@ impl<'a> Iterator for Parser<'a> {
     }
 }
 
-fn parse_push(instruction: &Instruction) -> Result<Command, CompilationError> {
+fn parse_push_pop(instruction: &Instruction) -> Result<Command, CompilationError> {
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
         message: "Expected a memory segment for push",
     })?;
-    let arg2 = match instruction.arg2 {
-        Some(a2) => a2.parse::<i32>().map_err(|_| CompilationError {
-            line_number,
-            message: "Expected a positive integer for argument",
-        }),
-        None => Err(CompilationError {
-            line_number,
-            message: "Expected a second argement for push",
-        })
-    }?;
     let segment = match arg1 {
         "constant" => Ok(Segment::CONSTANT),
         "argument" => Ok(Segment::ARG),
@@ -161,7 +151,26 @@ fn parse_push(instruction: &Instruction) -> Result<Command, CompilationError> {
             message: "Unexpected segment for push",
         })
     }?;
-    Ok(Command::Push(segment, arg2))
+
+    let arg2 = match instruction.arg2 {
+        Some(a2) => a2.parse::<i32>().map_err(|_| CompilationError {
+            line_number,
+            message: "Expected a positive integer for argument",
+        }),
+        None => Err(CompilationError {
+            line_number,
+            message: "Expected a second argement for push",
+        })
+    }?;
+
+    match instruction.command_type {
+        Some("push") => Ok(Command::Push(segment, arg2)),
+        Some("pop") => Ok(Command::Pop(segment, arg2)),
+        _ => Err(CompilationError {
+            line_number,
+            message: "Expected a push or a pop",
+        }),
+    }
 }
 
 fn parse_arithmetic(instruction: &Instruction) -> Result<Command, CompilationError> {
@@ -200,7 +209,7 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
         let ins = parser.get_instruction();
         let line_number = parser.get_line_number();
         let command_or_error = match parser.get_command_type() {
-            Some("push") => parse_push(&ins.unwrap()),
+            Some("push") => parse_push_pop(&ins.unwrap()),
             Some(ct) if is_arithmetic(ct) => parse_arithmetic(&ins.unwrap()),
             _ => Err(CompilationError {
                 line_number,
@@ -272,38 +281,60 @@ mod tests {
     }
 
     #[test]
-    fn test_parse_push_with_invalid_segment() {
+    fn test_parse_push_pop_with_valid_push() {
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("push"),
+            arg1: Some("pointer"),
+            arg2: Some("0"),
+        };
+        assert_matches!(parse_push_pop(&ins), Ok(Command::Push(Segment::POINTER, 0)));
+    }
+
+    #[test]
+    fn test_parse_push_pop_with_valid_pop() {
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("pop"),
+            arg1: Some("pointer"),
+            arg2: Some("1"),
+        };
+        assert_matches!(parse_push_pop(&ins), Ok(Command::Pop(Segment::POINTER, 1)));
+    }
+
+    #[test]
+    fn test_parse_push_pop_with_invalid_segment() {
         let ins = Instruction {
             line_number: 3,
             command_type: Some("push"),
             arg1: Some("invalid"),
             arg2: Some("10"),
         };
-        assert_matches!(parse_push(&ins),
+        assert_matches!(parse_push_pop(&ins),
             Err(CompilationError{ line_number: 3, message: "Unexpected segment for push" }));
     }
 
     #[test]
-    fn test_parse_push_with_no_arg2() {
+    fn test_parse_push_pop_with_no_arg2() {
         let ins = Instruction {
             line_number: 8,
             command_type: Some("push"),
-            arg1: Some("doesntmatter"),
+            arg1: Some("static"),
             arg2: None,
         };
-        assert_matches!(parse_push(&ins),
+        assert_matches!(parse_push_pop(&ins),
             Err(CompilationError{ line_number: 8, message: "Expected a second argement for push"}));
     }
 
     #[test]
-    fn test_parse_push_with_no_arg1() {
+    fn test_parse_push_pop_with_no_arg1() {
         let ins = Instruction {
             line_number: 8,
             command_type: Some("doesntmatter"),
             arg1: None,
             arg2: None,
         };
-        assert_matches!(parse_push(&ins),
+        assert_matches!(parse_push_pop(&ins),
             Err(CompilationError{ line_number: 8, message: "Expected a memory segment for push" }));
     }
 
