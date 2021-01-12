@@ -1,4 +1,3 @@
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Segment {
     LOCAL,
@@ -11,7 +10,6 @@ pub enum Segment {
     CONSTANT,
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Operator {
     ADD,
@@ -25,7 +23,6 @@ pub enum Operator {
     NOT,
 }
 
-#[allow(dead_code)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Command {
     Push(Segment, i32),
@@ -47,20 +44,11 @@ pub struct Instruction<'a> {
     arg2: Option<&'a str>,
 }
 
-#[allow(dead_code)]
 pub struct Parser<'a> {
     position: i32,
     source: Vec<&'a str>,
     current_instruction: Option<Instruction<'a>>,
 }
-
-// use std::fmt;
-
-// impl fmt::Display for Vec<&str> {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         write!(f, "{}", self.0)
-//     }
-// }
 
 impl<'a> Parser<'a> {
     pub fn new(source: &str) -> Parser {
@@ -352,7 +340,7 @@ add";
     }
 
     #[test]
-    fn test_compile_simple_inccorect_program() {
+    fn test_compile_simple_incorrect_program() {
         let source = "foo constant 5";
         let prog = compile(&source[..]);
         assert_eq!(Err(vec!(CompilationError {
