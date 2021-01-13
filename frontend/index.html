@@ -5,6 +5,40 @@
     <title>Hello wasm-pack!</title>
   </head>
   <body>
+    <textarea style="height: 80px; width: 260px" id="editor">
+      push constant 8
+      push constant 6
+      add
+    </textarea>
+    <button id="run">Run Program</button>
+    <table id="memory">
+      <tbody>
+        <tr>
+          <th>256</th>
+          <td id="mem-256">0</td>
+        </tr>
+        <tr>
+          <th>257</th>
+          <td id="mem-257">0</td>
+        </tr>
+        <tr>
+          <th>258</th>
+          <td id="mem-258">0</td>
+        </tr>
+        <tr>
+          <th>259</th>
+          <td id="mem-259">0</td>
+        </tr>
+        <tr>
+          <th>260</th>
+          <td id="mem-260">0</td>
+        </tr>
+        <tr>
+          <th>261</th>
+          <td id="mem-261">0</td>
+        </tr>
+      </tbody>
+    </table>
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <script src="./bootstrap.js"></script>
   </body>

@@ -6,3 +6,6 @@ vm.tick();
 vm.tick();
 vm.tick();
 console.log("**** value from VM: " + vm.peek(256));
+
+let progEl = document.querySelector("#editor");
+console.log(progEl.value.split('\n').map(s => s.trim()));
