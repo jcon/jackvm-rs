@@ -9,15 +9,15 @@ pub struct VirtualMachine {
 }
 
 const SP: usize = 0;
-// const LCL: usize = 1;
-// const ARG: usize = 2;
-// const THIS: usize = 3;
-// const THAT: usize = 4;
-// const TEMP0: usize = 5;
-// const STATIC_START: usize = 16;
+const LCL: usize = 1;
+const ARG: usize = 2;
+const THIS: usize = 3;
+const THAT: usize = 4;
+const _TEMP_START: usize = 5;
+const _STATIC_START: usize = 16;
 const STACK_START: usize = 256;
-// const HEAP_START: usize = 2048;
-// const SCREEN_START: usize = 16384;
+const _HEAP_START: usize = 2048;
+const _SCREEN_START: usize = 16384;
 const KEYBOARD_START: usize = 24575;
 
 impl VirtualMachine {
@@ -57,9 +57,18 @@ impl VirtualMachine {
     fn stack_push_segment(&mut self, segment: Segment, offset: i16) -> () {
         let val = match segment {
             Segment::CONSTANT => offset,
+            Segment::LOCAL => self.dereference(LCL, offset),
+            Segment::ARG => self.dereference(ARG, offset),
+            Segment::THIS => self.dereference(THIS, offset),
+            Segment::THAT => self.dereference(THAT, offset),
             _ => 0
         };
         self.stack_push(val);
+    }
+
+    fn dereference(&self, base: usize, offset: i16) -> i16 {
+        let address = (self.memory[base] + offset) as usize;
+        self.memory[address]
     }
 
     fn stack_pop(&mut self) -> i16 {
@@ -104,5 +113,43 @@ mod test {
 
         assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
         assert_eq!(vm.stack_peek(), 15);
+    }
+
+    #[test]
+    pub fn test_basic_stack_push() {
+        let mut vm = VirtualMachine::new();
+        vm.load(&[
+        ]);
+
+        let mut address: usize = 256;
+        vm.memory[LCL] = address as i16;
+        vm.memory[address] = 100;
+
+        address += 1;
+        vm.memory[ARG] = address as i16;
+        vm.memory[address] = 200;
+
+        address += 1;
+        vm.memory[THIS] = address as i16;
+        vm.memory[address] = 300;
+
+        address += 1;
+        vm.memory[THAT] = address as i16;
+        vm.memory[address] = 400;
+
+        address += 1;
+        vm.memory[SP] = address as i16;
+
+        vm.stack_push_segment(Segment::LOCAL, 0);
+        vm.stack_push_segment(Segment::ARG, 0);
+        vm.stack_push_segment(Segment::THIS, 0);
+        vm.stack_push_segment(Segment::THAT, 0);
+
+        assert_eq!(vm.stack_pop(), 400);
+        assert_eq!(vm.stack_pop(), 300);
+        assert_eq!(vm.stack_pop(), 200);
+        assert_eq!(vm.stack_pop(), 100);
+
+        assert_eq!(vm.memory[SP], (STACK_START + 4) as i16);
     }
 }
