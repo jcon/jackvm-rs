@@ -64,10 +64,17 @@ impl<'a> Parser<'a> {
     }
 
     pub fn advance(&mut self) -> () {
-        self.position = self.position + 1;
-        let pos = self.position as usize;
+        let mut pos = (self.position + 1) as usize;
+        while pos < self.source.len() {
+            let s = self.source[pos].trim();
+            if s.len() != 0 {
+                break
+            }
+            pos = pos + 1;
+        }
+
         if pos < self.source.len() {
-            let mut parts = self.source[pos].split(' ');
+            let mut parts = self.source[pos].trim().split(' ');
             self.current_instruction = Some(Instruction {
                 line_number: self.position + 1,
                 command_type: parts.next(),
@@ -78,6 +85,8 @@ impl<'a> Parser<'a> {
         } else {
             self.current_instruction = None;
         }
+
+        self.position = pos as i32;
     }
 
     pub fn has_more_commands(&self) -> bool {
@@ -329,8 +338,9 @@ mod tests {
     #[test]
     fn test_simple_add() {
         let source = "push constant 5
-push constant 4
-add";
+                      push constant 4
+
+                      add";
         let prog = compile(&source[..]);
         assert_eq!(Ok(vec!(
             Command::Push(Segment::CONSTANT, 5),
