@@ -56,6 +56,10 @@ impl VirtualMachine {
         self.memory[address]
     }
 
+    pub fn poke(&mut self, address: usize, val: i16) -> () {
+        self.memory[address] = val;
+    }
+
     fn stack_push(&mut self, val: i16) -> () {
         self.memory[self.memory[SP] as usize] = val;
         self.memory[SP] = self.memory[SP] + 1;

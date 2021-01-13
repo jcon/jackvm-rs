@@ -206,7 +206,7 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
         let ins = parser.get_instruction();
         let line_number = parser.get_line_number();
         let command_or_error = match parser.get_command_type() {
-            Some("push") => parse_push_pop(&ins.unwrap()),
+            Some("push") | Some("pop") => parse_push_pop(&ins.unwrap()),
             Some(ct) if is_arithmetic(ct) => parse_arithmetic(&ins.unwrap()),
             _ => Err(CompilationError {
                 line_number,
