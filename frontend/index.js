@@ -1,11 +1,29 @@
 import { JackVirtualMachine } from "jackvm-wasm";
 
 const vm = JackVirtualMachine.new();
-vm.load("push constant 3\npush constant 4\nadd");
-vm.tick();
-vm.tick();
-vm.tick();
-console.log("**** value from VM: " + vm.peek(256));
 
 let progEl = document.querySelector("#editor");
 console.log(progEl.value.split('\n').map(s => s.trim()));
+
+let runEl = document.querySelector("#run");
+
+let memoryCells = {};
+for (let i = 256; i < 262; i++) {
+    memoryCells[i] = document.querySelector(`#mem-${i}`);
+}
+
+runEl.addEventListener("click", event => {
+    const prog = progEl.value.split('\n').map(s => s.trim());
+    console.log("loading program [", prog.join("\n"), "]");
+    vm.load(prog.join("\n"));
+    for (let i = 0; i < 50; i++) {
+        vm.tick();
+    }
+    console.log("**** value from VM: " + vm.peek(256));
+    let stackPointer = vm.peek(0);
+    for (let i = 256; i < 262; i++) {
+        memoryCells[i].innerHTML = `${vm.peek(i)}${stackPointer === i ? " < SP" : ""}`;
+    }
+});
+
+
