@@ -49,6 +49,10 @@ impl VirtualMachine {
         self.pc = self.pc + 1;
     }
 
+    pub fn peek(&self, address: usize) -> i16 {
+        self.memory[address]
+    }
+
     fn stack_push(&mut self, val: i16) -> () {
         self.memory[self.memory[SP] as usize] = val;
         self.memory[SP] = self.memory[SP] + 1;

@@ -32,8 +32,8 @@ pub enum Command {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CompilationError {
-    message: &'static str,
-    line_number: i32,
+    pub message: &'static str,
+    pub line_number: i32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
