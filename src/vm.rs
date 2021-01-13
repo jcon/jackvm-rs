@@ -20,6 +20,9 @@ const _HEAP_START: usize = 2048;
 const _SCREEN_START: usize = 16384;
 const KEYBOARD_START: usize = 24575;
 
+const VM_TRUE: i16 = -1;
+const VM_FALSE: i16 = 0;
+
 impl VirtualMachine {
     pub fn new() -> VirtualMachine {
         VirtualMachine {
@@ -43,8 +46,8 @@ impl VirtualMachine {
         let command = self.program[self.pc];
         match command {
             Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
+            Command::Pop(segment, arg2) => self.stack_pop_segment(segment, arg2 as i16),
             Command::Arithmetic(operator) => self.process_arithmetic(operator),
-            _ => println!("un implemented command"),
         };
         self.pc = self.pc + 1;
     }
@@ -105,12 +108,30 @@ impl VirtualMachine {
 
     fn process_arithmetic(&mut self, operator: Operator) -> () {
         match operator {
-            Operator::ADD => {
+            Operator::NOT | Operator::NEG => {
+                let arg1 = self.stack_pop();
+                let result = match operator {
+                    Operator::NOT => !arg1,
+                    Operator::NEG => 0 - arg1,
+                    _ => panic!("Unexpected operator encountered"), // won't get here.
+                };
+                self.stack_push(result);
+            },
+            _ => {
                 let arg2 = self.stack_pop();
                 let arg1 = self.stack_pop();
-                self.stack_push(arg1 + arg2);
+                let result = match operator {
+                    Operator::ADD => arg1 + arg2,
+                    Operator::SUB => arg1 - arg2,
+                    Operator::EQ => if arg1 == arg2 { VM_TRUE } else { VM_FALSE },
+                    Operator::LT => if arg1 < arg2 { VM_TRUE } else { VM_FALSE },
+                    Operator::GT => if arg1 > arg2 { VM_TRUE } else { VM_FALSE },
+                    Operator::AND => arg1 & arg2,
+                    Operator::OR => arg1 | arg2,
+                    _ => panic!("Unexpected operator encountered"), // won't get here.
+                };
+                self.stack_push(result);
             },
-            _ => println!("unimplemented!")
         };
     }
 }
@@ -118,6 +139,152 @@ impl VirtualMachine {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    fn load_and_execute(prog: &[Command]) -> VirtualMachine {
+        let mut vm = VirtualMachine::new();
+        vm.load(prog);
+
+        for _ in 0..100 {
+            vm.tick();
+        }
+
+        vm
+    }
+
+    #[test]
+    pub fn test_add_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 8),
+            Command::Push(Segment::CONSTANT, 7),
+            Command::Arithmetic(Operator::ADD),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), 15)
+    }
+
+    #[test]
+    pub fn test_sub_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 16),
+            Command::Push(Segment::CONSTANT, 7),
+            Command::Arithmetic(Operator::SUB),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), 9);
+    }
+
+    #[test]
+    pub fn test_and_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 3),
+            Command::Push(Segment::CONSTANT, 5),
+            Command::Arithmetic(Operator::AND),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), 1);
+    }
+
+    #[test]
+    pub fn test_or_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 3),
+            Command::Push(Segment::CONSTANT, 4),
+            Command::Arithmetic(Operator::OR),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), 7);
+    }
+
+    #[test]
+    pub fn test_eq_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 88),
+            Command::Push(Segment::CONSTANT, 89),
+            Command::Arithmetic(Operator::EQ),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), VM_FALSE);
+
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 101),
+            Command::Push(Segment::CONSTANT, 101),
+            Command::Arithmetic(Operator::EQ),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), VM_TRUE);
+    }
+
+    #[test]
+    pub fn test_lt_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 88),
+            Command::Push(Segment::CONSTANT, 89),
+            Command::Arithmetic(Operator::LT),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), VM_TRUE);
+
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 101),
+            Command::Push(Segment::CONSTANT, 101),
+            Command::Arithmetic(Operator::LT),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), VM_FALSE);
+    }
+
+    #[test]
+    pub fn test_gt_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 105),
+            Command::Push(Segment::CONSTANT, 55),
+            Command::Arithmetic(Operator::GT),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), VM_TRUE);
+
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 9998),
+            Command::Push(Segment::CONSTANT, 9999),
+            Command::Arithmetic(Operator::GT),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), VM_FALSE);
+    }
+
+    #[test]
+    pub fn test_not_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, -1),
+            Command::Arithmetic(Operator::NOT),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), 0);
+
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 0),
+            Command::Arithmetic(Operator::NOT),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), -1);
+    }
+
+    #[test]
+    pub fn test_neg_instruction() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, -99),
+            Command::Arithmetic(Operator::NEG),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), 99);
+
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 54),
+            Command::Arithmetic(Operator::NEG),
+        ]);
+        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
+        assert_eq!(vm.stack_peek(), -54);
+    }
 
     #[test]
     pub fn test_execute_simple_addition() {
