@@ -110,14 +110,6 @@ impl<'a> Parser<'a> {
     pub fn get_command_type(&self) -> Option<&str> {
         self.current_instruction?.command_type
     }
-
-    pub fn get_arg1(&self) -> Option<&str> {
-        self.current_instruction?.arg1
-    }
-
-    pub fn get_arg2(&self) -> Option<&str> {
-        self.current_instruction?.arg2
-    }
 }
 
 impl<'a> Iterator for Parser<'a> {
@@ -341,7 +333,7 @@ mod tests {
     }
 
     #[test]
-    fn test_simple_add() {
+    fn test_simple_add_program() {
         let source = "push constant 5
                       push constant 4
                       // comment on separate line

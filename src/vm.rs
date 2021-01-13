@@ -70,6 +70,7 @@ impl VirtualMachine {
         self.stack_push(val);
     }
 
+    #[allow(unused)]
     fn stack_pop_segment(&mut self, segment: Segment, offset: i16) -> () {
         let base_address = match segment {
             // TODO: it's an error to "pop" to constant.
@@ -96,6 +97,7 @@ impl VirtualMachine {
         self.memory[address]
     }
 
+    #[allow(unused)]
     fn stack_peek(&self) -> i16 {
         let address = (self.memory[SP] - 1) as usize;
         self.memory[address]
@@ -178,19 +180,19 @@ mod test {
         vm.load(&[
         ]);
 
-        let nLocal = 2;
-        let nArgs = 3;
-        let nFields = 2;
+        let n_local = 2;
+        let n_args = 3;
+        let n_fields = 2;
 
         let mut address: usize = 256;
         vm.memory[LCL] = address as i16;
-        address += nLocal;
+        address += n_local;
 
         vm.memory[ARG] = address as i16;
-        address += nArgs;
+        address += n_args;
 
         vm.memory[THIS] = address as i16;
-        address += nFields;
+        address += n_fields;
 
         vm.memory[THAT] = address as i16;
         address += 1;
@@ -212,6 +214,6 @@ mod test {
         assert_eq!(vm.dereference(ARG, 0), 200);
         assert_eq!(vm.dereference(LCL, 0), 100);
 
-        assert_eq!(vm.memory[SP], (STACK_START + nLocal + nArgs + nFields + 1) as i16);
+        assert_eq!(vm.memory[SP], (STACK_START + n_local + n_args + n_fields + 1) as i16);
     }
 }

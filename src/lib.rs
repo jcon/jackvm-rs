@@ -16,13 +16,15 @@ extern {
 }
 
 #[wasm_bindgen]
-struct JackVirtualMachine {
+pub struct JackVirtualMachine {
     jack_vm: vm::VirtualMachine,
 }
 
 #[wasm_bindgen]
 impl JackVirtualMachine {
     pub fn new() -> JackVirtualMachine {
+        utils::set_panic_hook();
+
         JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new()
         }
