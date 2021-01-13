@@ -28,13 +28,19 @@ impl JackVirtualMachine {
         }
     }
 
-    // TODO: this should be an error.
+    // TODO: this should communicate errors.
     pub fn load(&mut self, program: &str) -> () {
         match compiler::compile(program) {
-            Ok(bytecode) => self.jack_vm.load(&bytecode[..]),
+            Ok(bytecode) => {
+                self.jack_vm.load(&bytecode[..]);
+            },
             Err(errors) => {
-                let compiler::CompilationError { message, .. } = errors[0];
-                alert(message);
+                // TODO: figure out how to return array of string errors to JS.
+                let messages: Vec<String> = errors
+                    .iter()
+                    .map(|e| format!("{}: {}", e.line_number, e.message))
+                    .collect();
+                alert(&messages.join("\n"));
             },
         }
     }
