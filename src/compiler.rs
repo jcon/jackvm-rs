@@ -50,6 +50,11 @@ pub struct Parser<'a> {
     current_instruction: Option<Instruction<'a>>,
 }
 
+fn remove_comment(line: &str) -> &str {
+    let end = line.find("//").unwrap_or(line.len());
+    &line[..end]
+}
+
 impl<'a> Parser<'a> {
     pub fn new(source: &str) -> Parser {
         let mut lines = Vec::new();
@@ -66,7 +71,7 @@ impl<'a> Parser<'a> {
     pub fn advance(&mut self) -> () {
         let mut pos = (self.position + 1) as usize;
         while pos < self.source.len() {
-            let s = self.source[pos].trim();
+            let s = remove_comment(self.source[pos].trim());
             if s.len() != 0 {
                 break
             }
@@ -74,7 +79,7 @@ impl<'a> Parser<'a> {
         }
 
         if pos < self.source.len() {
-            let mut parts = self.source[pos].trim().split(' ');
+            let mut parts = remove_comment(self.source[pos].trim()).split(' ');
             self.current_instruction = Some(Instruction {
                 line_number: self.position + 1,
                 command_type: parts.next(),
@@ -339,8 +344,8 @@ mod tests {
     fn test_simple_add() {
         let source = "push constant 5
                       push constant 4
-
-                      add";
+                      // comment on separate line
+                      add // comment on same line";
         let prog = compile(&source[..]);
         assert_eq!(Ok(vec!(
             Command::Push(Segment::CONSTANT, 5),
