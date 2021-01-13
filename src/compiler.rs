@@ -69,15 +69,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn advance(&mut self) -> () {
-        let mut pos = (self.position + 1) as usize;
-        while pos < self.source.len() {
-            let s = remove_comment(self.source[pos].trim());
-            if s.len() != 0 {
-                break
-            }
-            pos = pos + 1;
-        }
-
+        let pos = self.get_next_pos();
         if pos < self.source.len() {
             let mut parts = remove_comment(self.source[pos].trim()).split(' ');
             self.current_instruction = Some(Instruction {
@@ -95,8 +87,7 @@ impl<'a> Parser<'a> {
     }
 
     pub fn has_more_commands(&self) -> bool {
-        let next_pos = (self.position + 1) as usize;
-        next_pos < self.source.len()
+        self.get_next_pos() < self.source.len()
     }
 
     pub fn get_instruction(&self) -> Option<Instruction<'a>> {
@@ -109,6 +100,18 @@ impl<'a> Parser<'a> {
 
     pub fn get_command_type(&self) -> Option<&str> {
         self.current_instruction?.command_type
+    }
+
+    fn get_next_pos(&self) -> usize {
+        let mut pos = (self.position + 1) as usize;
+        while pos < self.source.len() {
+            let s = remove_comment(self.source[pos].trim());
+            if s.len() != 0 {
+                break
+            }
+            pos = pos + 1;
+        }
+        pos
     }
 }
 
@@ -337,7 +340,8 @@ mod tests {
         let source = "push constant 5
                       push constant 4
                       // comment on separate line
-                      add // comment on same line";
+                      add // comment on same line
+                      ";
         let prog = compile(&source[..]);
         assert_eq!(Ok(vec!(
             Command::Push(Segment::CONSTANT, 5),
