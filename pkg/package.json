@@ -1,0 +1,16 @@
+{
+    "name": "jackvm-wasm",
+    "collaborators": [
+      "Your Name <your.email@example.com>"
+    ],
+    "description": null,
+    "version": "0.1.0",
+    "license": null,
+    "repository": null,
+    "files": [
+      "jackvm_wasm_bg.wasm",
+      "jackvm_wasm.d.ts"
+    ],
+    "main": "jackvm_wasm.js",
+    "types": "jackvm_wasm.d.ts"
+  }
