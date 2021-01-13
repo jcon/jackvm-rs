@@ -93,13 +93,26 @@ impl VirtualMachine {
         let base_address = match segment {
             // TODO: it's an error to "pop" to constant.
 //            Segment::CONSTANT => offset,
-            Segment::LOCAL => self.memory[LCL],
-            Segment::ARG => self.memory[ARG],
-            Segment::THIS => self.memory[THIS],
-            Segment::THAT => self.memory[THAT],
-            _ => 0,
+            Segment::LOCAL => self.memory[LCL] + offset,
+            Segment::ARG => self.memory[ARG] + offset,
+            Segment::THIS => self.memory[THIS] + offset,
+            Segment::THAT => self.memory[THAT] + offset,
+            Segment::POINTER => {
+                if offset == 0 {
+                    THIS as i16
+                } else {
+                    THAT as i16
+                }
+            },
+            Segment::TEMP => {
+                (TEMP_START as i16) + offset
+            },
+            Segment::STATIC => {
+                (STATIC_START as i16) + offset
+            }
+            _ => panic!("unexpected segment"),
         };
-        let address = (base_address + offset) as usize;
+        let address = base_address as usize;
         let val = self.stack_pop();
         self.memory[address] = val;
     }
@@ -409,5 +422,25 @@ mod test {
         assert_eq!(vm.dereference(LCL, 0), 100);
 
         assert_eq!(vm.memory[SP], (STACK_START + n_local + n_args + n_fields + 1) as i16);
+
+        vm.memory[THIS] = -1;
+        vm.memory[THAT] = -1;
+        vm.memory[STATIC_START + 4] = -1;
+        vm.memory[TEMP_START + 2] = -1;
+
+        vm.stack_push(40);
+        vm.stack_push(30);
+        vm.stack_push(20);
+        vm.stack_push(10);
+
+        vm.stack_pop_segment(Segment::POINTER, 0);
+        vm.stack_pop_segment(Segment::POINTER, 1);
+        vm.stack_pop_segment(Segment::STATIC, 4);
+        vm.stack_pop_segment(Segment::TEMP, 2);
+
+        assert_eq!(vm.memory[THIS], 10);
+        assert_eq!(vm.memory[THAT], 20);
+        assert_eq!(vm.memory[STATIC_START + 4], 30);
+        assert_eq!(vm.memory[TEMP_START + 2], 40);
     }
 }
