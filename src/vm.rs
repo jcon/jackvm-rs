@@ -13,8 +13,8 @@ const LCL: usize = 1;
 const ARG: usize = 2;
 const THIS: usize = 3;
 const THAT: usize = 4;
-const _TEMP_START: usize = 5;
-const _STATIC_START: usize = 16;
+const TEMP_START: usize = 5;
+const STATIC_START: usize = 16;
 const STACK_START: usize = 256;
 const _HEAP_START: usize = 2048;
 const _SCREEN_START: usize = 16384;
@@ -68,7 +68,22 @@ impl VirtualMachine {
             Segment::ARG => self.dereference(ARG, offset),
             Segment::THIS => self.dereference(THIS, offset),
             Segment::THAT => self.dereference(THAT, offset),
-            _ => 0
+            Segment::POINTER => {
+                let address_pointer = if offset == 0 {
+                    THIS
+                } else {
+                    THAT
+                };
+                self.memory[address_pointer]
+            },
+            Segment::TEMP => {
+                let address = TEMP_START + (offset as usize);
+                self.memory[address]
+            },
+            Segment::STATIC => {
+                let address = STATIC_START + (offset as usize);
+                self.memory[address]
+            },
         };
         self.stack_push(val);
     }
@@ -325,6 +340,10 @@ mod test {
         vm.memory[THAT] = address as i16;
         vm.memory[address] = 400;
 
+        vm.memory[STATIC_START + 4] = 500;
+
+        vm.memory[TEMP_START + 2] = 600;
+
         address += 1;
         vm.memory[SP] = address as i16;
 
@@ -332,7 +351,15 @@ mod test {
         vm.stack_push_segment(Segment::ARG, 0);
         vm.stack_push_segment(Segment::THIS, 0);
         vm.stack_push_segment(Segment::THAT, 0);
+        vm.stack_push_segment(Segment::POINTER, 0);
+        vm.stack_push_segment(Segment::POINTER, 1);
+        vm.stack_push_segment(Segment::STATIC, 4);
+        vm.stack_push_segment(Segment::TEMP, 2);
 
+        assert_eq!(vm.stack_pop(), vm.memory[TEMP_START + 2]);
+        assert_eq!(vm.stack_pop(), vm.memory[STATIC_START + 4]);
+        assert_eq!(vm.stack_pop(), vm.memory[THAT]);
+        assert_eq!(vm.stack_pop(), vm.memory[THIS]);
         assert_eq!(vm.stack_pop(), 400);
         assert_eq!(vm.stack_pop(), 300);
         assert_eq!(vm.stack_pop(), 200);
