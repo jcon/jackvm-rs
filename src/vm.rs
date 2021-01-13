@@ -66,6 +66,21 @@ impl VirtualMachine {
         self.stack_push(val);
     }
 
+    fn stack_pop_segment(&mut self, segment: Segment, offset: i16) -> () {
+        let base_address = match segment {
+            // TODO: it's an error to "pop" to constant.
+//            Segment::CONSTANT => offset,
+            Segment::LOCAL => self.memory[LCL],
+            Segment::ARG => self.memory[ARG],
+            Segment::THIS => self.memory[THIS],
+            Segment::THAT => self.memory[THAT],
+            _ => 0,
+        };
+        let address = (base_address + offset) as usize;
+        let val = self.stack_pop();
+        self.memory[address] = val;
+    }
+
     fn dereference(&self, base: usize, offset: i16) -> i16 {
         let address = (self.memory[base] + offset) as usize;
         self.memory[address]
@@ -151,5 +166,48 @@ mod test {
         assert_eq!(vm.stack_pop(), 100);
 
         assert_eq!(vm.memory[SP], (STACK_START + 4) as i16);
+    }
+
+    #[test]
+    pub fn test_basic_stack_pop() {
+        let mut vm = VirtualMachine::new();
+        vm.load(&[
+        ]);
+
+        let nLocal = 2;
+        let nArgs = 3;
+        let nFields = 2;
+
+        let mut address: usize = 256;
+        vm.memory[LCL] = address as i16;
+        address += nLocal;
+
+        vm.memory[ARG] = address as i16;
+        address += nArgs;
+
+        vm.memory[THIS] = address as i16;
+        address += nFields;
+
+        vm.memory[THAT] = address as i16;
+        address += 1;
+
+        vm.memory[SP] = address as i16;
+
+        vm.stack_push(400);
+        vm.stack_push(300);
+        vm.stack_push(200);
+        vm.stack_push(100);
+
+        vm.stack_pop_segment(Segment::LOCAL, 0);
+        vm.stack_pop_segment(Segment::ARG, 0);
+        vm.stack_pop_segment(Segment::THIS, 0);
+        vm.stack_pop_segment(Segment::THAT, 0);
+
+        assert_eq!(vm.dereference(THAT, 0), 400);
+        assert_eq!(vm.dereference(THIS, 0), 300);
+        assert_eq!(vm.dereference(ARG, 0), 200);
+        assert_eq!(vm.dereference(LCL, 0), 100);
+
+        assert_eq!(vm.memory[SP], (STACK_START + nLocal + nArgs + nFields + 1) as i16);
     }
 }
