@@ -255,6 +255,19 @@ fn parse_call(instruction: &Instruction) -> Result<Command, CompilationError> {
     Ok(Command::Call(name.to_string(), n_args))
 }
 
+fn parse_return(instruction: &Instruction) -> Result<Command, CompilationError> {
+    let line_number = instruction.line_number;
+    match (instruction.arg1, instruction.arg2) {
+        (None, None) => (),
+        _ => return Err(CompilationError {
+            line_number,
+            message: "Expected no arguments for return",
+        })
+    }
+
+    Ok(Command::Return)
+}
+
 // TODO: find out how to set a statically defined set
 fn is_arithmetic(command_type: &str) -> bool {
     let ct = command_type;
@@ -278,6 +291,7 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
             Some("if-goto") => parse_if_goto(&ins.unwrap()),
             Some("function") => parse_function(&ins.unwrap()),
             Some("call") => parse_call(&ins.unwrap()),
+            Some("return") => parse_return(&ins.unwrap()),
             _ => Err(CompilationError {
                 line_number,
                 message: "Unrecognized instruction",
@@ -576,6 +590,45 @@ mod tests {
 
         assert_eq!(parse_call(&ins), Err(CompilationError {
             message: "Expected a positive integer for number of arguments being passed to the function",
+            line_number: 4
+        }));
+    }
+
+    #[test]
+    fn test_parse_valid_return() {
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("return"),
+            arg1: None,
+            arg2: None,
+        };
+
+        assert_eq!(parse_return(&ins), Ok(Command::Return));
+    }
+
+    #[test]
+    fn test_parse_invalid_return() {
+        let ins = Instruction {
+            line_number: 8,
+            command_type: Some("return"),
+            arg1: Some("something"),
+            arg2: None,
+        };
+
+        assert_eq!(parse_return(&ins), Err(CompilationError {
+            message: "Expected no arguments for return",
+            line_number: 8
+        }));
+
+        let ins = Instruction {
+            line_number: 4,
+            command_type: Some("return"),
+            arg1: None,
+            arg2: Some("-1"),
+        };
+
+        assert_eq!(parse_return(&ins), Err(CompilationError {
+            message: "Expected no arguments for return",
             line_number: 4
         }));
     }
