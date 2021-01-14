@@ -1,4 +1,6 @@
+use crate::compiler::compile;
 use crate::compiler::Command;
+use crate::compiler::CompilationError;
 use crate::compiler::Segment;
 use crate::compiler::Operator;
 
@@ -30,6 +32,12 @@ impl VirtualMachine {
             pc: 0,
             program: vec!(),
         }
+    }
+
+    pub fn compile_and_load(&mut self, program: &str) -> Result<(), Vec<CompilationError>> {
+        let bytecode = compile(program)?;
+        self.load(&bytecode[..]);
+        Ok(())
     }
 
     pub fn load(&mut self, prog: &[Command]) -> () {

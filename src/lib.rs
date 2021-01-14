@@ -32,10 +32,7 @@ impl JackVirtualMachine {
 
     // TODO: this should communicate errors.
     pub fn load(&mut self, program: &str) -> () {
-        match compiler::compile(program) {
-            Ok(bytecode) => {
-                self.jack_vm.load(&bytecode[..]);
-            },
+        match self.jack_vm.compile_and_load(program) {
             Err(errors) => {
                 // TODO: figure out how to return array of string errors to JS.
                 let messages: Vec<String> = errors
@@ -44,6 +41,7 @@ impl JackVirtualMachine {
                     .collect();
                 alert(&messages.join("\n"));
             },
+            _ => ()
         }
     }
 

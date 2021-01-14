@@ -1,14 +1,12 @@
 #[cfg(test)]
 mod test {
     use jackvm_wasm::vm;
-    use jackvm_wasm::compiler;
 
     pub fn execute_program(program: &str) -> vm::VirtualMachine {
         let mut jack_vm = vm::VirtualMachine::new();
-        match compiler::compile(program) {
-            Ok(bytecode) => {
-                jack_vm.load(&bytecode[..]);
-            },
+        let compile_result = jack_vm.compile_and_load(program);
+
+        match compile_result {
             Err(errors) => {
                 // TODO: figure out how to return array of string errors to JS.
                 let messages: Vec<String> = errors
@@ -19,6 +17,7 @@ mod test {
                 assert_eq!(empty_vec, messages);
                 // println!("{}", &messages.join("\n"));
             },
+            _ => ()
         };
 
         jack_vm.poke(0, 256);
