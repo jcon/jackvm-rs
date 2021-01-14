@@ -2,7 +2,7 @@
 mod test {
     use jackvm_wasm::vm;
 
-    pub fn execute_program(program: &str) -> vm::VirtualMachine {
+    fn compile_program(program: &str) -> vm::VirtualMachine {
         let mut jack_vm = vm::VirtualMachine::new();
         let compile_result = jack_vm.compile_and_load(program);
 
@@ -19,6 +19,28 @@ mod test {
             },
             _ => ()
         };
+
+        jack_vm
+    }
+
+    fn execute_program(program: &str) -> vm::VirtualMachine {
+        // let mut jack_vm = vm::VirtualMachine::new();
+        // let compile_result = jack_vm.compile_and_load(program);
+
+        // match compile_result {
+        //     Err(errors) => {
+        //         // TODO: figure out how to return array of string errors to JS.
+        //         let messages: Vec<String> = errors
+        //             .iter()
+        //             .map(|e| format!("{}: {}", e.line_number, e.get_message()))
+        //             .collect();
+        //         let empty_vec: Vec<String> = vec!();
+        //         assert_eq!(empty_vec, messages);
+        //         // println!("{}", &messages.join("\n"));
+        //     },
+        //     _ => ()
+        // };
+        let mut jack_vm = compile_program(program);
 
         jack_vm.poke(0, 256);
         jack_vm.poke(1, 300);
@@ -180,5 +202,44 @@ mod test {
         assert_eq!(jack_vm.peek(263), 0);
         assert_eq!(jack_vm.peek(264), 0);
         assert_eq!(jack_vm.peek(265), -91);
+    }
+
+    #[test]
+    pub fn test_program_flow_basic_loop() {
+        let mut jack_vm = compile_program("
+            // Computes the sum 1 + 2 + ... + argument[0] and pushes the
+            // result onto the stack. Argument[0] is initialized by the test
+            // script before this code starts running.
+            push constant 0
+            pop local 0         // initializes sum = 0
+            label LOOP_START
+            push argument 0
+            push local 0
+            add
+            pop local 0        // sum = sum + counter
+            push argument 0
+            push constant 1
+            sub
+            pop argument 0     // counter--
+            push argument 0
+            if-goto LOOP_START // If counter > 0, goto LOOP_START
+            push local 0
+        ");
+
+        jack_vm.poke(0, 256);
+        jack_vm.poke(1, 300);
+        jack_vm.poke(2, 400);
+        jack_vm.poke(400, 3);
+
+        /*
+        | RAM[0] |RAM[256]|
+        |    257 |      6 |
+        */
+        for _ in 0..600 {
+            jack_vm.tick();
+        }
+
+        assert_eq!(jack_vm.peek(0), 257);
+        assert_eq!(jack_vm.peek(256), 6);
     }
 }

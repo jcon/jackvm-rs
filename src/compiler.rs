@@ -1,3 +1,4 @@
+use std::fmt;
 use std::collections::HashMap;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -68,6 +69,24 @@ pub struct Instruction<'a> {
     arg2: Option<&'a str>,
 }
 
+// impl<'a> fmt::Display for Instruction<'a> {
+//     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+//         self.command_type.and_then(|ct| {
+//             write!(f, "{}", ct);
+//             Some(ct)
+//         });
+//         self.arg1.and_then(|a1| {
+//             write!(f, " {}", a1);
+//             Some(a1)
+//         });
+//         self.arg2.and_then(|a2| {
+//             write!(f, " {}", a2);
+//             Some(a2)
+//         });
+//         Ok(())
+//     }
+// }
+
 pub struct Parser<'a> {
     position: i32,
     source: Vec<&'a str>,
@@ -95,6 +114,7 @@ impl<'a> Parser<'a> {
     pub fn advance(&mut self) -> () {
         let pos = self.get_next_pos();
         if pos < self.source.len() {
+            // TODO: ensure tabs are trimmed off too.
             let mut parts = remove_comment(self.source[pos].trim()).split(' ');
             self.current_instruction = Some(Instruction {
                 line_number: self.position + 1,
@@ -160,16 +180,13 @@ fn parse_push_pop(instruction: &Instruction) -> Result<Command, CompilationError
         })
     }?;
 
-    let arg2 = match instruction.arg2 {
-        Some(a2) => a2.parse::<i32>().map_err(|_| CompilationError {
+    let arg2 = parse_positive_int(instruction.arg2).map_err(
+        |_e| CompilationError {
             line_number,
+            // TODO: find a better way to match partial string for error.
+//            message: format!("Expected a positive integer for argument:\n{}\n\n{}\n", instruction, e),
             message: "Expected a positive integer for argument".to_string(),
-        }),
-        None => Err(CompilationError {
-            line_number,
-            message: "Expected a second argement for push".to_string(),
-        })
-    }?;
+        })?;
 
     match instruction.command_type {
         Some("push") => Ok(Command::Push(segment, arg2)),
@@ -329,11 +346,11 @@ pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec
 }
 
 fn parse_positive_int(arg: Option<&str>) -> Result<i32, String> {
-    let s = arg.ok_or("Expected a positive integer")?;
-    let i = s.parse::<i32>().map_err(|_| "Expected a positive integer".to_string())?;
+    let s = arg.ok_or("Expected a non-positive integer, but found nothing")?;
+    let i = s.parse::<i32>().map_err(|e| format!("Cannot parse integer: {}", e))?;
     println!("args are {}", i);
     if i < 0 {
-        Err("Expected a positive integer".to_string())
+        Err(format!("Expected a non-negative integer, but got {}", i))
     } else {
         Ok(i)
     }
@@ -433,7 +450,7 @@ mod tests {
             arg1: Some("static"),
             arg2: None,
         };
-        let message = "Expected a second argement for push".to_string();
+        let message = "Expected a positive integer for argument".to_string();
         assert_eq!(parse_push_pop(&ins),
             Err(CompilationError{ line_number: 8, message }));
     }

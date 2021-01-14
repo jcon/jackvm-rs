@@ -60,9 +60,30 @@ impl VirtualMachine {
             &Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
             &Command::Pop(segment, arg2) => self.stack_pop_segment(segment, arg2 as i16),
             &Command::Arithmetic(operator) => self.process_arithmetic(operator),
+            &Command::Goto(ref label) => {
+                self.pc = *self.addresses.get(label).unwrap() as usize;
+                return; // don't update the program counter
+            },
+            &Command::IfGoto(ref label) => {
+                // NOTE: we cannot have an immutable reference to label while having
+                //       an immutable reference to self.
+                let label_copy = label.clone();
+                if self.process_if_goto(&label_copy) {
+                    return; // don't update the program counter when if-goto was successful
+                }
+            },
             _ => panic!(format!("unimplemented command: {:?}", command))
         };
         self.pc = self.pc + 1;
+    }
+
+    fn process_if_goto(&mut self, address: &str) -> bool {
+        if self.stack_pop() != VM_FALSE {
+            self.pc = *self.addresses.get(address).unwrap() as usize;
+            true
+        } else {
+            false
+        }
     }
 
     pub fn peek(&self, address: usize) -> i16 {
