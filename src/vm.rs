@@ -35,7 +35,7 @@ impl VirtualMachine {
     }
 
     pub fn compile_and_load(&mut self, program: &str) -> Result<(), Vec<CompilationError>> {
-        let bytecode = compile(program)?;
+        let (bytecode, _) = compile(program)?;
         self.load(&bytecode[..]);
         Ok(())
     }

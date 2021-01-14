@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Segment {
     LOCAL,
@@ -34,6 +36,16 @@ pub enum Command {
     Function(String, i32),
     Call(String, i32),
     Return,
+}
+
+impl Command {
+    pub fn get_label(&self) -> Option<&String> {
+        match self {
+            Command::Label(m) => Some(&m),
+            Command::Function(m, _) => Some(&m),
+            _ => None
+        }
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -267,11 +279,13 @@ fn is_arithmetic(command_type: &str) -> bool {
     ct == "add" || ct == "sub" || ct == "eq" || ct == "gt" || ct == "lt" || ct == "and" || ct == "or" || ct == "neg" || ct == "not"
 }
 
-pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
+pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec<CompilationError>> {
     let mut parser = Parser::new(source);
     let mut program: Vec<Command> = Vec::new();
     let mut errors: Vec<CompilationError> = Vec::new();
+    let mut addresses: HashMap<String, i16> = HashMap::new();
 
+    let mut pc = 0;
     while parser.has_more_commands() {
         parser.advance();
         let ins = parser.get_instruction();
@@ -291,13 +305,24 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
             }),
         };
         match command_or_error {
-            Ok(command) => program.push(command),
+            Ok(command) => {
+                if let Command::Function(_, _) = command {
+                    addresses.insert(command.get_label().unwrap().clone(), pc);
+                }
+
+                if let Command::Label(_) = command {
+                    addresses.insert(command.get_label().unwrap().clone(), pc);
+                } else {
+                    program.push(command);
+                    pc += 1;
+                }
+            },
             Err(e) => errors.push(e),
         }
     }
 
     if errors.len() == 0 {
-        Ok(program)
+        Ok((program, addresses))
     } else {
         Err(errors)
     }
@@ -631,19 +656,70 @@ mod tests {
     }
 
     #[test]
-    fn test_simple_add_program() {
+    fn test_compile_simple_add_program() {
         let source = "push constant 5
                       push constant 4
                       // comment on separate line
                       add // comment on same line
                       ";
-        let prog = compile(&source[..]);
-        assert_eq!(Ok(vec!(
-            Command::Push(Segment::CONSTANT, 5),
-            Command::Push(Segment::CONSTANT, 4),
-            Command::Arithmetic(Operator::ADD),
-        )), prog);
+        let result = compile(&source[..]);
+        match result {
+            Ok((prog, _)) =>  {
+                assert_eq!(vec!(
+                    Command::Push(Segment::CONSTANT, 5),
+                    Command::Push(Segment::CONSTANT, 4),
+                    Command::Arithmetic(Operator::ADD),
+                ), prog);
+            }
+            Err(_) => {
+                panic!("Expected OK response");
+            }
+        }
     }
+
+    #[test]
+    fn test_compile_produces_correct_addresses() {
+        let source = "
+                      push constant 1 // 0
+                      label next_add
+                      push constant 1 // 1
+                      add // 2
+                      goto next_add // 3
+                      label label1
+                      label label2
+                      add // 4
+                      function add_two 2 // 5
+                      label before_add
+                      push argument 0  // 6
+                      push argument 1 // 7
+                      add
+                      return
+                      ";
+        let result = compile(&source[..]);
+        match result {
+            Ok((prog, addresses)) => {
+                assert_eq!(vec!(
+                    Command::Push(Segment::CONSTANT, 1),
+                    Command::Push(Segment::CONSTANT, 1),
+                    Command::Arithmetic(Operator::ADD),
+                    Command::Goto("next_add".to_string()),
+                    Command::Arithmetic(Operator::ADD),
+                    Command::Function("add_two".to_string(), 2),
+                    Command::Push(Segment::ARG, 0),
+                    Command::Push(Segment::ARG, 1),
+                    Command::Arithmetic(Operator::ADD),
+                    Command::Return,
+                ), prog);
+                assert_eq!(addresses.get("next_add"), Some(&1));
+                assert_eq!(addresses.get("label1"), Some(&4));
+                assert_eq!(addresses.get("label2"), Some(&4));
+                assert_eq!(addresses.get("add_two"), Some(&5));
+                assert_eq!(addresses.get("before_add"), Some(&6));
+            },
+            Err(errors) => panic!("Expected Ok response: {:?}", errors),
+        }
+    }
+
 
     #[test]
     fn test_compile_simple_incorrect_program() {
