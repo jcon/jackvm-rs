@@ -1,4 +1,4 @@
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Segment {
     LOCAL,
     ARG,
@@ -10,7 +10,7 @@ pub enum Segment {
     CONSTANT,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Operator {
     ADD,
     SUB,
@@ -23,7 +23,7 @@ pub enum Operator {
     NOT,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Command {
     Push(Segment, i32),
     Pop(Segment, i32),
@@ -36,13 +36,13 @@ pub enum Command {
     Return,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CompilationError {
     pub message: &'static str,
     pub line_number: i32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Instruction<'a> {
     line_number: i32,
     command_type: Option<&'a str>,
@@ -96,8 +96,8 @@ impl<'a> Parser<'a> {
         self.get_next_pos() < self.source.len()
     }
 
-    pub fn get_instruction(&self) -> Option<Instruction<'a>> {
-        self.current_instruction
+    pub fn get_instruction(&self) -> &Option<Instruction<'a>> {
+        &self.current_instruction
     }
 
     pub fn get_line_number(&self) -> i32 {
@@ -118,19 +118,6 @@ impl<'a> Parser<'a> {
             pos = pos + 1;
         }
         pos
-    }
-}
-
-impl<'a> Iterator for Parser<'a> {
-    type Item = Instruction<'a>;
-
-    fn next(&mut self) -> Option<Instruction<'a>> {
-        if self.has_more_commands() {
-            self.advance();
-            self.get_instruction()
-        } else {
-            None
-        }
     }
 }
 
