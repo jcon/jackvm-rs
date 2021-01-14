@@ -51,11 +51,12 @@ impl VirtualMachine {
             return ()
         }
 
-        let command = self.program[self.pc];
+        let command = &self.program[self.pc];
         match command {
-            Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
-            Command::Pop(segment, arg2) => self.stack_pop_segment(segment, arg2 as i16),
-            Command::Arithmetic(operator) => self.process_arithmetic(operator),
+            &Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
+            &Command::Pop(segment, arg2) => self.stack_pop_segment(segment, arg2 as i16),
+            &Command::Arithmetic(operator) => self.process_arithmetic(operator),
+            _ => panic!(format!("unimplemented command: {:?}", command))
         };
         self.pc = self.pc + 1;
     }

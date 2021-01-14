@@ -23,11 +23,17 @@ pub enum Operator {
     NOT,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Command {
     Push(Segment, i32),
     Pop(Segment, i32),
     Arithmetic(Operator),
+    Label(String),
+    Goto(String),
+    IfGoto(String),
+    Function(String, i32),
+    Call(String, i32),
+    Return,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -190,6 +196,33 @@ fn parse_arithmetic(instruction: &Instruction) -> Result<Command, CompilationErr
     Ok(Command::Arithmetic(operation))
 }
 
+fn parse_label(instruction: &Instruction) -> Result<Command, CompilationError> {
+    let line_number = instruction.line_number;
+    let arg1 = instruction.arg1.ok_or(CompilationError {
+        line_number,
+        message: "Expected a name for the label",
+    })?;
+    Ok(Command::Label(String::from(arg1)))
+}
+
+fn parse_goto(instruction: &Instruction) -> Result<Command, CompilationError> {
+    let line_number = instruction.line_number;
+    let arg1 = instruction.arg1.ok_or(CompilationError {
+        line_number,
+        message: "Expected a name for the goto",
+    })?;
+    Ok(Command::Goto(String::from(arg1)))
+}
+
+fn parse_if_goto(instruction: &Instruction) -> Result<Command, CompilationError> {
+    let line_number = instruction.line_number;
+    let arg1 = instruction.arg1.ok_or(CompilationError {
+        line_number,
+        message: "Expected a name for the if-goto",
+    })?;
+    Ok(Command::IfGoto(String::from(arg1)))
+}
+
 // TODO: find out how to set a statically defined set
 fn is_arithmetic(command_type: &str) -> bool {
     let ct = command_type;
@@ -208,6 +241,9 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
         let command_or_error = match parser.get_command_type() {
             Some("push") | Some("pop") => parse_push_pop(&ins.unwrap()),
             Some(ct) if is_arithmetic(ct) => parse_arithmetic(&ins.unwrap()),
+            Some("label") => parse_label(&ins.unwrap()),
+            Some("goto") => parse_goto(&ins.unwrap()),
+            Some("if-goto") => parse_if_goto(&ins.unwrap()),
             _ => Err(CompilationError {
                 line_number,
                 message: "Unrecognized instruction",
@@ -333,6 +369,90 @@ mod tests {
         };
         assert_matches!(parse_push_pop(&ins),
             Err(CompilationError{ line_number: 8, message: "Expected a memory segment for push" }));
+    }
+
+    #[test]
+    fn test_parse_valid_label() {
+        let label = "WHILE-0";
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("label"),
+            arg1: Some(label),
+            arg2: None,
+        };
+
+        assert_eq!(parse_label(&ins), Ok(Command::Label(label.to_string())));
+    }
+
+    #[test]
+    fn test_parse_invalid_label() {
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("label"),
+            arg1: None,
+            arg2: None,
+        };
+
+        assert_eq!(parse_label(&ins), Err(CompilationError {
+            message: "Expected a name for the label",
+            line_number: 3
+        }));
+    }
+
+    #[test]
+    fn test_parse_valid_goto() {
+        let label = "WHILE-1";
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("goto"),
+            arg1: Some(label),
+            arg2: None,
+        };
+
+        assert_eq!(parse_goto(&ins), Ok(Command::Goto(label.to_string())));
+    }
+
+    #[test]
+    fn test_parse_invalid_goto() {
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("label"),
+            arg1: None,
+            arg2: None,
+        };
+
+        assert_eq!(parse_goto(&ins), Err(CompilationError {
+            message: "Expected a name for the goto",
+            line_number: 3
+        }));
+    }
+
+    #[test]
+    fn test_parse_valid_if_goto() {
+        let label = "WHILE-1";
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("if-goto"),
+            arg1: Some(label),
+            arg2: None,
+        };
+
+        assert_eq!(parse_if_goto(&ins), Ok(Command::IfGoto(label.to_string())));
+    }
+
+    #[test]
+    fn test_parse_invalid_if_goto() {
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("if-goto"),
+            arg1: None,
+            arg2: None,
+        };
+
+        assert_eq!(parse_if_goto(&ins), Err(CompilationError {
+            message: "Expected a name for the if-goto",
+            line_number: 3
+        }));
     }
 
     #[test]
