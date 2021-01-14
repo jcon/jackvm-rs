@@ -11,7 +11,7 @@ mod test {
                 // TODO: figure out how to return array of string errors to JS.
                 let messages: Vec<String> = errors
                     .iter()
-                    .map(|e| format!("{}: {}", e.line_number, e.message))
+                    .map(|e| format!("{}: {}", e.line_number, e.get_message()))
                     .collect();
                 let empty_vec: Vec<String> = vec!();
                 assert_eq!(empty_vec, messages);

@@ -36,10 +36,16 @@ pub enum Command {
     Return,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct CompilationError {
-    pub message: &'static str,
+    message: String,
     pub line_number: i32,
+}
+
+impl CompilationError {
+    pub fn get_message(&self) -> &str {
+        &self.message
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -125,7 +131,7 @@ fn parse_push_pop(instruction: &Instruction) -> Result<Command, CompilationError
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
-        message: "Expected a memory segment for push",
+        message: "Expected a memory segment for push".to_string(),
     })?;
     let segment = match arg1 {
         "constant" => Ok(Segment::CONSTANT),
@@ -138,18 +144,18 @@ fn parse_push_pop(instruction: &Instruction) -> Result<Command, CompilationError
         "static" => Ok(Segment::STATIC),
         _ => Err(CompilationError {
             line_number,
-            message: "Unexpected segment for push",
+            message: "Unexpected segment for push".to_string(),
         })
     }?;
 
     let arg2 = match instruction.arg2 {
         Some(a2) => a2.parse::<i32>().map_err(|_| CompilationError {
             line_number,
-            message: "Expected a positive integer for argument",
+            message: "Expected a positive integer for argument".to_string(),
         }),
         None => Err(CompilationError {
             line_number,
-            message: "Expected a second argement for push",
+            message: "Expected a second argement for push".to_string(),
         })
     }?;
 
@@ -158,7 +164,7 @@ fn parse_push_pop(instruction: &Instruction) -> Result<Command, CompilationError
         Some("pop") => Ok(Command::Pop(segment, arg2)),
         _ => Err(CompilationError {
             line_number,
-            message: "Expected a push or a pop",
+            message: "Expected a push or a pop".to_string(),
         }),
     }
 }
@@ -177,7 +183,7 @@ fn parse_arithmetic(instruction: &Instruction) -> Result<Command, CompilationErr
         Some("not") => Ok(Operator::NOT),
         _ => Err(CompilationError {
             line_number,
-            message: "Unexpected arithmetic operation",
+            message: "Unexpected arithmetic operation".to_string(),
         })
     }?;
     Ok(Command::Arithmetic(operation))
@@ -187,7 +193,7 @@ fn parse_label(instruction: &Instruction) -> Result<Command, CompilationError> {
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
-        message: "Expected a name for the label",
+        message: "Expected a name for the label".to_string(),
     })?;
     Ok(Command::Label(String::from(arg1)))
 }
@@ -196,7 +202,7 @@ fn parse_goto(instruction: &Instruction) -> Result<Command, CompilationError> {
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
-        message: "Expected a name for the goto",
+        message: "Expected a name for the goto".to_string(),
     })?;
     Ok(Command::Goto(String::from(arg1)))
 }
@@ -205,7 +211,7 @@ fn parse_if_goto(instruction: &Instruction) -> Result<Command, CompilationError>
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
-        message: "Expected a name for the if-goto",
+        message: "Expected a name for the if-goto".to_string(),
     })?;
     Ok(Command::IfGoto(String::from(arg1)))
 }
@@ -214,13 +220,13 @@ fn parse_function(instruction: &Instruction) -> Result<Command, CompilationError
     let line_number = instruction.line_number;
     let name = instruction.arg1.ok_or(CompilationError {
         line_number,
-        message: "Expected a name for the function",
+        message: "Expected a name for the function".to_string(),
     })?;
 
     let n_locals = parse_positive_int(instruction.arg2).map_err(
         |_| CompilationError {
             line_number,
-            message: "Expected a positive integer for number of locals for the function",
+            message: "Expected a positive integer for number of locals for the function".to_string(),
         })?;
 
     Ok(Command::Function(name.to_string(), n_locals))
@@ -230,13 +236,13 @@ fn parse_call(instruction: &Instruction) -> Result<Command, CompilationError> {
     let line_number = instruction.line_number;
     let name = instruction.arg1.ok_or(CompilationError {
         line_number,
-        message: "Expected a name for the function",
+        message: "Expected a name for the function".to_string(),
     })?;
 
     let n_args = parse_positive_int(instruction.arg2).map_err(
         |_| CompilationError {
             line_number,
-            message: "Expected a positive integer for number of arguments being passed to the function",
+            message: "Expected a positive integer for number of arguments being passed to the function".to_string(),
         })?;
 
     Ok(Command::Call(name.to_string(), n_args))
@@ -248,7 +254,7 @@ fn parse_return(instruction: &Instruction) -> Result<Command, CompilationError> 
         (None, None) => (),
         _ => return Err(CompilationError {
             line_number,
-            message: "Expected no arguments for return",
+            message: "Expected no arguments for return".to_string(),
         })
     }
 
@@ -281,7 +287,7 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
             Some("return") => parse_return(&ins.unwrap()),
             _ => Err(CompilationError {
                 line_number,
-                message: "Unrecognized instruction",
+                message: "Unrecognized instruction".to_string(),
             }),
         };
         match command_or_error {
@@ -354,7 +360,7 @@ mod tests {
             };
             assert_eq!(parse_arithmetic(&ins), Err(CompilationError{
                 line_number: 3,
-                message: "Unexpected arithmetic operation"
+                message: "Unexpected arithmetic operation".to_string()
             }));
         }
     }
@@ -367,7 +373,7 @@ mod tests {
             arg1: Some("pointer"),
             arg2: Some("0"),
         };
-        assert_matches!(parse_push_pop(&ins), Ok(Command::Push(Segment::POINTER, 0)));
+        assert_eq!(parse_push_pop(&ins), Ok(Command::Push(Segment::POINTER, 0)));
     }
 
     #[test]
@@ -389,8 +395,9 @@ mod tests {
             arg1: Some("invalid"),
             arg2: Some("10"),
         };
-        assert_matches!(parse_push_pop(&ins),
-            Err(CompilationError{ line_number: 3, message: "Unexpected segment for push" }));
+        let message = "Unexpected segment for push".to_string();
+        assert_eq!(parse_push_pop(&ins),
+            Err(CompilationError{ line_number: 3, message }));
     }
 
     #[test]
@@ -401,8 +408,9 @@ mod tests {
             arg1: Some("static"),
             arg2: None,
         };
-        assert_matches!(parse_push_pop(&ins),
-            Err(CompilationError{ line_number: 8, message: "Expected a second argement for push"}));
+        let message = "Expected a second argement for push".to_string();
+        assert_eq!(parse_push_pop(&ins),
+            Err(CompilationError{ line_number: 8, message }));
     }
 
     #[test]
@@ -413,8 +421,9 @@ mod tests {
             arg1: None,
             arg2: None,
         };
-        assert_matches!(parse_push_pop(&ins),
-            Err(CompilationError{ line_number: 8, message: "Expected a memory segment for push" }));
+        let  message = "Expected a memory segment for push".to_string();
+        assert_eq!(parse_push_pop(&ins),
+            Err(CompilationError{ line_number: 8, message }));
     }
 
     #[test]
@@ -439,8 +448,9 @@ mod tests {
             arg2: None,
         };
 
-        assert_matches!(parse_label(&ins), Err(CompilationError {
-            message: "Expected a name for the label",
+        let message = "Expected a name for the label".to_string();
+        assert_eq!(parse_label(&ins), Err(CompilationError {
+            message,
             line_number: 3
         }));
     }
@@ -468,7 +478,7 @@ mod tests {
         };
 
         assert_eq!(parse_goto(&ins), Err(CompilationError {
-            message: "Expected a name for the goto",
+            message: "Expected a name for the goto".to_string(),
             line_number: 3
         }));
     }
@@ -496,7 +506,7 @@ mod tests {
         };
 
         assert_eq!(parse_if_goto(&ins), Err(CompilationError {
-            message: "Expected a name for the if-goto",
+            message: "Expected a name for the if-goto".to_string(),
             line_number: 3
         }));
     }
@@ -524,7 +534,7 @@ mod tests {
         };
 
         assert_eq!(parse_function(&ins), Err(CompilationError {
-            message: "Expected a name for the function",
+            message: "Expected a name for the function".to_string(),
             line_number: 3
         }));
 
@@ -536,7 +546,7 @@ mod tests {
         };
 
         assert_eq!(parse_function(&ins), Err(CompilationError {
-            message: "Expected a positive integer for number of locals for the function",
+            message: "Expected a positive integer for number of locals for the function".to_string(),
             line_number: 3
         }));
     }
@@ -564,7 +574,7 @@ mod tests {
         };
 
         assert_eq!(parse_call(&ins), Err(CompilationError {
-            message: "Expected a name for the function",
+            message: "Expected a name for the function".to_string(),
             line_number: 8
         }));
 
@@ -576,7 +586,7 @@ mod tests {
         };
 
         assert_eq!(parse_call(&ins), Err(CompilationError {
-            message: "Expected a positive integer for number of arguments being passed to the function",
+            message: "Expected a positive integer for number of arguments being passed to the function".to_string(),
             line_number: 4
         }));
     }
@@ -603,7 +613,7 @@ mod tests {
         };
 
         assert_eq!(parse_return(&ins), Err(CompilationError {
-            message: "Expected no arguments for return",
+            message: "Expected no arguments for return".to_string(),
             line_number: 8
         }));
 
@@ -615,7 +625,7 @@ mod tests {
         };
 
         assert_eq!(parse_return(&ins), Err(CompilationError {
-            message: "Expected no arguments for return",
+            message: "Expected no arguments for return".to_string(),
             line_number: 4
         }));
     }
@@ -641,7 +651,7 @@ mod tests {
         let prog = compile(&source[..]);
         assert_eq!(Err(vec!(CompilationError {
             line_number: 1,
-            message: "Unrecognized instruction",
+            message: "Unrecognized instruction".to_string(),
         })), prog);
     }
 }

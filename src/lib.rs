@@ -54,7 +54,7 @@ impl JackVirtualMachine {
             Err(errors) => {
                 let messages: Vec<String> = errors
                     .iter()
-                    .map(|e| format!("{}: {}", e.line_number, e.message))
+                    .map(|e| format!("{}: {}", e.line_number, e.get_message()))
                     .collect();
                 CompilationResult {
                     succeeded: false,
