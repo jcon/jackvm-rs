@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use crate::compiler::compile;
 use crate::compiler::Command;
 use crate::compiler::CompilationError;
@@ -8,6 +9,7 @@ pub struct VirtualMachine {
     memory: [i16; KEYBOARD_START + 1],
     pc: usize,
     program: Vec<Command>,
+    addresses: HashMap<String, i16>,
 }
 
 const SP: usize = 0;
@@ -31,11 +33,13 @@ impl VirtualMachine {
             memory: [0; KEYBOARD_START + 1],
             pc: 0,
             program: vec!(),
+            addresses: HashMap::new(),
         }
     }
 
     pub fn compile_and_load(&mut self, program: &str) -> Result<(), Vec<CompilationError>> {
-        let (bytecode, _) = compile(program)?;
+        let (bytecode, addresses) = compile(program)?;
+        self.addresses = addresses;
         self.load(&bytecode[..]);
         Ok(())
     }
