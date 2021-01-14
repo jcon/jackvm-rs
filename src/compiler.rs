@@ -223,6 +223,38 @@ fn parse_if_goto(instruction: &Instruction) -> Result<Command, CompilationError>
     Ok(Command::IfGoto(String::from(arg1)))
 }
 
+fn parse_function(instruction: &Instruction) -> Result<Command, CompilationError> {
+    let line_number = instruction.line_number;
+    let name = instruction.arg1.ok_or(CompilationError {
+        line_number,
+        message: "Expected a name for the function",
+    })?;
+
+    let n_locals = parse_positive_int(instruction.arg2).map_err(
+        |_| CompilationError {
+            line_number,
+            message: "Expected a positive integer for number of locals for the function",
+        })?;
+
+    Ok(Command::Function(name.to_string(), n_locals))
+}
+
+fn parse_call(instruction: &Instruction) -> Result<Command, CompilationError> {
+    let line_number = instruction.line_number;
+    let name = instruction.arg1.ok_or(CompilationError {
+        line_number,
+        message: "Expected a name for the function",
+    })?;
+
+    let n_args = parse_positive_int(instruction.arg2).map_err(
+        |_| CompilationError {
+            line_number,
+            message: "Expected a positive integer for number of arguments being passed to the function",
+        })?;
+
+    Ok(Command::Call(name.to_string(), n_args))
+}
+
 // TODO: find out how to set a statically defined set
 fn is_arithmetic(command_type: &str) -> bool {
     let ct = command_type;
@@ -244,6 +276,8 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
             Some("label") => parse_label(&ins.unwrap()),
             Some("goto") => parse_goto(&ins.unwrap()),
             Some("if-goto") => parse_if_goto(&ins.unwrap()),
+            Some("function") => parse_function(&ins.unwrap()),
+            Some("call") => parse_call(&ins.unwrap()),
             _ => Err(CompilationError {
                 line_number,
                 message: "Unrecognized instruction",
@@ -259,6 +293,17 @@ pub fn compile(source: &str) -> Result<Vec<Command>, Vec<CompilationError>> {
         Ok(program)
     } else {
         Err(errors)
+    }
+}
+
+fn parse_positive_int(arg: Option<&str>) -> Result<i32, String> {
+    let s = arg.ok_or("Expected a positive integer")?;
+    let i = s.parse::<i32>().map_err(|_| "Expected a positive integer".to_string())?;
+    println!("args are {}", i);
+    if i < 0 {
+        Err("Expected a positive integer".to_string())
+    } else {
+        Ok(i)
     }
 }
 
@@ -393,7 +438,7 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_label(&ins), Err(CompilationError {
+        assert_matches!(parse_label(&ins), Err(CompilationError {
             message: "Expected a name for the label",
             line_number: 3
         }));
@@ -452,6 +497,86 @@ mod tests {
         assert_eq!(parse_if_goto(&ins), Err(CompilationError {
             message: "Expected a name for the if-goto",
             line_number: 3
+        }));
+    }
+
+    #[test]
+    fn test_parse_valid_function() {
+        let function_name = "Sys.init";
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("function"),
+            arg1: Some(function_name),
+            arg2: Some("2"),
+        };
+
+        assert_eq!(parse_function(&ins), Ok(Command::Function(function_name.to_string(), 2)));
+    }
+
+    #[test]
+    fn test_parse_invalid_function() {
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("function"),
+            arg1: None,
+            arg2: None,
+        };
+
+        assert_eq!(parse_function(&ins), Err(CompilationError {
+            message: "Expected a name for the function",
+            line_number: 3
+        }));
+
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("function"),
+            arg1: Some("Doesnt.Matter"),
+            arg2: Some("-1"),
+        };
+
+        assert_eq!(parse_function(&ins), Err(CompilationError {
+            message: "Expected a positive integer for number of locals for the function",
+            line_number: 3
+        }));
+    }
+
+    #[test]
+    fn test_parse_valid_call() {
+        let function_name = "Sys.init";
+        let ins = Instruction {
+            line_number: 3,
+            command_type: Some("call"),
+            arg1: Some(function_name),
+            arg2: Some("0"),
+        };
+
+        assert_eq!(parse_call(&ins), Ok(Command::Call(function_name.to_string(), 0)));
+    }
+
+    #[test]
+    fn test_parse_invalid_call() {
+        let ins = Instruction {
+            line_number: 8,
+            command_type: Some("call"),
+            arg1: None,
+            arg2: None,
+        };
+
+        assert_eq!(parse_call(&ins), Err(CompilationError {
+            message: "Expected a name for the function",
+            line_number: 8
+        }));
+
+        let ins = Instruction {
+            line_number: 4,
+            command_type: Some("function"),
+            arg1: Some("Doesnt.Matter"),
+            arg2: Some("-1"),
+        };
+
+        assert_eq!(parse_call(&ins), Err(CompilationError {
+            message: "Expected a positive integer for number of arguments being passed to the function",
+            line_number: 4
         }));
     }
 
