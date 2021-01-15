@@ -309,4 +309,280 @@ mod test {
         assert_eq!(jack_vm.peek(3004), 3);
         assert_eq!(jack_vm.peek(3005), 5);
     }
+
+    #[test]
+    pub fn test_function_calls_simple_function() {
+        let mut jack_vm = compile_program("
+            // Performs a simple calculation and returns the result.
+            function SimpleFunction.test 2
+            push local 0
+            push local 1
+            add
+            not
+            push argument 0
+            add
+            push argument 1
+            sub
+            return
+        ");
+        /*
+set sp 317,
+set local 317,
+set argument 310,
+set this 3000,
+set that 4000,
+set argument[0] 1234,
+set argument[1] 37,
+set argument[2] 9,
+set argument[3] 305,
+set argument[4] 300,
+set argument[5] 3010,
+set argument[6] 4010,
+*/
+
+        jack_vm.poke(0, 317);
+        jack_vm.poke(1, 317);
+        jack_vm.poke(2, 310);
+        jack_vm.poke(3, 3000);
+        jack_vm.poke(4, 4000);
+        jack_vm.poke(310, 1234);
+        jack_vm.poke(311, 37);
+        jack_vm.poke(312, 9);
+        jack_vm.poke(313, 305);
+        jack_vm.poke(314, 300);
+        jack_vm.poke(315, 3010);
+        jack_vm.poke(316, 4010);
+
+        for _ in 0..10 {
+            jack_vm.tick();
+        }
+/*
+| RAM[0] | RAM[1] | RAM[2] | RAM[3] | RAM[4] |RAM[310]|
+|    311 |    305 |    300 |   3010 |   4010 |   1196 |
+*/
+        // assert_eq!(jack_vm.peek(317), 0);
+        // assert_eq!(jack_vm.peek(318), 0);
+        // assert_eq!(jack_vm.peek(318), 0);
+        // // assert_eq!(jack_vm.peek(319), -1);
+        // // assert_eq!(jack_vm.peek(319), 1233); // after 7
+        // assert_eq!(jack_vm.peek(319), 1196); // after 9
+        // // assert_eq!(jack_vm.peek(320), 1234);
+        // assert_eq!(jack_vm.peek(320), 37); // after 8
+        // assert_eq!(jack_vm.peek(320), 37); // after 8
+
+        // println!("MEMORY******\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n{}\n",
+        //     jack_vm.peek(310),
+        //     jack_vm.peek(311),
+        //     jack_vm.peek(312),
+        //     jack_vm.peek(313),
+        //     jack_vm.peek(314),
+        //     jack_vm.peek(315),
+        //     jack_vm.peek(316),
+        //     jack_vm.peek(317),
+        //     jack_vm.peek(318),
+        //     jack_vm.peek(319),
+        //     jack_vm.peek(320),
+        //     jack_vm.peek(321),
+        // );
+
+        assert_eq!(jack_vm.peek(0), 311);
+        assert_eq!(jack_vm.peek(1), 305);
+        assert_eq!(jack_vm.peek(2), 300);
+        assert_eq!(jack_vm.peek(3), 3010);
+        assert_eq!(jack_vm.peek(4), 4010);
+        assert_eq!(jack_vm.peek(310), 1196);
+    }
+
+    #[test]
+    pub fn test_function_calls_nested_call() {
+        let mut jack_vm = compile_program("
+            // Sys.vm for NestedCall test.
+
+            // Sys.init()
+            //
+            // Calls Sys.main() and stores return value in temp 1.
+            // Does not return.  (Enters infinite loop.)
+
+            function Sys.init 0
+            push constant 4000	// test THIS and THAT context save
+            pop pointer 0
+            push constant 5000
+            pop pointer 1
+            call Sys.main 0
+            pop temp 1
+            label LOOP
+            goto LOOP
+
+            // Sys.main()
+            //
+            // Sets locals 1, 2 and 3, leaving locals 0 and 4 unchanged to test
+            // default local initialization to 0.  (RAM set to -1 by test setup.)
+            // Calls Sys.add12(123) and stores return value (135) in temp 0.
+            // Returns local 0 + local 1 + local 2 + local 3 + local 4 (456) to confirm
+            // that locals were not mangled by function call.
+
+            function Sys.main 5
+            push constant 4001
+            pop pointer 0
+            push constant 5001
+            pop pointer 1
+            push constant 200
+            pop local 1
+            push constant 40
+            pop local 2
+            push constant 6
+            pop local 3
+            push constant 123
+            call Sys.add12 1
+            pop temp 0
+            push local 0
+            push local 1
+            push local 2
+            push local 3
+            push local 4
+            add
+            add
+            add
+            add
+            return
+
+            // Sys.add12(int n)
+            //
+            // Returns n+12.
+
+            function Sys.add12 0
+            push constant 4002
+            pop pointer 0
+            push constant 5002
+            pop pointer 1
+            push argument 0
+            push constant 12
+            add
+            return
+        ");
+        jack_vm.poke(0, 261);
+
+
+        jack_vm.poke(0, 261);
+        jack_vm.poke(1, 261);
+        jack_vm.poke(2, 256);
+        jack_vm.poke(3, -3);
+        jack_vm.poke(4, -4);
+        jack_vm.poke(5, -1); // test results
+        jack_vm.poke(6, -1);
+        jack_vm.poke(256, 1234); // fake stack frame from call Sys.init
+        jack_vm.poke(257, -1);
+        jack_vm.poke(258, -2);
+        jack_vm.poke(259, -3);
+        jack_vm.poke(260, -4);
+
+        jack_vm.poke(261, -1); // Initialize stack to check for local segment
+        jack_vm.poke(262, -1); // being cleared to zero.
+        jack_vm.poke(263, -1);
+        jack_vm.poke(264, -1);
+        jack_vm.poke(265, -1);
+        jack_vm.poke(266, -1);
+        jack_vm.poke(267, -1);
+        jack_vm.poke(268, -1);
+        jack_vm.poke(269, -1);
+        jack_vm.poke(270, -1);
+        jack_vm.poke(271, -1);
+        jack_vm.poke(272, -1);
+        jack_vm.poke(273, -1);
+        jack_vm.poke(274, -1);
+        jack_vm.poke(275, -1);
+        jack_vm.poke(276, -1);
+        jack_vm.poke(277, -1);
+        jack_vm.poke(278, -1);
+        jack_vm.poke(279, -1);
+        jack_vm.poke(280, -1);
+        jack_vm.poke(281, -1);
+        jack_vm.poke(282, -1);
+        jack_vm.poke(283, -1);
+        jack_vm.poke(284, -1);
+        jack_vm.poke(285, -1);
+        jack_vm.poke(286, -1);
+        jack_vm.poke(287, -1);
+        jack_vm.poke(288, -1);
+        jack_vm.poke(289, -1);
+        jack_vm.poke(290, -1);
+        jack_vm.poke(291, -1);
+        jack_vm.poke(292, -1);
+        jack_vm.poke(293, -1);
+        jack_vm.poke(294, -1);
+        jack_vm.poke(295, -1);
+        jack_vm.poke(296, -1);
+        jack_vm.poke(297, -1);
+        jack_vm.poke(298, -1);
+        jack_vm.poke(299, -1);
+
+        jack_vm.poke(0, 261);
+        jack_vm.poke(1, 261);
+        jack_vm.poke(2, 256);
+        jack_vm.poke(3, 3000);
+        jack_vm.poke(4, 4000);
+
+        for _ in 0..50 {
+            jack_vm.tick();
+        }
+
+        assert_eq!(jack_vm.peek(0), 261);
+        assert_eq!(jack_vm.peek(1), 261);
+        assert_eq!(jack_vm.peek(2), 256);
+        assert_eq!(jack_vm.peek(3), 4000);
+        assert_eq!(jack_vm.peek(4), 5000);
+        assert_eq!(jack_vm.peek(5), 135);
+        assert_eq!(jack_vm.peek(6), 246);
+    }
+
+    #[test]
+    pub fn test_function_calls_fibonacci_element() {
+        let mut jack_vm = compile_program("
+            // Pushes a constant, say n, onto the stack, and calls the Main.fibonacii
+            // function, which computes the n'th element of the Fibonacci series.
+            // Note that by convention, the Sys.init function is called \"automatically\"
+            // by the bootstrap code.
+
+            function Sys.init 0
+            push constant 4
+            call Main.fibonacci 1   // computes the 4'th fibonacci element
+            label WHILE
+            goto WHILE              // loops infinitely
+
+            // Computes the n'th element of the Fibonacci series, recursively.
+            // n is given in argument[0].  Called by the Sys.init function
+            // (part of the Sys.vm file), which also pushes the argument[0]
+            // parameter before this code starts running.
+
+            function Main.fibonacci 0
+            push argument 0
+            push constant 2
+            lt                     // checks if n<2
+            if-goto IF_TRUE
+            goto IF_FALSE
+            label IF_TRUE          // if n<2, return n
+            push argument 0
+            return
+            label IF_FALSE         // if n>=2, returns fib(n-2)+fib(n-1)
+            push argument 0
+            push constant 2
+            sub
+            call Main.fibonacci 1  // computes fib(n-2)
+            push argument 0
+            push constant 1
+            sub
+            call Main.fibonacci 1  // computes fib(n-1)
+            add                    // returns fib(n-1) + fib(n-2)
+            return
+        ");
+
+        jack_vm.poke(0, 261);
+
+        for _ in 0..175 {
+            jack_vm.tick();
+        }
+
+        assert_eq!(jack_vm.peek(0), 262);
+        assert_eq!(jack_vm.peek(261), 3);
+    }
 }

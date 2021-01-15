@@ -56,6 +56,7 @@ impl VirtualMachine {
         }
 
         let command = &self.program[self.pc];
+        // println!("running command {:?}", command);
         match command {
             &Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
             &Command::Pop(segment, arg2) => self.stack_pop_segment(segment, arg2 as i16),
@@ -72,6 +73,18 @@ impl VirtualMachine {
                     return; // don't update the program counter when if-goto was successful
                 }
             },
+            &Command::Function(_, n_locals) => self.process_function(n_locals),
+            &Command::Call(ref name, n_args) => {
+                let name_copy = name.clone();
+                let result_pc = self.process_call(&name_copy, n_args);
+                self.pc = result_pc;
+                return; // don't increment the program counter automatically.
+            },
+            &Command::Return => {
+                let result_pc = self.process_return();
+                self.pc = result_pc;
+                return;
+            },
             _ => panic!(format!("unimplemented command: {:?}", command))
         };
         self.pc = self.pc + 1;
@@ -84,6 +97,43 @@ impl VirtualMachine {
         } else {
             false
         }
+    }
+
+    fn process_call(&mut self, function_name: &str, n_args: i32) -> usize {
+        self.stack_push((self.pc + 1) as i16);
+        self.stack_push(self.memory[LCL]);
+        self.stack_push(self.memory[ARG]);
+        self.stack_push(self.memory[THIS]);
+        self.stack_push(self.memory[THAT]);
+        self.memory[ARG] = self.memory[SP] - (n_args as i16) - 5;
+        self.memory[LCL] = self.memory[SP];
+
+        let new_pc = *self.addresses.get(function_name).unwrap() as usize;
+        new_pc
+    }
+
+    fn process_function(&mut self, n_locals: i32) -> () {
+        for _ in 0..n_locals {
+            self.stack_push(0);
+        }
+    }
+
+    fn process_return(&mut self) -> usize {
+        let frame = self.memory[LCL] as usize;
+        let return_addr = self.memory[frame - 5] as usize;
+        self.memory[self.memory[ARG] as usize] = self.stack_pop();
+        self.memory[SP] = self.memory[LCL] - 1;
+        // self.memory[THAT] = self.stack_pop();
+        // self.memory[THIS] = self.stack_pop();
+        // self.memory[ARG] = self.stack_pop();
+        // self.memory[LCL] = self.stack_pop();
+        self.memory[SP] = self.memory[ARG] + 1;
+        self.memory[THAT] = self.memory[frame - 1];
+        self.memory[THIS] = self.memory[frame - 2];
+        self.memory[ARG] = self.memory[frame - 3];
+        self.memory[LCL] = self.memory[frame - 4];
+        println!("return address: {}\n", return_addr);
+        return_addr
     }
 
     pub fn peek(&self, address: usize) -> i16 {
