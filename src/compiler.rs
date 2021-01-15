@@ -115,12 +115,12 @@ impl<'a> Parser<'a> {
         let pos = self.get_next_pos();
         if pos < self.source.len() {
             // TODO: ensure tabs are trimmed off too.
-            let mut parts = remove_comment(self.source[pos].trim()).split(' ');
+            let mut parts = remove_comment(self.source[pos].trim().trim_end()).split(' ');
             self.current_instruction = Some(Instruction {
                 line_number: self.position + 1,
                 command_type: parts.next(),
-                arg1: parts.next(),
-                arg2: parts.next(),
+                arg1: parts.next().map(|s| s.trim_end()),
+                arg2: parts.next().map(|s| s.trim_end()),
             });
             // println!("parts are {:?}", self.current_instruction);
         } else {
@@ -149,7 +149,7 @@ impl<'a> Parser<'a> {
     fn get_next_pos(&self) -> usize {
         let mut pos = (self.position + 1) as usize;
         while pos < self.source.len() {
-            let s = remove_comment(self.source[pos].trim());
+            let s = remove_comment(self.source[pos].trim().trim_end());
             if s.len() != 0 {
                 break
             }
@@ -184,7 +184,7 @@ fn parse_push_pop(instruction: &Instruction) -> Result<Command, CompilationError
         |_e| CompilationError {
             line_number,
             // TODO: find a better way to match partial string for error.
-//            message: format!("Expected a positive integer for argument:\n{}\n\n{}\n", instruction, e),
+        //    message: format!("Expected a positive integer for argument:\n{}\n\n{}\n", instruction, _e),
             message: "Expected a positive integer for argument".to_string(),
         })?;
 
