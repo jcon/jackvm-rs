@@ -14,12 +14,12 @@ for (let i = 256; i < 262; i++) {
 
 runEl.addEventListener("click", event => {
     const prog = progEl.value.split('\n').map(s => s.trim());
-    console.log("loading program [", prog.join("\n"), "]");
+    // console.log("loading program [", prog.join("\n"), "]");
     let result = vm.load(prog.join("\n"));
     if (!result.succeeded) {
         console.log("errors ****", result.get_errors());
     }
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 150; i++) {
         vm.tick();
     }
     console.log("**** value from VM: " + vm.peek(256));
