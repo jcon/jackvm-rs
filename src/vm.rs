@@ -6,7 +6,7 @@ use crate::compiler::Segment;
 use crate::compiler::Operator;
 
 pub struct VirtualMachine {
-    memory: [i16; KEYBOARD_START + 1],
+    pub memory: [i16; KEYBOARD_START + 1],
     pc: usize,
     program: Vec<Command>,
     addresses: HashMap<String, i16>,
@@ -21,8 +21,8 @@ const TEMP_START: usize = 5;
 const STATIC_START: usize = 16;
 const STACK_START: usize = 256;
 const _HEAP_START: usize = 2048;
-const _SCREEN_START: usize = 16384;
-const KEYBOARD_START: usize = 24575;
+pub const SCREEN_START: usize = 16384;
+pub const KEYBOARD_START: usize = 24575;
 
 const VM_TRUE: i16 = -1;
 const VM_FALSE: i16 = 0;

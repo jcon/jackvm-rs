@@ -3,6 +3,19 @@
   <head>
     <meta charset="utf-8">
     <title>Hello wasm-pack!</title>
+    <style type="text/css">
+      canvas#screen {
+        width: 512px;
+        height: 256px;
+        border: 5px solid #ddd;
+        image-rendering: optimizeSpeed;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: optimize-contrast;
+        image-rendering: pixelated;
+        -ms-interpolation-mode: nearest-neighbor;
+      }
+    </style>
   </head>
   <body>
     <textarea style="height: 80px; width: 260px" id="editor">
@@ -39,6 +52,7 @@
         </tr>
       </tbody>
     </table>
+    <canvas id="screen" ></canvas>
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <script src="./bootstrap.js"></script>
   </body>

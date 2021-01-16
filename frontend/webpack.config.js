@@ -8,7 +8,18 @@ module.exports = {
     filename: "bootstrap.js",
   },
   mode: "development",
+  devtool: 'source-map',
   plugins: [
     new CopyWebpackPlugin(['index.html'])
   ],
+  experiments: { asyncWebAssembly: true },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        enforce: "pre",
+        use: ["source-map-loader"],
+      },
+    ],
+  },
 };
