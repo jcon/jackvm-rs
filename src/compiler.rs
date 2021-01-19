@@ -218,31 +218,50 @@ fn parse_arithmetic(instruction: &Instruction) -> Result<Command, CompilationErr
     Ok(Command::Arithmetic(operation))
 }
 
-fn parse_label(instruction: &Instruction) -> Result<Command, CompilationError> {
+fn parse_label(cur_function: &str, instruction: &Instruction) -> Result<Command, CompilationError> {
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
         message: "Expected a name for the label".to_string(),
     })?;
-    Ok(Command::Label(String::from(arg1)))
+
+    let mut label = cur_function.to_string();
+    if label.len() > 0 {
+        label.push_str("$");
+    }
+    label.push_str(arg1);
+    println!("adding label {}", label);
+    Ok(Command::Label(label))
 }
 
-fn parse_goto(instruction: &Instruction) -> Result<Command, CompilationError> {
+fn parse_goto(cur_function: &str, instruction: &Instruction) -> Result<Command, CompilationError> {
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
         message: "Expected a name for the goto".to_string(),
     })?;
-    Ok(Command::Goto(String::from(arg1)))
+
+    let mut label = cur_function.to_string();
+    if label.len() > 0 {
+        label.push_str("$");
+    }
+    label.push_str(arg1);
+    Ok(Command::Goto(String::from(label)))
 }
 
-fn parse_if_goto(instruction: &Instruction) -> Result<Command, CompilationError> {
+fn parse_if_goto(cur_function: &str, instruction: &Instruction) -> Result<Command, CompilationError> {
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
         message: "Expected a name for the if-goto".to_string(),
     })?;
-    Ok(Command::IfGoto(String::from(arg1)))
+
+    let mut label = cur_function.to_string();
+    if label.len() > 0 {
+        label.push_str("$");
+    }
+    label.push_str(arg1);
+    Ok(Command::IfGoto(String::from(label)))
 }
 
 fn parse_function(instruction: &Instruction) -> Result<Command, CompilationError> {
@@ -303,6 +322,7 @@ pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec
     let mut addresses: HashMap<String, i16> = HashMap::new();
 
     let mut pc = 0;
+    let mut cur_function: String = String::from("");
     while parser.has_more_commands() {
         parser.advance();
         let ins = parser.get_instruction();
@@ -310,10 +330,16 @@ pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec
         let command_or_error = match parser.get_command_type() {
             Some("push") | Some("pop") => parse_push_pop(&ins.unwrap()),
             Some(ct) if is_arithmetic(ct) => parse_arithmetic(&ins.unwrap()),
-            Some("label") => parse_label(&ins.unwrap()),
-            Some("goto") => parse_goto(&ins.unwrap()),
-            Some("if-goto") => parse_if_goto(&ins.unwrap()),
-            Some("function") => parse_function(&ins.unwrap()),
+            Some("label") => parse_label(&cur_function, &ins.unwrap()),
+            Some("goto") => parse_goto(&cur_function, &ins.unwrap()),
+            Some("if-goto") => parse_if_goto(&cur_function, &ins.unwrap()),
+            Some("function") => {
+                let func_def = parse_function(&ins.unwrap());
+                if let Ok(Command::Function(ref name, _)) = func_def {
+                    cur_function = name.to_string();
+                }
+                func_def
+            },
             Some("call") => parse_call(&ins.unwrap()),
             Some("return") => parse_return(&ins.unwrap()),
             _ => Err(CompilationError {
@@ -478,7 +504,7 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_label(&ins), Ok(Command::Label(label.to_string())));
+        assert_eq!(parse_label("Main.main", &ins), Ok(Command::Label("Main.main$WHILE-0".to_string())));
     }
 
     #[test]
@@ -491,7 +517,7 @@ mod tests {
         };
 
         let message = "Expected a name for the label".to_string();
-        assert_eq!(parse_label(&ins), Err(CompilationError {
+        assert_eq!(parse_label("Main.main", &ins), Err(CompilationError {
             message,
             line_number: 3
         }));
@@ -507,7 +533,7 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_goto(&ins), Ok(Command::Goto(label.to_string())));
+        assert_eq!(parse_goto("Main.test", &ins), Ok(Command::Goto("Main.test$WHILE-1".to_string())));
     }
 
     #[test]
@@ -519,7 +545,7 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_goto(&ins), Err(CompilationError {
+        assert_eq!(parse_goto("Main.test", &ins), Err(CompilationError {
             message: "Expected a name for the goto".to_string(),
             line_number: 3
         }));
@@ -535,7 +561,7 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_if_goto(&ins), Ok(Command::IfGoto(label.to_string())));
+        assert_eq!(parse_if_goto("Main.add", &ins), Ok(Command::IfGoto("Main.add$WHILE-1".to_string())));
     }
 
     #[test]
@@ -547,7 +573,7 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_if_goto(&ins), Err(CompilationError {
+        assert_eq!(parse_if_goto("Main.test", &ins), Err(CompilationError {
             message: "Expected a name for the if-goto".to_string(),
             line_number: 3
         }));
@@ -731,7 +757,7 @@ mod tests {
                 assert_eq!(addresses.get("label1"), Some(&4));
                 assert_eq!(addresses.get("label2"), Some(&4));
                 assert_eq!(addresses.get("add_two"), Some(&5));
-                assert_eq!(addresses.get("before_add"), Some(&6));
+                assert_eq!(addresses.get("add_two$before_add"), Some(&6));
             },
             Err(errors) => panic!("Expected Ok response: {:?}", errors),
         }

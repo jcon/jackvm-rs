@@ -15,6 +15,9 @@ console.log(progEl.value.split('\n').map(s => s.trim()));
 let runEl = document.querySelector("#run");
 
 let memoryCells = {};
+for (let i = 0; i < 3; i++) {
+    memoryCells[i] = document.querySelector(`#mem-${i}`);
+}
 for (let i = 256; i < 262; i++) {
     memoryCells[i] = document.querySelector(`#mem-${i}`);
 }
@@ -35,12 +38,21 @@ runEl.addEventListener("click", event => {
     imageData.data.set(screenBytes);
     mainContext.putImageData(imageData, 0, 0);
 
+    let frames = 0;
+
     (function executeSteps() {
-        requestAnimationFrame(executeSteps);
-        for (let i = 0; i < 150; i++) {
+//        if (frames < 243) {
+        // if (frames < 512) {
+            requestAnimationFrame(executeSteps);
+        // }
+        frames++;
+        for (let i = 0; i < 1000; i++) {
             vm.tick();
         }
         console.log("**** value from VM: " + vm.peek(256));
+        for (let i = 0; i < 3; i++) {
+            memoryCells[i].innerHTML = `${vm.peek(i)}`;
+        }
         let stackPointer = vm.peek(0);
         for (let i = 256; i < 262; i++) {
             memoryCells[i].innerHTML = `${vm.peek(i)}${stackPointer === i ? " < SP" : ""}`;

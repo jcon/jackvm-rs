@@ -4,12 +4,20 @@ use crate::compiler::Command;
 use crate::compiler::CompilationError;
 use crate::compiler::Segment;
 use crate::compiler::Operator;
+extern crate web_sys;
 
 pub struct VirtualMachine {
     pub memory: [i16; KEYBOARD_START + 1],
     pc: usize,
     program: Vec<Command>,
-    addresses: HashMap<String, i16>,
+    pub addresses: HashMap<String, i16>,
+}
+
+#[allow(unused_macros)]
+macro_rules! log {
+    ( $( $t:tt )* ) => {
+        web_sys::console::log_1(&format!( $( $t )* ).into());
+    }
 }
 
 const SP: usize = 0;
@@ -41,6 +49,18 @@ impl VirtualMachine {
         let (bytecode, addresses) = compile(program)?;
         self.addresses = addresses;
         self.load(&bytecode[..]);
+        match self.addresses.get("Sys.init") {
+            Some(addr) => {
+                self.pc = *addr as usize;
+                // log!("Loading with PC starting at {}", self.pc);
+                println!("Loading with PC starting at {}", self.pc);
+            },
+            None => {
+                // log!("No Sys.init found");
+                println!("No Sys.init found");
+                ();
+            },
+        }
         Ok(())
     }
 
@@ -56,7 +76,8 @@ impl VirtualMachine {
         }
 
         let command = &self.program[self.pc];
-        // println!("running command {:?}", command);
+        println!("running command {:?}", command);
+        log!("running command {:?}", command);
         match command {
             &Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
             &Command::Pop(segment, arg2) => self.stack_pop_segment(segment, arg2 as i16),
@@ -100,6 +121,17 @@ impl VirtualMachine {
     }
 
     fn process_call(&mut self, function_name: &str, n_args: i32) -> usize {
+        // log!("calling {} @ {}", function_name, *self.addresses.get(function_name).unwrap_or(&0));
+        // let sp = self.memory[0];
+        // if n_args > 0 {
+        //     log!("arg0: {}", self.memory[(sp - n_args as i16 - 1) as usize]);
+        // }
+        // if n_args > 1 {
+        //     log!("arg1: {}", self.memory[(sp - n_args as i16 - 1 + 1) as usize]);
+        // }
+        // if n_args > 2 {
+        //     log!("arg2: {}", self.memory[(sp - n_args as i16 - 1 + 2) as usize]);
+        // }
         self.stack_push((self.pc + 1) as i16);
         self.stack_push(self.memory[LCL]);
         self.stack_push(self.memory[ARG]);

@@ -394,6 +394,57 @@ set argument[6] 4010,
     }
 
     #[test]
+    pub fn test_function_calls_simple_function_from_sys_init() {
+        let mut jack_vm = compile_program("
+            call Sys.init 0 // dummy to align with Java implementation
+            function Main.test 2
+            push argument 1
+            push argument 0
+            pop local 0
+            pop local 1
+            push argument 0
+            push argument 1
+            add
+            not
+            push argument 0
+            add
+            push argument 1
+            sub
+            return
+            function Sys.init 1
+            push constant 4
+            push constant 9
+            call Main.test 2
+            label WHILE
+            goto WHILE              // loops infinitely
+        ");
+
+
+        for _ in 0..20{
+            jack_vm.tick();
+        }
+
+        debug_stack(&jack_vm);
+
+        assert_eq!(jack_vm.peek(0), 258);
+        assert_eq!(jack_vm.peek(256), 0);
+        assert_eq!(jack_vm.peek(257), -19);
+        assert_eq!(jack_vm.peek(258), 9);
+        assert_eq!(jack_vm.peek(259), 19);
+        assert_eq!(jack_vm.peek(260), 0);
+        assert_eq!(jack_vm.peek(261), 0);
+        assert_eq!(jack_vm.peek(262), 0);
+        assert_eq!(jack_vm.peek(263), 0);
+        assert_eq!(jack_vm.peek(264), 4);
+        assert_eq!(jack_vm.peek(265), 9);
+        assert_eq!(jack_vm.peek(266), -19);
+        assert_eq!(jack_vm.peek(267), 9);
+        assert_eq!(jack_vm.peek(268), 0);
+        assert_eq!(jack_vm.peek(269), 0);
+        assert_eq!(jack_vm.peek(270), 0);
+    }
+
+    #[test]
     pub fn test_function_calls_nested_call() {
         let mut jack_vm = compile_program("
             // Sys.vm for NestedCall test.
@@ -584,5 +635,154 @@ set argument[6] 4010,
 
         assert_eq!(jack_vm.peek(0), 262);
         assert_eq!(jack_vm.peek(261), 3);
+    }
+
+    #[test]
+    pub fn test_function_calls_fibonacci_element_2() {
+        let mut jack_vm = compile_program("
+            // Pushes a constant, say n, onto the stack, and calls the Main.fibonacii
+            // function, which computes the n'th element of the Fibonacci series.
+            // Note that by convention, the Sys.init function is called \"automatically\"
+            // by the bootstrap code.
+
+            function Sys.init 0
+            push constant 4
+            call Main.fibonacci 1   // computes the 4'th fibonacci element
+            label WHILE
+            goto WHILE              // loops infinitely
+
+            // Computes the n'th element of the Fibonacci series, recursively.
+            // n is given in argument[0].  Called by the Sys.init function
+            // (part of the Sys.vm file), which also pushes the argument[0]
+            // parameter before this code starts running.
+
+            function Main.fibonacci 0
+            push argument 0
+            push constant 2
+            lt                     // checks if n<2
+            if-goto IF_TRUE
+            goto IF_FALSE
+            label IF_TRUE          // if n<2, return n
+            push argument 0
+            return
+            label IF_FALSE         // if n>=2, returns fib(n-2)+fib(n-1)
+            push argument 0
+            push constant 2
+            sub
+            call Main.fibonacci 1  // computes fib(n-2)
+            push argument 0
+            push constant 1
+            sub
+            call Main.fibonacci 1  // computes fib(n-1)
+            add                    // returns fib(n-1) + fib(n-2)
+            return
+        ");
+
+        jack_vm.poke(0, 261);
+
+        for _ in 0..250{
+            jack_vm.tick();
+        }
+
+
+        let mut s = String::from("");
+        for i in 261..300 {
+            //s.push_str(format!("{}: {}\n", i, jack_vm.peek(i)));
+	    s.push_str(&i.to_string());
+	    s.push_str(": ");
+	    s.push_str(&jack_vm.peek(i).to_string());
+	    s.push_str("\n");
+        }
+        println!("memory ****\n{}", s);
+
+        // assert_eq!(jack_vm.peek(0), 262);
+        // assert_eq!(jack_vm.peek(261), 3);
+    }
+
+    #[test]
+    pub fn test_function_calls_recursive_add() {
+        let mut jack_vm = compile_program("
+            // Pushes a constant, say n, onto the stack, and calls the Main.fibonacii
+            // function, which computes the n'th element of the Fibonacci series.
+            // Note that by convention, the Sys.init function is called \"automatically\"
+            // by the bootstrap code.
+            call Sys.init 0 // dummy
+
+            function Main.main 1
+            push constant 1
+            call Main.add 1
+            pop local 0
+            label WHILE_EXP0
+            push constant 0
+            not
+            not
+            if-goto WHILE_END0
+            goto WHILE_EXP0
+            label WHILE_END0
+            push constant 0
+            return
+            function Main.add 0
+            push argument 0
+            push constant 0
+            eq
+            if-goto IF_TRUE0
+            goto IF_FALSE0
+            label IF_TRUE0
+            push constant 0
+            return
+            goto IF_END0
+            label IF_FALSE0
+            push constant 1
+            push argument 0
+            push constant 1
+            sub
+            call Main.add 1
+            add
+            return
+            label IF_END0
+
+            function Sys.init 0
+            //push constant 4
+            call Main.main 0   // computes the 4'th fibonacci element
+            label WHILE
+            goto WHILE              // loops infinitely
+        ");
+
+        jack_vm.poke(0, 256);
+
+        debug_address(&jack_vm, "Sys.init");
+        debug_address(&jack_vm, "Main.main");
+        debug_address(&jack_vm, "Main.add");
+
+        for _ in 0..102 {
+            jack_vm.tick();
+        }
+
+        debug_stack(&jack_vm);
+
+        // assert_eq!(jack_vm.peek(0), 262);
+        // assert_eq!(jack_vm.peek(261), 3);
+    }
+
+    fn debug_stack(jack_vm: &vm::VirtualMachine) {
+        let mut s = String::from("");
+        for i in 0..5 {
+            s.push_str(&i.to_string());
+            s.push_str(": ");
+            s.push_str(&jack_vm.peek(i).to_string());
+            s.push_str("\n");
+        }
+        for i in 256..310 {
+            //s.push_str(format!("{}: {}\n", i, jack_vm.peek(i)));
+            s.push_str(&i.to_string());
+            s.push_str(": ");
+            s.push_str(&jack_vm.peek(i).to_string());
+            s.push_str("\n");
+        }
+        println!("memory ****\n{}", s);
+    }
+
+    fn debug_address(jack_vm: &vm::VirtualMachine, symbol: &str) {
+        println!("address of {} is {}", symbol, jack_vm.addresses.get(symbol).unwrap());
     }
 }
