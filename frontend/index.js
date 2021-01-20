@@ -2,6 +2,7 @@ import { JackVirtualMachine } from "jackvm-wasm";
 
 const screenBuffer = new ArrayBuffer(512 * 256 * 4);
 const screenBytes = new Uint8Array(screenBuffer);
+const screenBytes32 = new Uint32Array(screenBuffer);
 const vm = JackVirtualMachine.new(screenBuffer);
 
 const mainCanvas = document.getElementById('screen');
@@ -17,7 +18,7 @@ let runEl = document.querySelector("#run");
 let memoryCells = {};
 let memoryCellIds = [0, 1, 2, 256, 257, 258, 259, 260, 261, 262]; // , 16384, 16416, 16448];
 // let bitmapStart = 16384+31;
-let bitmapStart = 16384 + 7648 + 31;
+let bitmapStart = 16384; // + 7648 + 31;
 for (let i = 0; i < 16; i++) {
     memoryCellIds.push(bitmapStart + 32*i);
 }
@@ -50,6 +51,7 @@ for (let i = 0; i < memoryCellIds.length; i++) {
 
 (function drawScreen() {
     requestAnimationFrame(drawScreen);
+    // screenBytes.fill(0x000000FF);
     vm.render_screen();
     imageData.data.set(screenBytes);
     mainContext.putImageData(imageData, 0, 0);

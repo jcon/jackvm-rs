@@ -7,6 +7,7 @@ extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
 
+
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]
@@ -102,7 +103,7 @@ impl JackVirtualMachine {
         //     // count += 4;
         // }
 
-        let screen = &mut self.jack_vm.memory[vm::SCREEN_START..vm::KEYBOARD_START];
+        let screen = &mut self.jack_vm.memory[vm::SCREEN_START..vm::KEYBOARD_START+1];
             /*
             // Simple JackVM instructions for drawing a space invader alien sprite drawn at (0, 0)
             push constant 16384
@@ -150,16 +151,21 @@ impl JackVirtualMachine {
             // screen[288] = 0;
             // screen[320] = -1;
 
-        for y in 0..255 {
-            for x in 0..31 {
+        // screen.fill(0xFFFFFFFF);
+        // for i in 0..screen.len() {
+        //     screen[i] = 0;
+        // }
+
+        for y in 0..256 {
+            for x in 0..32 {
                 let i = 32 * y + x;
                 // if screen[i] != 0 {
                     //   log!("slot {} is {}; x = {}, y = {}", i, screen[i], x, y);
                     let mut value = screen[i];
-                    for j in 0..15 {
-                        let loc = ((256 * y) + (16 * x) + j) as u32;
+                    for j in 0..16 {
+                        let loc = ((512 * y) + (16 * x) + j) as u32;
                         if (value & 0x1) == 1 {
-//                            log!("writing x = {}, y = {} at loc = {}", (16 * x) + j, y, loc);
+                        //    log!("writing x = {}, y = {} at loc = {}", (16 * x) + j, y, loc);
                             self.screen_canvas.set_index(loc , 0xFF000000);
                         } else {
                             // TODO: consider drawing white pixels
