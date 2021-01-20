@@ -153,7 +153,7 @@ impl JackVirtualMachine {
         for y in 0..255 {
             for x in 0..31 {
                 let i = 32 * y + x;
-                if screen[i] != 0 {
+                // if screen[i] != 0 {
                     //   log!("slot {} is {}; x = {}, y = {}", i, screen[i], x, y);
                     let mut value = screen[i];
                     for j in 0..15 {
@@ -163,12 +163,14 @@ impl JackVirtualMachine {
                             self.screen_canvas.set_index(loc , 0xFF000000);
                         } else {
                             // TODO: consider drawing white pixels
-                            // self.screen_canvas.set_index(loc , 0xFFFFFFFF);
+                            self.screen_canvas.set_index(loc , 0xFFFFFFFF);
                         }
 
                         value = value >> 1;
                     }
-                }
+                // } else {
+
+                // }
             }
         }
         // log!("wrote {} bytes", count);
