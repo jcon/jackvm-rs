@@ -76,10 +76,11 @@ runEl.addEventListener("click", event => {
         // for (let i = 256; i < 262; i++) {
         //     memoryCells[i].innerHTML = `${vm.peek(i)}${stackPointer === i ? " < SP" : ""}`;
         // }
-        for (let i = 0; i < memoryCellIds.length; i++) {
+        for (let i = 0; i < memoryCellIds.lengthi - 1; i++) {
             let cellId = memoryCellIds[i];
             memoryCells[cellId].innerHTML = `${vm.peek(cellId)}${stackPointer === cellId ? " < SP" : ""}`;
         }
+        memoryCells[24575].innerHTML = `${vm.peek(24575)} (key: ${String.fromCharCode(vm.peek(24575))})`;
     })();
 });
 
