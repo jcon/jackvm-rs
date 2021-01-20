@@ -15,7 +15,7 @@ console.log(progEl.value.split('\n').map(s => s.trim()));
 let runEl = document.querySelector("#run");
 
 let memoryCells = {};
-let memoryCellIds = [0, 1, 2, 256, 257, 258, 259, 260, 261, 262, 16384, 16416, 16448]
+let memoryCellIds = [0, 1, 2, 256, 257, 258, 259, 260, 261, 262, 16384, 16416, 16448, 24575]
 for (let i = 0; i < memoryCellIds.length; i++) {
     let cellId = memoryCellIds[i];
     memoryCells[cellId] = document.querySelector(`#mem-${cellId}`);
@@ -33,6 +33,17 @@ for (let i = 0; i < memoryCellIds.length; i++) {
     imageData.data.set(screenBytes);
     mainContext.putImageData(imageData, 0, 0);
 })();
+
+document.onkeypress = function (e) {
+    e = e || window.event;
+    console.log(e.keyCode);
+    vm.set_key(e.keyCode);
+    // use e.keyCode
+};
+
+document.onkeyup = function (e) {
+    vm.set_key(0);
+};
 
 runEl.addEventListener("click", event => {
     const prog = progEl.value.split('\n').map(s => s.trim());

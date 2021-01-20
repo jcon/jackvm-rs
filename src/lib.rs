@@ -180,6 +180,10 @@ impl JackVirtualMachine {
         self.jack_vm.tick();
     }
 
+    pub fn set_key(&mut self, key: i16) {
+        self.jack_vm.poke(vm::KEYBOARD_START, key);
+    }
+
     pub fn peek(&self, address: usize) -> i16 {
         self.jack_vm.peek(address)
     }
