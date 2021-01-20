@@ -5,8 +5,8 @@
     <title>Hello wasm-pack!</title>
     <style type="text/css">
       canvas#screen {
-        width: 512px;
-        height: 256px;
+        width: 1024px;
+        height: 512px;
         border: 5px solid #ddd;
         image-rendering: optimizeSpeed;
         image-rendering: -moz-crisp-edges;
@@ -15,18 +15,25 @@
         image-rendering: pixelated;
         -ms-interpolation-mode: nearest-neighbor;
       }
+      table#memory {
+        display: inline-block;
+        /* float: left; */
+      }
     </style>
   </head>
   <body>
+    <canvas id="screen" ></canvas>
     <textarea style="height: 80px; width: 260px" id="editor">
-      push constant 8
-      push constant 6
-      add
+    //  push constant 8
+    //  push constant 6
+    //  add
+
+
     </textarea>
     <button id="run">Run Program</button>
     <table id="memory">
-      <tbody>
-        <tr>
+      <tbody id="memory-body">
+        <!-- <tr>
           <th>SP</th>
           <td id="mem-0">0</td>
         </tr>
@@ -66,7 +73,7 @@
           <th>262</th>
           <td id="mem-262">0</td>
         </tr>
-        <!-- 16384, 16416, 16448 -->
+        < !- - 16384, 16416, 16448 -- >
         <tr>
           <th>16384</th>
           <td id="mem-16384">0</td>
@@ -82,10 +89,9 @@
         <tr>
           <th>24575</th>
           <td id="mem-24575">0</td>
-        </tr>
+        </tr> -->
       </tbody>
     </table>
-    <canvas id="screen" ></canvas>
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <script src="./bootstrap.js"></script>
   </body>
