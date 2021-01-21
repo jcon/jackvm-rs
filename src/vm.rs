@@ -58,7 +58,7 @@ impl VirtualMachine {
             None => {
                 // log!("No Sys.init found");
                 println!("No Sys.init found");
-                ();
+                self.pc = 0;
             },
         }
         Ok(())
