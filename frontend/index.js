@@ -19,12 +19,12 @@ let runEl = document.querySelector("#run");
 
 let memoryCells = {};
 let memoryCellIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 256, 257, 258, 259, 260, 261, 262]; // , 16384, 16416, 16448];
-// let bitmapStart = 16384+31;
-let bitmapStart = 16384+32; // + 7648 + 31;
-for (let i = 0; i < 10; i++) {
-    memoryCellIds.push(bitmapStart + 32*i);
-    memoryCellIds.push(bitmapStart + 32*i+1);
-}
+// // let bitmapStart = 16384+31;
+// let bitmapStart = 16384+32; // + 7648 + 31;
+// for (let i = 0; i < 10; i++) {
+//     memoryCellIds.push(bitmapStart + 32*i);
+//     memoryCellIds.push(bitmapStart + 32*i+1);
+// }
 memoryCellIds.push(24575);
 let tableBody = document.querySelector("#memory-body");
 for (let i = 0; i < memoryCellIds.length; i++) {
@@ -51,6 +51,28 @@ for (let i = 0; i < memoryCellIds.length; i++) {
 // for (let i = 256; i < 262; i++) {
 //     memoryCells[i] = document.querySelector(`#mem-${i}`);
 // }
+
+function registerMemoryPeek(id) {
+    let addr = document.querySelector(`#memory-peek-address-${id}`);
+    let val = vm.peek(addr);
+    let valDec = document.querySelector(`#memory-peek-value-dec-${id}`);
+    let valBin = document.querySelector(`#memory-peek-value-bin-${id}`);
+    let updateButton = document.querySelector(`#memory-peek-update-${id}`);
+
+    function updateValue() {
+        let value = vm.peek(addr.value);
+        valDec.innerHTML = value.toString();
+        valBin.innerHTML = dec2bin(value.toString());
+    }
+    updateButton.addEventListener('click', event => {
+        updateValue();
+    });
+    updateValue();
+}
+
+registerMemoryPeek(0);
+registerMemoryPeek(1);
+registerMemoryPeek(2);
 
 (function drawScreen() {
     requestAnimationFrame(drawScreen);
@@ -104,6 +126,7 @@ runEl.addEventListener("click", event => {
 
     let frames = 0;
 
+    let debugIns = false;
     (function executeSteps() {
     //    if (frames < 8) {
         // if (frames < 512) {
@@ -112,6 +135,14 @@ runEl.addEventListener("click", event => {
         frames++;
 //        30000i
         for (let i = 0; i < 8000; i++) {
+            let ins = vm.get_instruction();
+            if (ins === "Call(\"Output.drawChar\", 1)") {
+                debugIns = true;
+                debugger;
+            }
+            if (debugIns) {
+                console.log(ins);
+            }
             vm.tick();
         }
         // console.log("**** value from VM: " + vm.peek(256));

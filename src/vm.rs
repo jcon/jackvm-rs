@@ -70,6 +70,10 @@ impl VirtualMachine {
         self.memory[SP] = STACK_START as i16;
     }
 
+    pub fn get_instruction(&self) -> String {
+        format!("{:?}", self.program[self.pc])
+    }
+
     pub fn tick(&mut self) -> () {
         if self.pc >= self.program.len() {
             return ()

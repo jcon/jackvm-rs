@@ -83,6 +83,10 @@ impl JackVirtualMachine {
         }
     }
 
+    pub fn get_instruction(&self) -> String {
+        self.jack_vm.get_instruction()
+    }
+
     pub fn render_screen(&mut self) {
 
         // for y in 0..256 {
