@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::cmp::max;
+use std::num::Wrapping;
 use crate::compiler::compile;
 use crate::compiler::Command;
 use crate::compiler::CompilationError;
@@ -195,7 +196,7 @@ impl VirtualMachine {
         self.memory[THIS] = self.memory[frame - 2];
         self.memory[ARG] = self.memory[frame - 3];
         self.memory[LCL] = self.memory[frame - 4];
-        println!("return address: {}\n", return_addr);
+        // println!("return address: {}\n", return_addr);
         return_addr
     }
 
@@ -313,8 +314,13 @@ impl VirtualMachine {
                 let arg2 = self.stack_pop();
                 let arg1 = self.stack_pop();
                 let result = match operator {
-                    Operator::ADD => arg1 + arg2,
-                    Operator::SUB => arg1 - arg2,
+                    Operator::ADD => {
+                        // println!("adding {} + {}", arg1, arg2);
+                        (Wrapping(arg1) + Wrapping(arg2)).0
+                    },
+                    Operator::SUB => {
+                        (Wrapping(arg1) - Wrapping(arg2)).0
+                    },
                     Operator::EQ => if arg1 == arg2 { VM_TRUE } else { VM_FALSE },
                     Operator::LT => if arg1 < arg2 { VM_TRUE } else { VM_FALSE },
                     Operator::GT => if arg1 > arg2 { VM_TRUE } else { VM_FALSE },
@@ -389,6 +395,46 @@ mod test {
         assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
         assert_eq!(vm.stack_peek(), 15)
     }
+
+    #[test]
+    pub fn test_arithemetic_and_overflows() {
+        let vm = load_and_execute(&[
+            Command::Push(Segment::CONSTANT, 2),
+            Command::Push(Segment::CONSTANT, 2),
+            Command::Arithmetic(Operator::ADD),
+            Command::Pop(Segment::STATIC, 0),
+            Command::Push(Segment::CONSTANT, 4),
+            Command::Push(Segment::CONSTANT, 4),
+            Command::Arithmetic(Operator::ADD),
+            Command::Pop(Segment::STATIC, 1),
+            Command::Push(Segment::CONSTANT, 1024),
+            Command::Push(Segment::CONSTANT, 1024),
+            Command::Arithmetic(Operator::ADD),
+            Command::Pop(Segment::STATIC, 2),
+            Command::Push(Segment::CONSTANT, 16384),
+            Command::Push(Segment::CONSTANT, 16384),
+            Command::Arithmetic(Operator::ADD),
+            Command::Pop(Segment::STATIC, 3),
+            Command::Push(Segment::CONSTANT, 4),
+            Command::Arithmetic(Operator::NEG),
+            Command::Push(Segment::CONSTANT, 4),
+            Command::Arithmetic(Operator::SUB),
+            Command::Pop(Segment::STATIC, 4),
+            Command::Push(Segment::CONSTANT, 16384),
+            Command::Arithmetic(Operator::NEG),
+            Command::Push(Segment::CONSTANT, 32767),
+            Command::Arithmetic(Operator::SUB),
+            Command::Pop(Segment::STATIC, 5),
+        ]);
+
+        assert_eq!(vm.peek(STATIC_START + 0), 2 + 2);
+        assert_eq!(vm.peek(STATIC_START + 1), 4 + 4);
+        assert_eq!(vm.peek(STATIC_START + 2), 1024 + 1024);
+        assert_eq!(vm.peek(STATIC_START + 3), (Wrapping(16384i16) + Wrapping(16384i16)).0);
+        assert_eq!(vm.peek(STATIC_START + 4), -4 - 4);
+        assert_eq!(vm.peek(STATIC_START + 5), (Wrapping(-16384i16) - Wrapping(32767i16)).0);
+    }
+
 
     #[test]
     pub fn test_sub_instruction() {
