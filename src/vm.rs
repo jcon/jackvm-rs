@@ -531,16 +531,23 @@ mod test {
         let vm = load_and_execute(&[
             Command::Push(Segment::CONSTANT, -1),
             Command::Arithmetic(Operator::NOT),
-        ]);
-        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
-        assert_eq!(vm.stack_peek(), 0);
+            Command::Pop(Segment::STATIC, 0),
 
-        let vm = load_and_execute(&[
             Command::Push(Segment::CONSTANT, 0),
             Command::Arithmetic(Operator::NOT),
+            Command::Pop(Segment::STATIC, 1),
+
+            Command::Push(Segment::CONSTANT, 32767),
+            Command::Arithmetic(Operator::NEG),
+            Command::Push(Segment::CONSTANT, 1),
+            Command::Arithmetic(Operator::SUB),
+            Command::Arithmetic(Operator::NOT),
+            Command::Pop(Segment::STATIC, 2),
         ]);
-        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
-        assert_eq!(vm.stack_peek(), -1);
+
+        assert_eq!(vm.peek(STATIC_START + 0), 0);
+        assert_eq!(vm.peek(STATIC_START + 1), -1);
+        assert_eq!(vm.peek(STATIC_START + 2), 32767);
     }
 
     #[test]
