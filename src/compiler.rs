@@ -230,7 +230,7 @@ fn parse_label(cur_function: &str, instruction: &Instruction) -> Result<Command,
         label.push_str("$");
     }
     label.push_str(arg1);
-    println!("adding label {}", label);
+    // println!("adding label {}", label);
     Ok(Command::Label(label))
 }
 
@@ -374,7 +374,7 @@ pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec
 fn parse_positive_int(arg: Option<&str>) -> Result<i32, String> {
     let s = arg.ok_or("Expected a non-positive integer, but found nothing")?;
     let i = s.parse::<i32>().map_err(|e| format!("Cannot parse integer: {}", e))?;
-    println!("args are {}", i);
+    // println!("args are {}", i);
     if i < 0 {
         Err(format!("Expected a non-negative integer, but got {}", i))
     } else {
