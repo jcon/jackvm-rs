@@ -305,7 +305,7 @@ impl VirtualMachine {
                 let arg1 = self.stack_pop();
                 let result = match operator {
                     Operator::NOT => !arg1,
-                    Operator::NEG => 0 - arg1,
+                    Operator::NEG => (Wrapping(0) - Wrapping(arg1)).0,
                     _ => panic!("Unexpected operator encountered"), // won't get here.
                 };
                 self.stack_push(result);
@@ -548,16 +548,21 @@ mod test {
         let vm = load_and_execute(&[
             Command::Push(Segment::CONSTANT, -99),
             Command::Arithmetic(Operator::NEG),
-        ]);
-        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
-        assert_eq!(vm.stack_peek(), 99);
+            Command::Pop(Segment::STATIC, 0),
 
-        let vm = load_and_execute(&[
             Command::Push(Segment::CONSTANT, 54),
             Command::Arithmetic(Operator::NEG),
+            Command::Pop(Segment::STATIC, 1),
+
+            Command::Push(Segment::CONSTANT, -32768),
+            Command::Arithmetic(Operator::NEG),
+            Command::Pop(Segment::STATIC, 2),
         ]);
-        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
-        assert_eq!(vm.stack_peek(), -54);
+
+
+        assert_eq!(vm.memory[STATIC_START + 0], 99);
+        assert_eq!(vm.memory[STATIC_START + 1], -54);
+        assert_eq!(vm.memory[STATIC_START + 2], -32768i16);
     }
 
     #[test]
