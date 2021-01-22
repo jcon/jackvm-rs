@@ -232,11 +232,7 @@ impl VirtualMachine {
                 self.memory[address]
             },
             Segment::STATIC => {
-                let static_start = STATIC_START as i32;
-                let base_address = self.call_stack.last().map(|c| {
-                    self.static_addresses.get(c.get_class_name()).unwrap_or(&static_start)
-                }).unwrap_or(&static_start);
-                let address = (*base_address + offset as i32) as usize;
+                let address = (self.get_static_base() as i16 + offset) as usize;
                 self.memory[address]
             },
         };
@@ -263,17 +259,26 @@ impl VirtualMachine {
                 (TEMP_START as i16) + offset
             },
             Segment::STATIC => {
-                let static_start = STATIC_START as i32;
-                let base_address = self.call_stack.last().map(|c| {
-                    self.static_addresses.get(c.get_class_name()).unwrap_or(&static_start)
-                }).unwrap_or(&static_start);
-                (*base_address as i16 + offset)
+                self.get_static_base() as i16 + offset
             }
             _ => panic!("unexpected segment"),
         };
         let address = base_address as usize;
         let val = self.stack_pop();
         self.memory[address] = val;
+    }
+
+    fn get_static_base(&self) -> i32 {
+        let static_start = STATIC_START as i32;
+        match self.call_stack.last() {
+            Some(ref cur_fn) => {
+                *self.static_addresses.get(cur_fn.get_class_name()).unwrap()
+            },
+            None => {
+                println!("no current function use STATIC_START = {}", static_start);
+                static_start
+            }
+        }
     }
 
     fn dereference(&self, base: usize, offset: i16) -> i16 {
