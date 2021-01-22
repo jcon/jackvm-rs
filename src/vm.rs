@@ -104,7 +104,7 @@ impl VirtualMachine {
         }
 
         let command = &self.program[self.pc];
-        // println!("running command {:?}", command);
+        // println!("running command {}: {:?}", self.pc, command);
         // log!("running command {:?}", command);
         match command {
             &Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
