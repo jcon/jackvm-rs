@@ -453,9 +453,22 @@ mod test {
             Command::Push(Segment::CONSTANT, 3),
             Command::Push(Segment::CONSTANT, 5),
             Command::Arithmetic(Operator::AND),
+            Command::Pop(Segment::STATIC, 0),
+
+            Command::Push(Segment::CONSTANT, -32768),
+            Command::Push(Segment::CONSTANT, 32767),
+            Command::Arithmetic(Operator::AND),
+            Command::Pop(Segment::STATIC, 1), // should be 0, no bits overlap
+
+            Command::Push(Segment::CONSTANT, -32768),
+            Command::Push(Segment::CONSTANT, -1),
+            Command::Arithmetic(Operator::AND),
+            Command::Pop(Segment::STATIC, 2), // should be -32768, only last bit overlaps
         ]);
-        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
-        assert_eq!(vm.stack_peek(), 1);
+
+        assert_eq!(vm.peek(STATIC_START + 0), 1);
+        assert_eq!(vm.peek(STATIC_START + 1), 0);
+        assert_eq!(vm.peek(STATIC_START + 2), -32768);
     }
 
     #[test]
@@ -464,9 +477,15 @@ mod test {
             Command::Push(Segment::CONSTANT, 3),
             Command::Push(Segment::CONSTANT, 4),
             Command::Arithmetic(Operator::OR),
+            Command::Pop(Segment::STATIC, 0),
+
+            Command::Push(Segment::CONSTANT, -32768),
+            Command::Push(Segment::CONSTANT, 32767),
+            Command::Arithmetic(Operator::OR),
+            Command::Pop(Segment::STATIC, 1), // should be -1 (all bits set)
         ]);
-        assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
-        assert_eq!(vm.stack_peek(), 7);
+        assert_eq!(vm.peek(STATIC_START + 0), 7);
+        assert_eq!(vm.peek(STATIC_START + 1), -1);
     }
 
     #[test]
