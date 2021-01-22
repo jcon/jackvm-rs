@@ -394,6 +394,55 @@ set argument[6] 4010,
     }
 
     #[test]
+    pub fn test_memory_access_static_addresses() {
+        let jack_vm = execute_program("
+            function Test1.main 0
+            push constant 2
+            push constant 1
+            pop static 0
+            pop static 1
+            return
+
+            function Test2.main 0
+            push constant 4
+            push constant 3
+            pop static 0
+            pop static 1
+            return
+
+            function Sys.init 0
+            call Test1.main 0
+            pop temp 0
+            call Test2.main 0
+            pop temp 0
+            ");
+
+        println!("
+        16 => {}\n
+        17 => {}\n
+        18 => {}\n
+        19 => {}\n
+        ",
+        jack_vm.peek(16),
+        jack_vm.peek(17),
+        jack_vm.peek(18),
+        jack_vm.peek(19));
+
+        if jack_vm.peek(16) == 1 {
+            assert_eq!(jack_vm.peek(16), 1);
+            assert_eq!(jack_vm.peek(17), 2);
+            assert_eq!(jack_vm.peek(18), 3);
+            assert_eq!(jack_vm.peek(19), 4);
+        } else {
+            assert_eq!(jack_vm.peek(16), 3);
+            assert_eq!(jack_vm.peek(17), 4);
+            assert_eq!(jack_vm.peek(18), 1);
+            assert_eq!(jack_vm.peek(19), 2);
+
+        }
+    }
+
+    #[test]
     pub fn test_function_calls_simple_function_from_sys_init() {
         let mut jack_vm = compile_program("
             call Sys.init 0 // dummy to align with Java implementation

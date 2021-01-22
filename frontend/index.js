@@ -136,12 +136,13 @@ runEl.addEventListener("click", event => {
 //        30000i
         for (let i = 0; i < 8000; i++) {
             let ins = vm.get_instruction();
-            if (ins === "Call(\"Output.drawChar\", 1)") {
+            let stack_val = vm.peek(vm.peek(0) - 1);
+            if (ins === "Call(\"Main.main\", 0)") {
                 debugIns = true;
                 debugger;
             }
             if (debugIns) {
-                console.log(ins);
+                // console.log(ins);
             }
             vm.tick();
         }

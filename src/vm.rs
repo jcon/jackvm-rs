@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::cmp::max;
 use crate::compiler::compile;
 use crate::compiler::Command;
 use crate::compiler::CompilationError;
@@ -6,11 +7,30 @@ use crate::compiler::Segment;
 use crate::compiler::Operator;
 extern crate web_sys;
 
+
+struct FunctionCall {
+    name: String,
+}
+
+impl FunctionCall {
+    pub fn get_class_name(&self) -> &str {
+        let end = self.name.find(".").unwrap_or(self.name.len());
+        &self.name[..end]
+    }
+
+    pub fn get_function_name(&self) -> &str {
+        let start = self.name.find(".").unwrap_or(self.name.len());
+        &self.name[start + 1..]
+    }
+}
+
 pub struct VirtualMachine {
     pub memory: [i16; KEYBOARD_START + 1],
     pc: usize,
     program: Vec<Command>,
     pub addresses: HashMap<String, i16>,
+    static_addresses: HashMap<String, i32>,
+    call_stack: Vec<FunctionCall>,
 }
 
 #[allow(unused_macros)]
@@ -42,6 +62,8 @@ impl VirtualMachine {
             pc: 0,
             program: vec!(),
             addresses: HashMap::new(),
+            static_addresses: HashMap::new(),
+            call_stack: Vec::new(),
         }
     }
 
@@ -68,6 +90,8 @@ impl VirtualMachine {
         self.program = prog.iter().cloned().collect();
         self.pc = 0;
         self.memory[SP] = STACK_START as i16;
+        self.static_addresses = get_static_addresses(&self.program);
+        self.call_stack.clear();
     }
 
     pub fn get_instruction(&self) -> String {
@@ -98,7 +122,10 @@ impl VirtualMachine {
                     return; // don't update the program counter when if-goto was successful
                 }
             },
-            &Command::Function(_, n_locals) => self.process_function(n_locals),
+            &Command::Function(ref function_name, n_locals) => {
+                self.call_stack.push(FunctionCall { name: function_name.to_string() });
+                self.process_function(n_locals);
+            },
             &Command::Call(ref name, n_args) => {
                 let name_copy = name.clone();
                 let result_pc = self.process_call(&name_copy, n_args);
@@ -205,7 +232,11 @@ impl VirtualMachine {
                 self.memory[address]
             },
             Segment::STATIC => {
-                let address = STATIC_START + (offset as usize);
+                let static_start = STATIC_START as i32;
+                let base_address = self.call_stack.last().map(|c| {
+                    self.static_addresses.get(c.get_class_name()).unwrap_or(&static_start)
+                }).unwrap_or(&static_start);
+                let address = (*base_address + offset as i32) as usize;
                 self.memory[address]
             },
         };
@@ -232,7 +263,11 @@ impl VirtualMachine {
                 (TEMP_START as i16) + offset
             },
             Segment::STATIC => {
-                (STATIC_START as i16) + offset
+                let static_start = STATIC_START as i32;
+                let base_address = self.call_stack.last().map(|c| {
+                    self.static_addresses.get(c.get_class_name()).unwrap_or(&static_start)
+                }).unwrap_or(&static_start);
+                (*base_address as i16 + offset)
             }
             _ => panic!("unexpected segment"),
         };
@@ -288,6 +323,35 @@ impl VirtualMachine {
     }
 }
 
+fn get_static_addresses(prog: &[Command]) -> HashMap<String, i32> {
+    let mut addresses = HashMap::new();
+    let mut current_class: String = "".to_string();
+    for command in prog.iter() {
+        match command {
+            &Command::Function(ref name, _) => {
+                let mut parts = name.split(".");
+                current_class = parts.next().unwrap().to_string();
+            },
+            &Command::Push(Segment::STATIC, addr) | &Command::Pop(Segment::STATIC, addr) => {
+                let max_addr = addresses.entry(current_class.to_string()).or_insert(0);
+                *max_addr = max(*max_addr, addr);
+            },
+            _ => (),
+        }
+    }
+
+    // Update starting addresses so that that each segment has the appropriate
+    // slots for each class.
+    let mut base_addr = STATIC_START as i32;
+    for (_, val) in &mut addresses {
+        let static_count = *val;
+        *val = base_addr;
+        base_addr += static_count + 1;
+    }
+
+    addresses
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -301,6 +365,13 @@ mod test {
         }
 
         vm
+    }
+
+    #[test]
+    pub fn function_call_prases_names() {
+        let call = FunctionCall { name: "Sys.init".to_string() };
+        assert_eq!(call.get_class_name(), "Sys");
+        assert_eq!(call.get_function_name(), "init");
     }
 
     #[test]
@@ -566,5 +637,37 @@ mod test {
         assert_eq!(vm.memory[THAT], 20);
         assert_eq!(vm.memory[STATIC_START + 4], 30);
         assert_eq!(vm.memory[TEMP_START + 2], 40);
+    }
+
+    #[test]
+    pub fn test_get_static_addresses() {
+        let mut vm = VirtualMachine::new();
+        vm.load(&[
+            Command::Function("Test1.main".to_string(), 0),
+            Command::Push(Segment::CONSTANT, 2),
+            Command::Push(Segment::CONSTANT, 1),
+            Command::Push(Segment::STATIC, 0),
+            Command::Push(Segment::STATIC, 1),
+            Command::Return,
+            Command::Function("Test2.main".to_string(), 0),
+            Command::Push(Segment::CONSTANT, 4),
+            Command::Push(Segment::CONSTANT, 3),
+            Command::Push(Segment::STATIC, 0),
+            Command::Push(Segment::STATIC, 1),
+            Command::Return,
+        ]);
+
+        assert_eq!(vm.static_addresses.len(), 2);
+        assert_ne!(*vm.static_addresses.get("Test1").unwrap(),
+            *vm.static_addresses.get("Test2").unwrap());
+
+        let test1 = *vm.static_addresses.get("Test1").unwrap();
+        if test1 != 16 && test1 != 18 {
+            panic!("Test1 does not have expected static segment.\n\nExpected [16, 18] but got {}", test1);
+        }
+        let test2 = *vm.static_addresses.get("Test2").unwrap();
+        if test2 != 16 && test2 != 18 {
+            panic!("Test2 does not have expected static segment.\n\nExpected [16, 18] but got {}", test2);
+        }
     }
 }
