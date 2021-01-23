@@ -32,6 +32,7 @@ pub struct VirtualMachine {
     pub addresses: HashMap<String, i16>,
     static_addresses: HashMap<String, i32>,
     call_stack: Vec<FunctionCall>,
+    is_debug: bool,
 }
 
 #[allow(unused_macros)]
@@ -65,6 +66,7 @@ impl VirtualMachine {
             addresses: HashMap::new(),
             static_addresses: HashMap::new(),
             call_stack: Vec::new(),
+            is_debug: false,
         }
     }
 
@@ -105,7 +107,9 @@ impl VirtualMachine {
         }
 
         let command = &self.program[self.pc];
-        // println!("running command {}: {:?}", self.pc, command);
+        if self.is_debug {
+            println!("running command {}: {:?}", self.pc, command);
+        }
         // log!("running command {:?}", command);
         match command {
             &Command::Push(segment, arg2) => self.stack_push_segment(segment, arg2 as i16),
@@ -125,6 +129,15 @@ impl VirtualMachine {
             },
             &Command::Function(ref function_name, n_locals) => {
                 self.call_stack.push(FunctionCall { name: function_name.to_string() });
+                // if function_name == "Math.sqrt" {
+                //     self.is_debug = true;
+                // } else {
+                //     self.is_debug = false;
+                // }
+                // if self.is_debug && function_name == "Math.multiply" {
+                //     let args_addr = self.peek(2) as usize;
+                //     println!("{} * {} ({}, {})", self.peek(args_addr), self.peek(args_addr + 1), args_addr, args_addr + 1);
+                // }
                 self.process_function(n_locals);
             },
             &Command::Call(ref name, n_args) => {
@@ -134,6 +147,12 @@ impl VirtualMachine {
                 return; // don't increment the program counter automatically.
             },
             &Command::Return => {
+                self.call_stack.pop();
+                // match self.call_stack.last() {
+                //     Some(ref func_call) if func_call.get_function_name() == "sqrt" =>
+                //         self.is_debug = true,
+                //     _ => (),
+                // }
                 let result_pc = self.process_return();
                 self.pc = result_pc;
                 return;
@@ -240,6 +259,9 @@ impl VirtualMachine {
                 self.memory[address]
             },
         };
+        if self.is_debug {
+            println!("{}", val);
+        }
         self.stack_push(val);
     }
 
@@ -269,6 +291,9 @@ impl VirtualMachine {
         };
         let address = base_address as usize;
         let val = self.stack_pop();
+        if self.is_debug {
+            println!("{}", val);
+        }
         self.memory[address] = val;
     }
 

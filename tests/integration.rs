@@ -445,6 +445,47 @@ set argument[6] 4010,
     }
 
     #[test]
+    pub fn test_function_call_multiple_args() {
+        let mut jack_vm = compile_program("
+            call Sys.init 0 // dummy to align with Java implementation
+            function Main.test 0
+            push argument 0
+            pop static 0
+            push argument 1
+            pop static 1
+            push argument 2
+            pop static 2
+            return
+
+            function Main.main 0
+            push constant 9
+            push constant 8
+            push constant 7
+            call Main.test 3
+            pop temp 0
+            return
+
+            function Sys.init 1
+            call Main.main 0
+            pop temp 0
+
+            label WHILE
+            goto WHILE              // loops infinitely
+        ");
+
+
+        for _ in 0..50{
+            jack_vm.tick();
+        }
+
+        debug_stack(&jack_vm);
+
+        assert_eq!(jack_vm.peek(16), 9);
+        assert_eq!(jack_vm.peek(17), 8);
+        assert_eq!(jack_vm.peek(18), 7);
+    }
+
+    #[test]
     pub fn test_logic_in_function_called_from_sys_init() {
         let mut jack_vm = compile_program("
             call Sys.init 0 // dummy to align with Java implementation

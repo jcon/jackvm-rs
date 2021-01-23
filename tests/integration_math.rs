@@ -33,33 +33,6 @@ mod test {
             pop temp 0
             push constant 0
             return
-            function Main.mod 1
-            push constant 8000
-            pop local 0
-            push constant 0
-            push local 0
-            add
-            push argument 0
-            pop temp 0
-            pop pointer 1
-            push temp 0
-            pop that 0
-            push constant 1
-            push local 0
-            add
-            push argument 1
-            pop temp 0
-            pop pointer 1
-            push temp 0
-            pop that 0
-            push argument 0
-            push argument 0
-            push argument 1
-            call Math.divide 2
-            push argument 1
-            call Math.multiply 2
-            sub
-            return
             function Main.main 1
             push constant 8000
             pop local 0
@@ -270,61 +243,70 @@ mod test {
             pop pointer 1
             push temp 0
             pop that 0
-//            push constant 15
-//            push local 0
-//            add
-//            push constant 128
-//            push constant 32767
-//            neg
-//            push constant 1
-//            sub
-//            call Math.divide 2
-//            pop temp 0
-//            pop pointer 1
-//            push temp 0
-//            pop that 0
-            push constant 0
-            return
-            function Math.init 2
-            push constant 7000
-            pop static 3
-            push constant 0
-            pop static 4
-            push constant 16
-            call Array.new 1
-            pop static 2
-            push constant 0
-            pop local 0
-            push constant 1
-            pop local 1
-            label WHILE_EXP0
+            push constant 20
             push local 0
-            push constant 16
-            lt
-            not
-            if-goto WHILE_END0
-            push local 0
-            push static 2
             add
-            push local 1
+            push constant 128
+            push constant 32767
+            neg
+            push constant 1
+            sub
+            call Math.divide 2
             pop temp 0
             pop pointer 1
             push temp 0
             pop that 0
-            push local 1
-            push local 1
+            push constant 0
+            return
+            function Math.init 1
+            push constant 16
+            call Array.new 1
+            pop static 1
+            push constant 16
+            call Array.new 1
+            pop static 0
+            push constant 0
+            push static 0
             add
-            pop local 1
+            push constant 1
+            pop temp 0
+            pop pointer 1
+            push temp 0
+            pop that 0
+            label WHILE_EXP0
+            push local 0
+            push constant 15
+            lt
+            not
+            if-goto WHILE_END0
             push local 0
             push constant 1
             add
             pop local 0
+            push local 0
+            push static 0
+            add
+            push local 0
+            push constant 1
+            sub
+            push static 0
+            add
+            pop pointer 1
+            push that 0
+            push local 0
+            push constant 1
+            sub
+            push static 0
+            add
+            pop pointer 1
+            push that 0
+            add
+            pop temp 0
+            pop pointer 1
+            push temp 0
+            pop that 0
             goto WHILE_EXP0
             label WHILE_END0
-            push constant 3
-            pop static 0
-            push constant 4
-            pop static 1
             push constant 0
             return
             function Math.abs 0
@@ -334,195 +316,277 @@ mod test {
             if-goto IF_TRUE0
             goto IF_FALSE0
             label IF_TRUE0
-            push constant 0
             push argument 0
-            sub
-            return
-            goto IF_END0
+            neg
+            pop argument 0
             label IF_FALSE0
             push argument 0
             return
-            label IF_END0
-            function Math.multiply 4
+            function Math.multiply 5
             push argument 0
-            pop local 1
-            push constant 1
-            pop local 2
             push constant 0
-            pop local 3
-            label WHILE_EXP0
-            push local 3
-            push constant 16
             lt
-            not
-            if-goto WHILE_END0
             push argument 1
-            push local 2
+            push constant 0
+            gt
             and
-            push local 2
-            eq
+            push argument 0
+            push constant 0
+            gt
+            push argument 1
+            push constant 0
+            lt
+            and
+            or
+            pop local 4
+            push argument 0
+            call Math.abs 1
+            pop argument 0
+            push argument 1
+            call Math.abs 1
+            pop argument 1
+            push argument 0
+            push argument 1
+            lt
             if-goto IF_TRUE0
             goto IF_FALSE0
             label IF_TRUE0
-            push local 0
+            push argument 0
+            pop local 1
+            push argument 1
+            pop argument 0
             push local 1
+            pop argument 1
+            label IF_FALSE0
+            label WHILE_EXP0
+            push local 2
+            push constant 1
+            sub
+            push argument 1
+            push constant 1
+            sub
+            lt
+            not
+            if-goto WHILE_END0
+            push local 3
+            push static 0
+            add
+            pop pointer 1
+            push that 0
+            push argument 1
+            and
+            push constant 0
+            eq
+            not
+            if-goto IF_TRUE1
+            goto IF_FALSE1
+            label IF_TRUE1
+            push local 0
+            push argument 0
             add
             pop local 0
-            label IF_FALSE0
-            push local 1
-            push local 1
+            push local 2
+            push local 3
+            push static 0
             add
-            pop local 1
-            push local 2
-            push local 2
+            pop pointer 1
+            push that 0
             add
             pop local 2
+            label IF_FALSE1
+            push argument 0
+            push argument 0
+            add
+            pop argument 0
             push local 3
             push constant 1
             add
             pop local 3
             goto WHILE_EXP0
             label WHILE_END0
-            push local 0
-            return
-            function Math.divide 1
-            push argument 0
-            call Math.abs 1
-            push argument 1
-            call Math.abs 1
-            lt
-            push argument 0
-            push argument 1
-            eq
-            not
-            push argument 1
-            push constant 32767
-            neg
-            push constant 1
-            sub
-            eq
-            and
-            or
-            if-goto IF_TRUE0
-            goto IF_FALSE0
-            label IF_TRUE0
-            push constant 0
-            return
-            label IF_FALSE0
-            push argument 0
-            call Math.abs 1
-            push argument 1
-            call Math.abs 1
-            call Math.divideHelper 2
-            pop local 0
-            push argument 0
-            push constant 0
-            lt
-            push argument 1
-            push constant 0
-            gt
-            and
-            push argument 1
-            push constant 0
-            lt
-            push argument 0
-            push constant 0
-            gt
-            and
-            or
-            if-goto IF_TRUE1
-            goto IF_FALSE1
-            label IF_TRUE1
-            push constant 0
-            push local 0
-            sub
-            return
-            goto IF_END1
-            label IF_FALSE1
-            push local 0
-            return
-            label IF_END1
-            function Math.divideHelper 2
-            push static 4
-            push static 3
-            add
-            push argument 0
-            pop temp 0
-            pop pointer 1
-            push temp 0
-            pop that 0
-            push static 4
-            push constant 1
-            add
-            push static 3
-            add
-            push argument 1
-            pop temp 0
-            pop pointer 1
-            push temp 0
-            pop that 0
-            push static 4
-            push constant 2
-            add
-            pop static 4
-            push argument 1
-            push constant 0
-            lt
-            push argument 1
-            push argument 0
-            gt
-            or
-            if-goto IF_TRUE0
-            goto IF_FALSE0
-            label IF_TRUE0
-            push constant 0
-            return
-            label IF_FALSE0
-            push argument 1
-            push constant 0
-            eq
-            if-goto IF_TRUE1
-            goto IF_FALSE1
-            label IF_TRUE1
-            push static 0
-            call Sys.error 1
-            pop temp 0
-            push constant 0
-            return
-            label IF_FALSE1
-            push argument 0
-            push argument 1
-            push argument 1
-            add
-            call Math.divideHelper 2
-            pop local 0
-            push local 0
-            push argument 1
-            call Math.multiply 2
-            pop local 1
-            push argument 0
-            push local 1
-            push local 1
-            add
-            sub
-            push argument 1
-            lt
+            push local 4
             if-goto IF_TRUE2
             goto IF_FALSE2
             label IF_TRUE2
             push local 0
-            push local 0
-            add
-            return
-            goto IF_END2
+            neg
+            pop local 0
             label IF_FALSE2
             push local 0
-            push local 0
+            return
+            function Math.divide 4
+            push argument 1
+            push constant 0
+            eq
+            if-goto IF_TRUE0
+            goto IF_FALSE0
+            label IF_TRUE0
+            push constant 3
+            call Sys.error 1
+            pop temp 0
+            label IF_FALSE0
+            push argument 0
+            push constant 0
+            lt
+            push argument 1
+            push constant 0
+            gt
+            and
+            push argument 0
+            push constant 0
+            gt
+            push argument 1
+            push constant 0
+            lt
+            and
+            or
+            pop local 2
+            push constant 0
+            push static 1
             add
+            push argument 1
+            call Math.abs 1
+            pop temp 0
+            pop pointer 1
+            push temp 0
+            pop that 0
+            push argument 0
+            call Math.abs 1
+            pop argument 0
+            label WHILE_EXP0
+            push local 0
+            push constant 15
+            lt
+            push local 3
+            not
+            and
+            not
+            if-goto WHILE_END0
+            push constant 32767
+            push local 0
+            push static 1
+            add
+            pop pointer 1
+            push that 0
+            push constant 1
+            sub
+            sub
+            push local 0
+            push static 1
+            add
+            pop pointer 1
+            push that 0
+            push constant 1
+            sub
+            lt
+            pop local 3
+            push local 3
+            not
+            if-goto IF_TRUE1
+            goto IF_FALSE1
+            label IF_TRUE1
+            push local 0
             push constant 1
             add
+            push static 1
+            add
+            push local 0
+            push static 1
+            add
+            pop pointer 1
+            push that 0
+            push local 0
+            push static 1
+            add
+            pop pointer 1
+            push that 0
+            add
+            pop temp 0
+            pop pointer 1
+            push temp 0
+            pop that 0
+            push local 0
+            push constant 1
+            add
+            push static 1
+            add
+            pop pointer 1
+            push that 0
+            push constant 1
+            sub
+            push argument 0
+            push constant 1
+            sub
+            gt
+            pop local 3
+            push local 3
+            not
+            if-goto IF_TRUE2
+            goto IF_FALSE2
+            label IF_TRUE2
+            push local 0
+            push constant 1
+            add
+            pop local 0
+            label IF_FALSE2
+            label IF_FALSE1
+            goto WHILE_EXP0
+            label WHILE_END0
+            label WHILE_EXP1
+            push local 0
+            push constant 1
+            neg
+            gt
+            not
+            if-goto WHILE_END1
+            push local 0
+            push static 1
+            add
+            pop pointer 1
+            push that 0
+            push constant 1
+            sub
+            push argument 0
+            push constant 1
+            sub
+            gt
+            not
+            if-goto IF_TRUE3
+            goto IF_FALSE3
+            label IF_TRUE3
+            push local 1
+            push local 0
+            push static 0
+            add
+            pop pointer 1
+            push that 0
+            add
+            pop local 1
+            push argument 0
+            push local 0
+            push static 1
+            add
+            pop pointer 1
+            push that 0
+            sub
+            pop argument 0
+            label IF_FALSE3
+            push local 0
+            push constant 1
+            sub
+            pop local 0
+            goto WHILE_EXP1
+            label WHILE_END1
+            push local 2
+            if-goto IF_TRUE4
+            goto IF_FALSE4
+            label IF_TRUE4
+            push local 1
+            neg
+            pop local 1
+            label IF_FALSE4
+            push local 1
             return
-            label IF_END2
             function Math.sqrt 4
             push argument 0
             push constant 0
@@ -530,20 +594,12 @@ mod test {
             if-goto IF_TRUE0
             goto IF_FALSE0
             label IF_TRUE0
-            push static 1
+            push constant 4
             call Sys.error 1
             pop temp 0
-            push constant 0
-            return
             label IF_FALSE0
-            push constant 16
-            push constant 2
-            call Math.divide 2
-            push constant 1
-            sub
+            push constant 7
             pop local 0
-            push constant 0
-            pop local 1
             label WHILE_EXP0
             push local 0
             push constant 1
@@ -551,32 +607,32 @@ mod test {
             gt
             not
             if-goto WHILE_END0
-            push local 1
+            push local 3
             push local 0
-            push static 2
+            push static 0
             add
             pop pointer 1
             push that 0
             add
+            pop local 1
+            push local 1
+            push local 1
+            call Math.multiply 2
             pop local 2
             push local 2
-            push local 2
-            call Math.multiply 2
-            pop local 3
-            push local 3
-            push constant 0
-            lt
-            not
-            push local 3
             push argument 0
             gt
+            not
+            push local 2
+            push constant 0
+            lt
             not
             and
             if-goto IF_TRUE1
             goto IF_FALSE1
             label IF_TRUE1
-            push local 2
-            pop local 1
+            push local 1
+            pop local 3
             label IF_FALSE1
             push local 0
             push constant 1
@@ -584,22 +640,20 @@ mod test {
             pop local 0
             goto WHILE_EXP0
             label WHILE_END0
-            push local 1
+            push local 3
             return
             function Math.max 0
             push argument 0
             push argument 1
-            lt
+            gt
             if-goto IF_TRUE0
             goto IF_FALSE0
             label IF_TRUE0
+            push argument 0
+            pop argument 1
+            label IF_FALSE0
             push argument 1
             return
-            goto IF_END0
-            label IF_FALSE0
-            push argument 0
-            return
-            label IF_END0
             function Math.min 0
             push argument 0
             push argument 1
@@ -608,12 +662,10 @@ mod test {
             goto IF_FALSE0
             label IF_TRUE0
             push argument 0
-            return
-            goto IF_END0
+            pop argument 1
             label IF_FALSE0
             push argument 1
             return
-            label IF_END0
             function Memory.init 0
             push constant 0
             pop static 0
@@ -971,9 +1023,12 @@ mod test {
             pop temp 0
             push constant 0
             return
+
         ");
 
-        for _ in 0..1000000 {
+        // for _ in 0..1000000 {
+        // for _ in 0..29000 {
+        for _ in 0..6200 {
             jack_vm.tick();
         }
 
@@ -984,7 +1039,7 @@ mod test {
 |       6 |    -180 |  -18000 |  -18000 |       0 |       3 |   -3000 |       0 |       3 |     181 |     123 |     123 |      27 |   32767 |
 */
 
-
+        // beg - comment out
         assert_eq!(jack_vm.peek(8000), 6);
         assert_eq!(jack_vm.peek(8001), -180);
         assert_eq!(jack_vm.peek(8002), -18000);
@@ -993,7 +1048,9 @@ mod test {
         assert_eq!(jack_vm.peek(8005), 3);
         assert_eq!(jack_vm.peek(8006), -3000);
         assert_eq!(jack_vm.peek(8007), 0);
+        // end - comment out
         assert_eq!(jack_vm.peek(8008), 3);
+        // beg - comment out
         assert_eq!(jack_vm.peek(8009), 181);
         assert_eq!(jack_vm.peek(8010), 123);
         assert_eq!(jack_vm.peek(8011), 123);
@@ -1005,5 +1062,6 @@ mod test {
         assert_eq!(jack_vm.peek(8018), 50i16 / 7i16);
         assert_eq!(jack_vm.peek(8019), 700i16 / 99i16);
         assert_eq!(jack_vm.peek(8020), 0);
+        // end - comment out
     }
 }
