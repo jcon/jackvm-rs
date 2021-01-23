@@ -145,6 +145,9 @@ impl VirtualMachine {
 
     fn process_if_goto(&mut self, address: &str) -> bool {
         if self.stack_pop() != VM_FALSE {
+            if let None = self.addresses.get(address) {
+                panic!("Can't find address {} in {:?}", address, self.addresses);
+            }
             self.pc = *self.addresses.get(address).unwrap() as usize;
             true
         } else {
@@ -543,6 +546,47 @@ mod test {
         ]);
         assert_eq!(vm.memory[SP], (STACK_START + 1) as i16);
         assert_eq!(vm.stack_peek(), VM_FALSE);
+    }
+
+    #[test]
+    pub fn test_if_goto() {
+        let mut vm = VirtualMachine::new();
+        vm.load(&[
+            Command::Push(Segment::LOCAL, 2), // 0
+            Command::Push(Segment::ARG, 0),
+            Command::Arithmetic(Operator::GT),
+            Command::Arithmetic(Operator::NOT),
+            Command::Push(Segment::LOCAL, 2),
+            Command::Push(Segment::CONSTANT, 0), // 5
+            Command::Arithmetic(Operator::LT),
+            Command::Arithmetic(Operator::NOT),
+            Command::Arithmetic(Operator::AND),
+            Command::IfGoto("IF_TRUE1".to_string()),
+            Command::Goto("IF_FALSE1".to_string()), // 10
+//            Command::Label("IF_TRUE1".to_string()), // 11
+            Command::Push(Segment::CONSTANT, 1), // 11
+            Command::Pop(Segment::STATIC, 0),
+            Command::Goto("END_IF1".to_string()),
+//            Command::Label("IF_FALSE1".to_string()), // 14
+            Command::Push(Segment::CONSTANT, 2), // 14
+            Command::Pop(Segment::STATIC, 0),
+//            Command::Label("END_IF1".to_string()), // 16
+        ]);
+        vm.addresses.insert("IF_TRUE1".to_string(), 11);
+        vm.addresses.insert("IF_FALSE1".to_string(), 14);
+        vm.addresses.insert("END_IF1".to_string(), 16);
+
+        vm.memory[ARG] = 256;
+        vm.memory[256] = 9;
+        vm.memory[LCL] = 257;
+        vm.memory[259] = 4;
+        vm.memory[SP] = 261;
+
+        for _ in 0..100 {
+            vm.tick();
+        }
+
+        assert_eq!(vm.peek(STATIC_START + 0), 1);
     }
 
     #[test]
