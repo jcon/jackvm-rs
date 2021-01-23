@@ -98,7 +98,11 @@ impl VirtualMachine {
     }
 
     pub fn get_instruction(&self) -> String {
-        format!("{:?}", self.program[self.pc])
+        if self.pc < self.program.len() {
+            format!("{:?}", self.program[self.pc])
+        } else {
+            "HALT".to_string()
+        }
     }
 
     pub fn tick(&mut self) -> () {
