@@ -25,7 +25,7 @@ let memoryCellIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 256, 257, 258, 259, 260, 261, 26
 //     memoryCellIds.push(bitmapStart + 32*i);
 //     memoryCellIds.push(bitmapStart + 32*i+1);
 // }
-memoryCellIds.push(24575);
+memoryCellIds.push(24576);
 let tableBody = document.querySelector("#memory-body");
 for (let i = 0; i < memoryCellIds.length; i++) {
     /*         <tr>
@@ -98,10 +98,18 @@ registerMemoryPeek(2);
     // }
 })();
 
-document.onkeypress = function (e) {
+document.onkeydown = function (e) {
     e = e || window.event;
-    // console.log(e.keyCode);
-    vm.set_key(e.keyCode);
+
+    let keyCode = e.keyCode;
+    if (keyCode == 37) {
+        keyCode = 130;
+    }
+    if (keyCode == 39) {
+        keyCode = 132;
+    }
+    // console.log(`key pressed: ${e.keyCode} => ${keyCode}`);
+    vm.set_key(keyCode);
     // use e.keyCode
 };
 
@@ -127,6 +135,7 @@ runEl.addEventListener("click", event => {
     let frames = 0;
 
     let debugIns = false;
+    const ticksPerStep = 30000;
     (function executeSteps() {
     //    if (frames < 8) {
         // if (frames < 512) {
@@ -134,18 +143,23 @@ runEl.addEventListener("click", event => {
         // }
         frames++;
 //        30000i
-        for (let i = 0; i < 8000; i++) {
-            let ins = vm.get_instruction();
-            let stack_val = vm.peek(vm.peek(0) - 1);
-            if (ins === "Call(\"Main.main\", 0)") {
-                debugIns = true;
-                debugger;
-            }
+
+        for (let i = 0; i < ticksPerStep; i++) {
+            // let ins = vm.get_instruction();
+            // let stack_val = vm.peek(vm.peek(0) - 1);
+            // if (ins === "Call(\"Main.main\", 0)") {
+            //     debugIns = true;
+            //     debugger;
+            // }
             if (debugIns) {
                 // console.log(ins);
             }
             vm.tick();
         }
+        updateMemory();
+    })();
+
+    function updateMemory() {
         // console.log("**** value from VM: " + vm.peek(256));
         // for (let i = 0; i < 3; i++) {
         //     memoryCells[i].innerHTML = `${vm.peek(i)}`;
@@ -159,8 +173,8 @@ runEl.addEventListener("click", event => {
 //           memoryCells[cellId].innerHTML = `${dec2bin(vm.peek(cellId))}${stackPointer === cellId ? " < SP" : ""}`;
              memoryCells[cellId].innerHTML = `${vm.peek(cellId)}${stackPointer === cellId ? " < SP" : ""}`;
         }
-        memoryCells[24575].innerHTML = `${vm.peek(24575)} (key: ${String.fromCharCode(vm.peek(24575))})`;
-    })();
+        memoryCells[24576].innerHTML = `${vm.peek(24575)} (key: ${String.fromCharCode(vm.peek(24575))})`;
+    }
 });
 
 

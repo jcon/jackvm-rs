@@ -26,7 +26,7 @@ impl FunctionCall {
 }
 
 pub struct VirtualMachine {
-    pub memory: [i16; KEYBOARD_START + 1],
+    pub memory: [i16; KEYBOARD_START + 2],
     pc: usize,
     program: Vec<Command>,
     pub addresses: HashMap<String, i16>,
@@ -52,7 +52,7 @@ const STATIC_START: usize = 16;
 const STACK_START: usize = 256;
 const _HEAP_START: usize = 2048;
 pub const SCREEN_START: usize = 16384;
-pub const KEYBOARD_START: usize = 24575;
+pub const KEYBOARD_START: usize = 24576;
 
 const VM_TRUE: i16 = -1;
 const VM_FALSE: i16 = 0;
@@ -60,7 +60,7 @@ const VM_FALSE: i16 = 0;
 impl VirtualMachine {
     pub fn new() -> VirtualMachine {
         VirtualMachine {
-            memory: [0; KEYBOARD_START + 1],
+            memory: [0; KEYBOARD_START + 2],
             pc: 0,
             program: vec!(),
             addresses: HashMap::new(),
@@ -319,6 +319,9 @@ impl VirtualMachine {
 
     fn dereference(&self, base: usize, offset: i16) -> i16 {
         let address = (self.memory[base] + offset) as usize;
+        if address >= self.memory.len() {
+            panic!("Could not access address {} from location {} and offset {}", address, base, offset);
+        }
         self.memory[address]
     }
 
