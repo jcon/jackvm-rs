@@ -445,6 +445,67 @@ set argument[6] 4010,
     }
 
     #[test]
+    pub fn test_logic_in_function_called_from_sys_init() {
+        let mut jack_vm = compile_program("
+            call Sys.init 0 // dummy to align with Java implementation
+            function Main.test 4
+            push constant 4
+            pop local 2
+            push local 2
+            push argument 0
+            gt
+            not
+            push local 2
+            push constant 0
+            lt
+            not
+            and
+            if-goto IF_TRUE1
+            goto IF_FALSE1
+            label IF_TRUE1
+            push constant 1
+            pop static 0
+            goto END_IF1
+            label IF_FALSE1
+            push constant 2
+            pop static 0
+            label END_IF1
+            return
+
+            function Main.main 0
+            push constant 9
+            call Main.test 1
+            pop temp 0
+            push static 0
+            pop static 1
+
+            push constant 3
+            call Main.test 1
+            pop temp 0
+            push static 0
+            pop static 2
+            return
+
+            function Sys.init 1
+            call Main.main 0
+            pop temp 0
+
+            label WHILE
+            goto WHILE              // loops infinitely
+        ");
+
+
+        for _ in 0..50{
+            jack_vm.tick();
+        }
+
+        debug_stack(&jack_vm);
+
+        assert_eq!(jack_vm.peek(17), 1);
+        assert_eq!(jack_vm.peek(18), 2);
+    }
+
+    #[test]
     pub fn test_function_calls_nested_call() {
         let mut jack_vm = compile_program("
             // Sys.vm for NestedCall test.

@@ -339,7 +339,7 @@ impl VirtualMachine {
 
 fn get_static_addresses(prog: &[Command]) -> HashMap<String, i32> {
     let mut addresses = HashMap::new();
-    let mut current_class: String = "".to_string();
+    let mut current_class: String = "STATIC".to_string();
     for command in prog.iter() {
         match command {
             &Command::Function(ref name, _) => {

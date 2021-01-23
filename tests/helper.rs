@@ -61,6 +61,12 @@ pub fn debug_stack(jack_vm: &vm::VirtualMachine) {
         s.push_str(&jack_vm.peek(i).to_string());
         s.push_str("\n");
     }
+    for i in 16..21 {
+        s.push_str(&i.to_string());
+        s.push_str(": ");
+        s.push_str(&jack_vm.peek(i).to_string());
+        s.push_str("\n");
+    }
     for i in 256..310 {
         //s.push_str(format!("{}: {}\n", i, jack_vm.peek(i)));
         s.push_str(&i.to_string());
