@@ -143,6 +143,9 @@ impl VirtualMachine {
             &Command::Call(ref name, n_args) => {
                 let name_copy = name.clone();
                 let result_pc = self.process_call(&name_copy, n_args);
+                if name_copy == "Sys.error" {
+                    panic!("Calling Sys.error from {}", self.call_stack.last().unwrap().name);
+                }
                 self.pc = result_pc;
                 return; // don't increment the program counter automatically.
             },

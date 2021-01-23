@@ -1026,9 +1026,9 @@ mod test {
 
         ");
 
-        // for _ in 0..1000000 {
+        for _ in 0..1000000 {
         // for _ in 0..29000 {
-        for _ in 0..6200 {
+        // for _ in 0..6200 {
             jack_vm.tick();
         }
 
