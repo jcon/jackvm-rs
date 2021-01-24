@@ -3,13 +3,14 @@ mod helper;
 #[cfg(test)]
 mod test {
     use super::*;
+    use helper::compile_program;
     use jackvm_wasm::vm;
     use std::panic;
-    use helper::compile_program;
 
     #[test]
     pub fn test_os_math() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             function Array.new 0
             push argument 0
             push constant 0
@@ -1024,20 +1025,21 @@ mod test {
             push constant 0
             return
 
-        ");
+        ",
+        );
 
         for _ in 0..1000000 {
-        // for _ in 0..29000 {
-        // for _ in 0..6200 {
+            // for _ in 0..29000 {
+            // for _ in 0..6200 {
             jack_vm.tick();
         }
 
         helper::debug_stack(&jack_vm);
 
         /*
-|RAM[8000]|RAM[8001]|RAM[8002]|RAM[8003]|RAM[8004]|RAM[8005]|RAM[8006]|RAM[8007]|RAM[8008]|RAM[8009]|RAM[8010]|RAM[8011]|RAM[8012]|RAM[8013]|
-|       6 |    -180 |  -18000 |  -18000 |       0 |       3 |   -3000 |       0 |       3 |     181 |     123 |     123 |      27 |   32767 |
-*/
+        |RAM[8000]|RAM[8001]|RAM[8002]|RAM[8003]|RAM[8004]|RAM[8005]|RAM[8006]|RAM[8007]|RAM[8008]|RAM[8009]|RAM[8010]|RAM[8011]|RAM[8012]|RAM[8013]|
+        |       6 |    -180 |  -18000 |  -18000 |       0 |       3 |   -3000 |       0 |       3 |     181 |     123 |     123 |      27 |   32767 |
+        */
 
         // beg - comment out
         assert_eq!(jack_vm.peek(8000), 6);

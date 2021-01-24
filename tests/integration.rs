@@ -3,12 +3,13 @@ mod helper;
 #[cfg(test)]
 mod test {
     use super::*;
+    use helper::{compile_program, debug_address, debug_stack, execute_program};
     use std::panic;
-    use helper::{compile_program, execute_program, debug_stack, debug_address};
 
     #[test]
     pub fn test_memory_access_basic_test() {
-        let jack_vm = execute_program("
+        let jack_vm = execute_program(
+            "
             push constant 10
             pop local 0
             push constant 21
@@ -33,7 +34,8 @@ mod test {
             add
             sub
             push temp 6
-            add");
+            add",
+        );
 
         assert_eq!(jack_vm.peek(256), 472);
         assert_eq!(jack_vm.peek(300), 10);
@@ -47,7 +49,8 @@ mod test {
 
     #[test]
     pub fn test_memory_access_pointer_test() {
-        let jack_vm = execute_program("
+        let jack_vm = execute_program(
+            "
             push constant 3030
             pop pointer 0
             push constant 3040
@@ -62,7 +65,8 @@ mod test {
             push this 2
             sub
             push that 6
-            add");
+            add",
+        );
 
         assert_eq!(jack_vm.peek(256), 6084);
         assert_eq!(jack_vm.peek(3), 3030);
@@ -73,7 +77,8 @@ mod test {
 
     #[test]
     pub fn test_memory_access_static_test() {
-        let jack_vm = execute_program("
+        let jack_vm = execute_program(
+            "
             push constant 111
             push constant 333
             push constant 888
@@ -84,17 +89,20 @@ mod test {
             push static 1
             sub
             push static 8
-            add");
+            add",
+        );
 
         assert_eq!(jack_vm.peek(256), 1110);
     }
 
     #[test]
     pub fn test_stack_arithmetic_simple_add() {
-        let jack_vm = execute_program("
+        let jack_vm = execute_program(
+            "
             push constant 8
             push constant 7
-            add");
+            add",
+        );
 
         assert_eq!(jack_vm.peek(0), 257);
         assert_eq!(jack_vm.peek(256), 15);
@@ -102,7 +110,8 @@ mod test {
 
     #[test]
     pub fn test_stack_arithmetic_stack_test() {
-        let jack_vm = execute_program("
+        let jack_vm = execute_program(
+            "
             push constant 17
             push constant 17
             eq
@@ -140,7 +149,8 @@ mod test {
             and
             push constant 82
             or
-            not");
+            not",
+        );
 
         assert_eq!(jack_vm.peek(0), 266);
         assert_eq!(jack_vm.peek(256), -1);
@@ -157,7 +167,8 @@ mod test {
 
     #[test]
     pub fn test_program_flow_basic_loop() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             // Computes the sum 1 + 2 + ... + argument[0] and pushes the
             // result onto the stack. Argument[0] is initialized by the test
             // script before this code starts running.
@@ -175,7 +186,8 @@ mod test {
             push argument 0
             if-goto LOOP_START  // If counter > 0, goto LOOP_START
             push local 0
-        ");
+        ",
+        );
 
         jack_vm.poke(0, 256);
         jack_vm.poke(1, 300);
@@ -196,7 +208,8 @@ mod test {
 
     #[test]
     pub fn test_program_flow_fibonacci_series() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             // Puts the first argument[0] elements of the Fibonacci series
             // in the memory, starting in the address given in argument[1].
             // Argument[0] and argument[1] are initialized by the test script
@@ -241,7 +254,8 @@ mod test {
             goto MAIN_LOOP_START
 
             label END_PROGRAM
-        ");
+        ",
+        );
 
         jack_vm.poke(0, 256);
         jack_vm.poke(1, 300);
@@ -263,7 +277,8 @@ mod test {
 
     #[test]
     pub fn test_function_calls_simple_function() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             // Performs a simple calculation and returns the result.
             function SimpleFunction.test 2
             push local 0
@@ -275,21 +290,22 @@ mod test {
             push argument 1
             sub
             return
-        ");
+        ",
+        );
         /*
-set sp 317,
-set local 317,
-set argument 310,
-set this 3000,
-set that 4000,
-set argument[0] 1234,
-set argument[1] 37,
-set argument[2] 9,
-set argument[3] 305,
-set argument[4] 300,
-set argument[5] 3010,
-set argument[6] 4010,
-*/
+        set sp 317,
+        set local 317,
+        set argument 310,
+        set this 3000,
+        set that 4000,
+        set argument[0] 1234,
+        set argument[1] 37,
+        set argument[2] 9,
+        set argument[3] 305,
+        set argument[4] 300,
+        set argument[5] 3010,
+        set argument[6] 4010,
+        */
 
         jack_vm.poke(0, 317);
         jack_vm.poke(1, 317);
@@ -307,10 +323,10 @@ set argument[6] 4010,
         for _ in 0..10 {
             jack_vm.tick();
         }
-/*
-| RAM[0] | RAM[1] | RAM[2] | RAM[3] | RAM[4] |RAM[310]|
-|    311 |    305 |    300 |   3010 |   4010 |   1196 |
-*/
+        /*
+        | RAM[0] | RAM[1] | RAM[2] | RAM[3] | RAM[4] |RAM[310]|
+        |    311 |    305 |    300 |   3010 |   4010 |   1196 |
+        */
         // assert_eq!(jack_vm.peek(317), 0);
         // assert_eq!(jack_vm.peek(318), 0);
         // assert_eq!(jack_vm.peek(318), 0);
@@ -346,7 +362,8 @@ set argument[6] 4010,
 
     #[test]
     pub fn test_memory_access_static_addresses() {
-        let jack_vm = execute_program("
+        let jack_vm = execute_program(
+            "
             function Test1.main 0
             push constant 2
             push constant 1
@@ -366,18 +383,21 @@ set argument[6] 4010,
             pop temp 0
             call Test2.main 0
             pop temp 0
-            ");
+            ",
+        );
 
-        println!("
+        println!(
+            "
         16 => {}\n
         17 => {}\n
         18 => {}\n
         19 => {}\n
         ",
-        jack_vm.peek(16),
-        jack_vm.peek(17),
-        jack_vm.peek(18),
-        jack_vm.peek(19));
+            jack_vm.peek(16),
+            jack_vm.peek(17),
+            jack_vm.peek(18),
+            jack_vm.peek(19)
+        );
 
         if jack_vm.peek(16) == 1 {
             assert_eq!(jack_vm.peek(16), 1);
@@ -389,13 +409,13 @@ set argument[6] 4010,
             assert_eq!(jack_vm.peek(17), 4);
             assert_eq!(jack_vm.peek(18), 1);
             assert_eq!(jack_vm.peek(19), 2);
-
         }
     }
 
     #[test]
     pub fn test_function_calls_simple_function_from_sys_init() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             call Sys.init 0 // dummy to align with Java implementation
             function Main.test 2
             push argument 1
@@ -417,10 +437,10 @@ set argument[6] 4010,
             call Main.test 2
             label WHILE
             goto WHILE              // loops infinitely
-        ");
+        ",
+        );
 
-
-        for _ in 0..20{
+        for _ in 0..20 {
             jack_vm.tick();
         }
 
@@ -446,7 +466,8 @@ set argument[6] 4010,
 
     #[test]
     pub fn test_function_call_multiple_args() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             call Sys.init 0 // dummy to align with Java implementation
             function Main.test 0
             push argument 0
@@ -471,10 +492,10 @@ set argument[6] 4010,
 
             label WHILE
             goto WHILE              // loops infinitely
-        ");
+        ",
+        );
 
-
-        for _ in 0..50{
+        for _ in 0..50 {
             jack_vm.tick();
         }
 
@@ -487,7 +508,8 @@ set argument[6] 4010,
 
     #[test]
     pub fn test_logic_in_function_called_from_sys_init() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             call Sys.init 0 // dummy to align with Java implementation
             function Main.test 4
             push constant 4
@@ -533,10 +555,10 @@ set argument[6] 4010,
 
             label WHILE
             goto WHILE              // loops infinitely
-        ");
+        ",
+        );
 
-
-        for _ in 0..50{
+        for _ in 0..50 {
             jack_vm.tick();
         }
 
@@ -548,7 +570,8 @@ set argument[6] 4010,
 
     #[test]
     pub fn test_function_calls_nested_call() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             // Sys.vm for NestedCall test.
 
             // Sys.init()
@@ -612,9 +635,9 @@ set argument[6] 4010,
             push constant 12
             add
             return
-        ");
+        ",
+        );
         jack_vm.poke(0, 261);
-
 
         jack_vm.poke(0, 261);
         jack_vm.poke(1, 261);
@@ -690,7 +713,8 @@ set argument[6] 4010,
 
     #[test]
     pub fn test_function_calls_fibonacci_element() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             // Pushes a constant, say n, onto the stack, and calls the Main.fibonacii
             // function, which computes the n'th element of the Fibonacci series.
             // Note that by convention, the Sys.init function is called \"automatically\"
@@ -727,7 +751,8 @@ set argument[6] 4010,
             call Main.fibonacci 1  // computes fib(n-1)
             add                    // returns fib(n-1) + fib(n-2)
             return
-        ");
+        ",
+        );
 
         jack_vm.poke(0, 261);
 
@@ -741,7 +766,8 @@ set argument[6] 4010,
 
     #[test]
     pub fn test_function_calls_fibonacci_element_2() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             // Pushes a constant, say n, onto the stack, and calls the Main.fibonacii
             // function, which computes the n'th element of the Fibonacci series.
             // Note that by convention, the Sys.init function is called \"automatically\"
@@ -778,22 +804,22 @@ set argument[6] 4010,
             call Main.fibonacci 1  // computes fib(n-1)
             add                    // returns fib(n-1) + fib(n-2)
             return
-        ");
+        ",
+        );
 
         jack_vm.poke(0, 261);
 
-        for _ in 0..250{
+        for _ in 0..250 {
             jack_vm.tick();
         }
-
 
         let mut s = String::from("");
         for i in 261..300 {
             //s.push_str(format!("{}: {}\n", i, jack_vm.peek(i)));
-	    s.push_str(&i.to_string());
-	    s.push_str(": ");
-	    s.push_str(&jack_vm.peek(i).to_string());
-	    s.push_str("\n");
+            s.push_str(&i.to_string());
+            s.push_str(": ");
+            s.push_str(&jack_vm.peek(i).to_string());
+            s.push_str("\n");
         }
         println!("memory ****\n{}", s);
 
@@ -803,7 +829,8 @@ set argument[6] 4010,
 
     #[test]
     pub fn test_function_calls_recursive_add() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             // Pushes a constant, say n, onto the stack, and calls the Main.fibonacii
             // function, which computes the n'th element of the Fibonacci series.
             // Note that by convention, the Sys.init function is called \"automatically\"
@@ -848,7 +875,8 @@ set argument[6] 4010,
             call Main.main 0   // computes the 4'th fibonacci element
             label WHILE
             goto WHILE              // loops infinitely
-        ");
+        ",
+        );
 
         jack_vm.poke(0, 256);
 

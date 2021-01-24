@@ -3,13 +3,14 @@ mod helper;
 #[cfg(test)]
 mod test {
     use super::*;
+    use helper::compile_program;
     use jackvm_wasm::vm;
     use std::panic;
-    use helper::compile_program;
 
     #[test]
     pub fn test_os_array() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             function Main.main 4
             push constant 8000
             pop local 0
@@ -519,7 +520,8 @@ mod test {
             pop temp 0
             push constant 0
             return
-        ");
+        ",
+        );
 
         for _ in 0..1000000 {
             jack_vm.tick();

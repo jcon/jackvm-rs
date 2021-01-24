@@ -1,12 +1,11 @@
-mod utils;
 pub mod compiler;
+mod utils;
 pub mod vm;
 
 use js_sys;
 extern crate web_sys;
 
 use wasm_bindgen::prelude::*;
-
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -15,7 +14,7 @@ use wasm_bindgen::prelude::*;
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 #[wasm_bindgen]
-extern {
+extern "C" {
     fn alert(s: &str);
 }
 
@@ -57,7 +56,11 @@ impl JackVirtualMachine {
 
         JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
-            screen_canvas: js_sys::Uint32Array::new_with_byte_offset_and_length(&screen, 0, 512*256),
+            screen_canvas: js_sys::Uint32Array::new_with_byte_offset_and_length(
+                &screen,
+                0,
+                512 * 256,
+            ),
         }
     }
 
@@ -73,12 +76,10 @@ impl JackVirtualMachine {
                     succeeded: false,
                     errors: messages,
                 }
-            },
-            _ => {
-                CompilationResult {
-                    succeeded: true,
-                    errors: vec!(),
-                }
+            }
+            _ => CompilationResult {
+                succeeded: true,
+                errors: vec![],
             },
         }
     }
@@ -88,7 +89,6 @@ impl JackVirtualMachine {
     }
 
     pub fn render_screen(&mut self) {
-
         // for y in 0..256 {
         //     for x in 0..512 {
         //         let loc = 512 * y + x;
@@ -107,53 +107,53 @@ impl JackVirtualMachine {
         //     // count += 4;
         // }
 
-        let screen = &mut self.jack_vm.memory[vm::SCREEN_START..vm::KEYBOARD_START+1];
-            /*
-            // Simple JackVM instructions for drawing a space invader alien sprite drawn at (0, 0)
-            push constant 16384
-            pop pointer 1
+        let screen = &mut self.jack_vm.memory[vm::SCREEN_START..vm::KEYBOARD_START + 1];
+        /*
+        // Simple JackVM instructions for drawing a space invader alien sprite drawn at (0, 0)
+        push constant 16384
+        pop pointer 1
 
-            push constant 1040
-            pop that 0
+        push constant 1040
+        pop that 0
 
-            push constant 544
-            pop that 32
+        push constant 544
+        pop that 32
 
-            push constant 2032
-            pop that 64
+        push constant 2032
+        pop that 64
 
-            push constant 3544
-            pop that 96
+        push constant 3544
+        pop that 96
 
-            push constant 8188
-            pop that 128
+        push constant 8188
+        pop that 128
 
-            push constant 8188
-            pop that 160
+        push constant 8188
+        pop that 160
 
-            push constant 6132
-            pop that 192
+        push constant 6132
+        pop that 192
 
-            push constant 5140
-            pop that 224
+        push constant 5140
+        pop that 224
 
-            push constant 864
-            pop that 256
-            */
+        push constant 864
+        pop that 256
+        */
 
-            // bytes representing a space invader alien sprite drawn at (0, 0)
-            // screen[0] = 1040;
-            // screen[32] = 544;
-            // screen[64] = 2032;
-            // screen[96] = 3544;
-            // screen[128] = 8188;
-            // screen[160] = 8188;
-            // screen[192] = 6132;
-            // screen[224] = 5140;
-            // screen[256] = 864;
-            // screen[256] = 864;
-            // screen[288] = 0;
-            // screen[320] = -1;
+        // bytes representing a space invader alien sprite drawn at (0, 0)
+        // screen[0] = 1040;
+        // screen[32] = 544;
+        // screen[64] = 2032;
+        // screen[96] = 3544;
+        // screen[128] = 8188;
+        // screen[160] = 8188;
+        // screen[192] = 6132;
+        // screen[224] = 5140;
+        // screen[256] = 864;
+        // screen[256] = 864;
+        // screen[288] = 0;
+        // screen[320] = -1;
 
         // screen.fill(0xFFFFFFFF);
         // for i in 0..screen.len() {
@@ -164,20 +164,20 @@ impl JackVirtualMachine {
             for x in 0..32 {
                 let i = 32 * y + x;
                 // if screen[i] != 0 {
-                    //   log!("slot {} is {}; x = {}, y = {}", i, screen[i], x, y);
-                    let mut value = screen[i];
-                    for j in 0..16 {
-                        let loc = ((512 * y) + (16 * x) + j) as u32;
-                        if (value & 0x1) == 1 {
+                //   log!("slot {} is {}; x = {}, y = {}", i, screen[i], x, y);
+                let mut value = screen[i];
+                for j in 0..16 {
+                    let loc = ((512 * y) + (16 * x) + j) as u32;
+                    if (value & 0x1) == 1 {
                         //    log!("writing x = {}, y = {} at loc = {}", (16 * x) + j, y, loc);
-                            self.screen_canvas.set_index(loc , 0xFF000000);
-                        } else {
-                            // TODO: consider drawing white pixels
-                            self.screen_canvas.set_index(loc , 0xFFFFFFFF);
-                        }
-
-                        value = value >> 1;
+                        self.screen_canvas.set_index(loc, 0xFF000000);
+                    } else {
+                        // TODO: consider drawing white pixels
+                        self.screen_canvas.set_index(loc, 0xFFFFFFFF);
                     }
+
+                    value = value >> 1;
+                }
                 // } else {
 
                 // }

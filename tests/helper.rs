@@ -11,11 +11,11 @@ pub fn compile_program(program: &str) -> vm::VirtualMachine {
                 .iter()
                 .map(|e| format!("{}: {}", e.line_number, e.get_message()))
                 .collect();
-            let empty_vec: Vec<String> = vec!();
+            let empty_vec: Vec<String> = vec![];
             assert_eq!(empty_vec, messages);
             // println!("{}", &messages.join("\n"));
-        },
-        _ => ()
+        }
+        _ => (),
     };
 
     jack_vm
@@ -85,5 +85,9 @@ pub fn debug_stack(jack_vm: &vm::VirtualMachine) {
 }
 
 pub fn debug_address(jack_vm: &vm::VirtualMachine, symbol: &str) {
-    println!("address of {} is {}", symbol, jack_vm.addresses.get(symbol).unwrap());
+    println!(
+        "address of {} is {}",
+        symbol,
+        jack_vm.addresses.get(symbol).unwrap()
+    );
 }

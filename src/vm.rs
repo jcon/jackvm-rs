@@ -1,13 +1,12 @@
-use std::collections::HashMap;
-use std::cmp::max;
-use std::num::Wrapping;
 use crate::compiler::compile;
 use crate::compiler::Command;
 use crate::compiler::CompilationError;
-use crate::compiler::Segment;
 use crate::compiler::Operator;
+use crate::compiler::Segment;
+use std::cmp::max;
+use std::collections::HashMap;
+use std::num::Wrapping;
 extern crate web_sys;
-
 
 struct FunctionCall {
     name: String,
@@ -62,7 +61,7 @@ impl VirtualMachine {
         VirtualMachine {
             memory: [0; KEYBOARD_START + 2],
             pc: 0,
-            program: vec!(),
+            program: vec![],
             addresses: HashMap::new(),
             static_addresses: HashMap::new(),
             call_stack: Vec::new(),
@@ -79,12 +78,12 @@ impl VirtualMachine {
                 self.pc = *addr as usize;
                 // log!("Loading with PC starting at {}", self.pc);
                 println!("Loading with PC starting at {}", self.pc);
-            },
+            }
             None => {
                 // log!("No Sys.init found");
                 println!("No Sys.init found");
                 self.pc = 0;
-            },
+            }
         }
         Ok(())
     }
@@ -107,7 +106,7 @@ impl VirtualMachine {
 
     pub fn tick(&mut self) -> () {
         if self.pc >= self.program.len() {
-            return ()
+            return ();
         }
 
         let command = &self.program[self.pc];
@@ -122,7 +121,7 @@ impl VirtualMachine {
             &Command::Goto(ref label) => {
                 self.pc = *self.addresses.get(label).unwrap() as usize;
                 return; // don't update the program counter
-            },
+            }
             &Command::IfGoto(ref label) => {
                 // NOTE: we cannot have an immutable reference to label while having
                 //       an immutable reference to self.
@@ -130,9 +129,11 @@ impl VirtualMachine {
                 if self.process_if_goto(&label_copy) {
                     return; // don't update the program counter when if-goto was successful
                 }
-            },
+            }
             &Command::Function(ref function_name, n_locals) => {
-                self.call_stack.push(FunctionCall { name: function_name.to_string() });
+                self.call_stack.push(FunctionCall {
+                    name: function_name.to_string(),
+                });
                 // if function_name == "Math.sqrt" {
                 //     self.is_debug = true;
                 // } else {
@@ -143,16 +144,19 @@ impl VirtualMachine {
                 //     println!("{} * {} ({}, {})", self.peek(args_addr), self.peek(args_addr + 1), args_addr, args_addr + 1);
                 // }
                 self.process_function(n_locals);
-            },
+            }
             &Command::Call(ref name, n_args) => {
                 let name_copy = name.clone();
                 let result_pc = self.process_call(&name_copy, n_args);
                 if name_copy == "Sys.error" {
-                    panic!("Calling Sys.error from {}", self.call_stack.last().unwrap().name);
+                    panic!(
+                        "Calling Sys.error from {}",
+                        self.call_stack.last().unwrap().name
+                    );
                 }
                 self.pc = result_pc;
                 return; // don't increment the program counter automatically.
-            },
+            }
             &Command::Return => {
                 self.call_stack.pop();
                 // match self.call_stack.last() {
@@ -163,8 +167,8 @@ impl VirtualMachine {
                 let result_pc = self.process_return();
                 self.pc = result_pc;
                 return;
-            },
-            _ => panic!(format!("unimplemented command: {:?}", command))
+            }
+            _ => panic!(format!("unimplemented command: {:?}", command)),
         };
         self.pc = self.pc + 1;
     }
@@ -250,21 +254,17 @@ impl VirtualMachine {
             Segment::THIS => self.dereference(THIS, offset),
             Segment::THAT => self.dereference(THAT, offset),
             Segment::POINTER => {
-                let address_pointer = if offset == 0 {
-                    THIS
-                } else {
-                    THAT
-                };
+                let address_pointer = if offset == 0 { THIS } else { THAT };
                 self.memory[address_pointer]
-            },
+            }
             Segment::TEMP => {
                 let address = TEMP_START + (offset as usize);
                 self.memory[address]
-            },
+            }
             Segment::STATIC => {
                 let address = (self.get_static_base() as i16 + offset) as usize;
                 self.memory[address]
-            },
+            }
         };
         if self.is_debug {
             println!("{}", val);
@@ -276,7 +276,7 @@ impl VirtualMachine {
     fn stack_pop_segment(&mut self, segment: Segment, offset: i16) -> () {
         let base_address = match segment {
             // TODO: it's an error to "pop" to constant.
-//            Segment::CONSTANT => offset,
+            //            Segment::CONSTANT => offset,
             Segment::LOCAL => self.memory[LCL] + offset,
             Segment::ARG => self.memory[ARG] + offset,
             Segment::THIS => self.memory[THIS] + offset,
@@ -287,13 +287,9 @@ impl VirtualMachine {
                 } else {
                     THAT as i16
                 }
-            },
-            Segment::TEMP => {
-                (TEMP_START as i16) + offset
-            },
-            Segment::STATIC => {
-                self.get_static_base() as i16 + offset
             }
+            Segment::TEMP => (TEMP_START as i16) + offset,
+            Segment::STATIC => self.get_static_base() as i16 + offset,
             _ => panic!("unexpected segment"),
         };
         let address = base_address as usize;
@@ -307,9 +303,7 @@ impl VirtualMachine {
     fn get_static_base(&self) -> i32 {
         let static_start = STATIC_START as i32;
         match self.call_stack.last() {
-            Some(ref cur_fn) => {
-                *self.static_addresses.get(cur_fn.get_class_name()).unwrap()
-            },
+            Some(ref cur_fn) => *self.static_addresses.get(cur_fn.get_class_name()).unwrap(),
             None => {
                 println!("no current function use STATIC_START = {}", static_start);
                 static_start
@@ -320,7 +314,10 @@ impl VirtualMachine {
     fn dereference(&self, base: usize, offset: i16) -> i16 {
         let address = (self.memory[base] + offset) as usize;
         if address >= self.memory.len() {
-            panic!("Could not access address {} from location {} and offset {}", address, base, offset);
+            panic!(
+                "Could not access address {} from location {} and offset {}",
+                address, base, offset
+            );
         }
         self.memory[address]
     }
@@ -347,7 +344,7 @@ impl VirtualMachine {
                     _ => panic!("Unexpected operator encountered"), // won't get here.
                 };
                 self.stack_push(result);
-            },
+            }
             _ => {
                 let arg2 = self.stack_pop();
                 let arg1 = self.stack_pop();
@@ -355,19 +352,35 @@ impl VirtualMachine {
                     Operator::ADD => {
                         // println!("adding {} + {}", arg1, arg2);
                         (Wrapping(arg1) + Wrapping(arg2)).0
-                    },
-                    Operator::SUB => {
-                        (Wrapping(arg1) - Wrapping(arg2)).0
-                    },
-                    Operator::EQ => if arg1 == arg2 { VM_TRUE } else { VM_FALSE },
-                    Operator::LT => if arg1 < arg2 { VM_TRUE } else { VM_FALSE },
-                    Operator::GT => if arg1 > arg2 { VM_TRUE } else { VM_FALSE },
+                    }
+                    Operator::SUB => (Wrapping(arg1) - Wrapping(arg2)).0,
+                    Operator::EQ => {
+                        if arg1 == arg2 {
+                            VM_TRUE
+                        } else {
+                            VM_FALSE
+                        }
+                    }
+                    Operator::LT => {
+                        if arg1 < arg2 {
+                            VM_TRUE
+                        } else {
+                            VM_FALSE
+                        }
+                    }
+                    Operator::GT => {
+                        if arg1 > arg2 {
+                            VM_TRUE
+                        } else {
+                            VM_FALSE
+                        }
+                    }
                     Operator::AND => arg1 & arg2,
                     Operator::OR => arg1 | arg2,
                     _ => panic!("Unexpected operator encountered"), // won't get here.
                 };
                 self.stack_push(result);
-            },
+            }
         };
     }
 }
@@ -380,11 +393,11 @@ fn get_static_addresses(prog: &[Command]) -> HashMap<String, i32> {
             &Command::Function(ref name, _) => {
                 let mut parts = name.split(".");
                 current_class = parts.next().unwrap().to_string();
-            },
+            }
             &Command::Push(Segment::STATIC, addr) | &Command::Pop(Segment::STATIC, addr) => {
                 let max_addr = addresses.entry(current_class.to_string()).or_insert(0);
                 *max_addr = max(*max_addr, addr);
-            },
+            }
             _ => (),
         }
     }
@@ -418,7 +431,9 @@ mod test {
 
     #[test]
     pub fn function_call_prases_names() {
-        let call = FunctionCall { name: "Sys.init".to_string() };
+        let call = FunctionCall {
+            name: "Sys.init".to_string(),
+        };
         assert_eq!(call.get_class_name(), "Sys");
         assert_eq!(call.get_function_name(), "init");
     }
@@ -468,11 +483,16 @@ mod test {
         assert_eq!(vm.peek(STATIC_START + 0), 2 + 2);
         assert_eq!(vm.peek(STATIC_START + 1), 4 + 4);
         assert_eq!(vm.peek(STATIC_START + 2), 1024 + 1024);
-        assert_eq!(vm.peek(STATIC_START + 3), (Wrapping(16384i16) + Wrapping(16384i16)).0);
+        assert_eq!(
+            vm.peek(STATIC_START + 3),
+            (Wrapping(16384i16) + Wrapping(16384i16)).0
+        );
         assert_eq!(vm.peek(STATIC_START + 4), -4 - 4);
-        assert_eq!(vm.peek(STATIC_START + 5), (Wrapping(-16384i16) - Wrapping(32767i16)).0);
+        assert_eq!(
+            vm.peek(STATIC_START + 5),
+            (Wrapping(-16384i16) - Wrapping(32767i16)).0
+        );
     }
-
 
     #[test]
     pub fn test_sub_instruction() {
@@ -492,12 +512,10 @@ mod test {
             Command::Push(Segment::CONSTANT, 5),
             Command::Arithmetic(Operator::AND),
             Command::Pop(Segment::STATIC, 0),
-
             Command::Push(Segment::CONSTANT, -32768),
             Command::Push(Segment::CONSTANT, 32767),
             Command::Arithmetic(Operator::AND),
             Command::Pop(Segment::STATIC, 1), // should be 0, no bits overlap
-
             Command::Push(Segment::CONSTANT, -32768),
             Command::Push(Segment::CONSTANT, -1),
             Command::Arithmetic(Operator::AND),
@@ -516,7 +534,6 @@ mod test {
             Command::Push(Segment::CONSTANT, 4),
             Command::Arithmetic(Operator::OR),
             Command::Pop(Segment::STATIC, 0),
-
             Command::Push(Segment::CONSTANT, -32768),
             Command::Push(Segment::CONSTANT, 32767),
             Command::Arithmetic(Operator::OR),
@@ -598,14 +615,14 @@ mod test {
             Command::Arithmetic(Operator::AND),
             Command::IfGoto("IF_TRUE1".to_string()),
             Command::Goto("IF_FALSE1".to_string()), // 10
-//            Command::Label("IF_TRUE1".to_string()), // 11
+            //            Command::Label("IF_TRUE1".to_string()), // 11
             Command::Push(Segment::CONSTANT, 1), // 11
             Command::Pop(Segment::STATIC, 0),
             Command::Goto("END_IF1".to_string()),
-//            Command::Label("IF_FALSE1".to_string()), // 14
+            //            Command::Label("IF_FALSE1".to_string()), // 14
             Command::Push(Segment::CONSTANT, 2), // 14
             Command::Pop(Segment::STATIC, 0),
-//            Command::Label("END_IF1".to_string()), // 16
+            //            Command::Label("END_IF1".to_string()), // 16
         ]);
         vm.addresses.insert("IF_TRUE1".to_string(), 11);
         vm.addresses.insert("IF_FALSE1".to_string(), 14);
@@ -630,11 +647,9 @@ mod test {
             Command::Push(Segment::CONSTANT, -1),
             Command::Arithmetic(Operator::NOT),
             Command::Pop(Segment::STATIC, 0),
-
             Command::Push(Segment::CONSTANT, 0),
             Command::Arithmetic(Operator::NOT),
             Command::Pop(Segment::STATIC, 1),
-
             Command::Push(Segment::CONSTANT, 32767),
             Command::Arithmetic(Operator::NEG),
             Command::Push(Segment::CONSTANT, 1),
@@ -654,16 +669,13 @@ mod test {
             Command::Push(Segment::CONSTANT, -99),
             Command::Arithmetic(Operator::NEG),
             Command::Pop(Segment::STATIC, 0),
-
             Command::Push(Segment::CONSTANT, 54),
             Command::Arithmetic(Operator::NEG),
             Command::Pop(Segment::STATIC, 1),
-
             Command::Push(Segment::CONSTANT, -32768),
             Command::Arithmetic(Operator::NEG),
             Command::Pop(Segment::STATIC, 2),
         ]);
-
 
         assert_eq!(vm.memory[STATIC_START + 0], 99);
         assert_eq!(vm.memory[STATIC_START + 1], -54);
@@ -690,8 +702,7 @@ mod test {
     #[test]
     pub fn test_basic_stack_push() {
         let mut vm = VirtualMachine::new();
-        vm.load(&[
-        ]);
+        vm.load(&[]);
 
         let mut address: usize = 256;
         vm.memory[LCL] = address as i16;
@@ -740,8 +751,7 @@ mod test {
     #[test]
     pub fn test_basic_stack_pop() {
         let mut vm = VirtualMachine::new();
-        vm.load(&[
-        ]);
+        vm.load(&[]);
 
         let n_local = 2;
         let n_args = 3;
@@ -777,7 +787,10 @@ mod test {
         assert_eq!(vm.dereference(ARG, 0), 200);
         assert_eq!(vm.dereference(LCL, 0), 100);
 
-        assert_eq!(vm.memory[SP], (STACK_START + n_local + n_args + n_fields + 1) as i16);
+        assert_eq!(
+            vm.memory[SP],
+            (STACK_START + n_local + n_args + n_fields + 1) as i16
+        );
 
         vm.memory[THIS] = -1;
         vm.memory[THAT] = -1;
@@ -819,16 +832,24 @@ mod test {
         ]);
 
         assert_eq!(vm.static_addresses.len(), 2);
-        assert_ne!(*vm.static_addresses.get("Test1").unwrap(),
-            *vm.static_addresses.get("Test2").unwrap());
+        assert_ne!(
+            *vm.static_addresses.get("Test1").unwrap(),
+            *vm.static_addresses.get("Test2").unwrap()
+        );
 
         let test1 = *vm.static_addresses.get("Test1").unwrap();
         if test1 != 16 && test1 != 18 {
-            panic!("Test1 does not have expected static segment.\n\nExpected [16, 18] but got {}", test1);
+            panic!(
+                "Test1 does not have expected static segment.\n\nExpected [16, 18] but got {}",
+                test1
+            );
         }
         let test2 = *vm.static_addresses.get("Test2").unwrap();
         if test2 != 16 && test2 != 18 {
-            panic!("Test2 does not have expected static segment.\n\nExpected [16, 18] but got {}", test2);
+            panic!(
+                "Test2 does not have expected static segment.\n\nExpected [16, 18] but got {}",
+                test2
+            );
         }
     }
 }

@@ -3,13 +3,14 @@ mod helper;
 #[cfg(test)]
 mod test {
     use super::*;
+    use helper::compile_program;
     use jackvm_wasm::vm;
     use std::panic;
-    use helper::compile_program;
 
     #[test]
     pub fn test_os_memory() {
-        let mut jack_vm = compile_program("
+        let mut jack_vm = compile_program(
+            "
             function Main.allocateBlocks 4
             push argument 0
             call Array.new 1
@@ -776,7 +777,8 @@ mod test {
             pop temp 0
             push constant 0
             return
-        ");
+        ",
+        );
 
         for _ in 0..1000000 {
             jack_vm.tick();

@@ -1,5 +1,5 @@
-use std::fmt;
 use std::collections::HashMap;
+use std::fmt;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Segment {
@@ -44,7 +44,7 @@ impl Command {
         match self {
             Command::Label(m) => Some(&m),
             Command::Function(m, _) => Some(&m),
-            _ => None
+            _ => None,
         }
     }
 }
@@ -122,7 +122,7 @@ impl<'a> Parser<'a> {
                 arg1: parts.next().map(|s| s.trim_end()),
                 arg2: parts.next().map(|s| s.trim_end()),
             });
-            // println!("parts are {:?}", self.current_instruction);
+        // println!("parts are {:?}", self.current_instruction);
         } else {
             self.current_instruction = None;
         }
@@ -151,7 +151,7 @@ impl<'a> Parser<'a> {
         while pos < self.source.len() {
             let s = remove_comment(self.source[pos].trim().trim_end());
             if s.len() != 0 {
-                break
+                break;
             }
             pos = pos + 1;
         }
@@ -177,16 +177,15 @@ fn parse_push_pop(instruction: &Instruction) -> Result<Command, CompilationError
         _ => Err(CompilationError {
             line_number,
             message: "Unexpected segment for push".to_string(),
-        })
+        }),
     }?;
 
-    let arg2 = parse_positive_int(instruction.arg2).map_err(
-        |_e| CompilationError {
-            line_number,
-            // TODO: find a better way to match partial string for error.
+    let arg2 = parse_positive_int(instruction.arg2).map_err(|_e| CompilationError {
+        line_number,
+        // TODO: find a better way to match partial string for error.
         //    message: format!("Expected a positive integer for argument:\n{}\n\n{}\n", instruction, _e),
-            message: "Expected a positive integer for argument".to_string(),
-        })?;
+        message: "Expected a positive integer for argument".to_string(),
+    })?;
 
     match instruction.command_type {
         Some("push") => Ok(Command::Push(segment, arg2)),
@@ -213,7 +212,7 @@ fn parse_arithmetic(instruction: &Instruction) -> Result<Command, CompilationErr
         _ => Err(CompilationError {
             line_number,
             message: "Unexpected arithmetic operation".to_string(),
-        })
+        }),
     }?;
     Ok(Command::Arithmetic(operation))
 }
@@ -249,7 +248,10 @@ fn parse_goto(cur_function: &str, instruction: &Instruction) -> Result<Command, 
     Ok(Command::Goto(String::from(label)))
 }
 
-fn parse_if_goto(cur_function: &str, instruction: &Instruction) -> Result<Command, CompilationError> {
+fn parse_if_goto(
+    cur_function: &str,
+    instruction: &Instruction,
+) -> Result<Command, CompilationError> {
     let line_number = instruction.line_number;
     let arg1 = instruction.arg1.ok_or(CompilationError {
         line_number,
@@ -271,11 +273,10 @@ fn parse_function(instruction: &Instruction) -> Result<Command, CompilationError
         message: "Expected a name for the function".to_string(),
     })?;
 
-    let n_locals = parse_positive_int(instruction.arg2).map_err(
-        |_| CompilationError {
-            line_number,
-            message: "Expected a positive integer for number of locals for the function".to_string(),
-        })?;
+    let n_locals = parse_positive_int(instruction.arg2).map_err(|_| CompilationError {
+        line_number,
+        message: "Expected a positive integer for number of locals for the function".to_string(),
+    })?;
 
     Ok(Command::Function(name.to_string(), n_locals))
 }
@@ -287,11 +288,11 @@ fn parse_call(instruction: &Instruction) -> Result<Command, CompilationError> {
         message: "Expected a name for the function".to_string(),
     })?;
 
-    let n_args = parse_positive_int(instruction.arg2).map_err(
-        |_| CompilationError {
-            line_number,
-            message: "Expected a positive integer for number of arguments being passed to the function".to_string(),
-        })?;
+    let n_args = parse_positive_int(instruction.arg2).map_err(|_| CompilationError {
+        line_number,
+        message: "Expected a positive integer for number of arguments being passed to the function"
+            .to_string(),
+    })?;
 
     Ok(Command::Call(name.to_string(), n_args))
 }
@@ -300,10 +301,12 @@ fn parse_return(instruction: &Instruction) -> Result<Command, CompilationError> 
     let line_number = instruction.line_number;
     match (instruction.arg1, instruction.arg2) {
         (None, None) => (),
-        _ => return Err(CompilationError {
-            line_number,
-            message: "Expected no arguments for return".to_string(),
-        })
+        _ => {
+            return Err(CompilationError {
+                line_number,
+                message: "Expected no arguments for return".to_string(),
+            })
+        }
     }
 
     Ok(Command::Return)
@@ -312,10 +315,20 @@ fn parse_return(instruction: &Instruction) -> Result<Command, CompilationError> 
 // TODO: find out how to set a statically defined set
 fn is_arithmetic(command_type: &str) -> bool {
     let ct = command_type;
-    ct == "add" || ct == "sub" || ct == "eq" || ct == "gt" || ct == "lt" || ct == "and" || ct == "or" || ct == "neg" || ct == "not"
+    ct == "add"
+        || ct == "sub"
+        || ct == "eq"
+        || ct == "gt"
+        || ct == "lt"
+        || ct == "and"
+        || ct == "or"
+        || ct == "neg"
+        || ct == "not"
 }
 
-pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec<CompilationError>> {
+pub fn compile(
+    source: &str,
+) -> Result<(Vec<Command>, HashMap<String, i16>), Vec<CompilationError>> {
     let mut parser = Parser::new(source);
     let mut program: Vec<Command> = Vec::new();
     let mut errors: Vec<CompilationError> = Vec::new();
@@ -339,7 +352,7 @@ pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec
                     cur_function = name.to_string();
                 }
                 func_def
-            },
+            }
             Some("call") => parse_call(&ins.unwrap()),
             Some("return") => parse_return(&ins.unwrap()),
             _ => Err(CompilationError {
@@ -359,7 +372,7 @@ pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec
                     program.push(command);
                     pc += 1;
                 }
-            },
+            }
             Err(e) => errors.push(e),
         }
     }
@@ -373,7 +386,9 @@ pub fn compile(source: &str) -> Result<(Vec<Command>, HashMap<String, i16>), Vec
 
 fn parse_positive_int(arg: Option<&str>) -> Result<i32, String> {
     let s = arg.ok_or("Expected a non-positive integer, but found nothing")?;
-    let i = s.parse::<i32>().map_err(|e| format!("Cannot parse integer: {}", e))?;
+    let i = s
+        .parse::<i32>()
+        .map_err(|e| format!("Cannot parse integer: {}", e))?;
     // println!("args are {}", i);
     if i < 0 {
         Err(format!("Expected a non-negative integer, but got {}", i))
@@ -426,10 +441,13 @@ mod tests {
                 arg1: None,
                 arg2: None,
             };
-            assert_eq!(parse_arithmetic(&ins), Err(CompilationError{
-                line_number: 3,
-                message: "Unexpected arithmetic operation".to_string()
-            }));
+            assert_eq!(
+                parse_arithmetic(&ins),
+                Err(CompilationError {
+                    line_number: 3,
+                    message: "Unexpected arithmetic operation".to_string()
+                })
+            );
         }
     }
 
@@ -464,8 +482,13 @@ mod tests {
             arg2: Some("10"),
         };
         let message = "Unexpected segment for push".to_string();
-        assert_eq!(parse_push_pop(&ins),
-            Err(CompilationError{ line_number: 3, message }));
+        assert_eq!(
+            parse_push_pop(&ins),
+            Err(CompilationError {
+                line_number: 3,
+                message
+            })
+        );
     }
 
     #[test]
@@ -477,8 +500,13 @@ mod tests {
             arg2: None,
         };
         let message = "Expected a positive integer for argument".to_string();
-        assert_eq!(parse_push_pop(&ins),
-            Err(CompilationError{ line_number: 8, message }));
+        assert_eq!(
+            parse_push_pop(&ins),
+            Err(CompilationError {
+                line_number: 8,
+                message
+            })
+        );
     }
 
     #[test]
@@ -489,9 +517,14 @@ mod tests {
             arg1: None,
             arg2: None,
         };
-        let  message = "Expected a memory segment for push".to_string();
-        assert_eq!(parse_push_pop(&ins),
-            Err(CompilationError{ line_number: 8, message }));
+        let message = "Expected a memory segment for push".to_string();
+        assert_eq!(
+            parse_push_pop(&ins),
+            Err(CompilationError {
+                line_number: 8,
+                message
+            })
+        );
     }
 
     #[test]
@@ -504,7 +537,10 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_label("Main.main", &ins), Ok(Command::Label("Main.main$WHILE-0".to_string())));
+        assert_eq!(
+            parse_label("Main.main", &ins),
+            Ok(Command::Label("Main.main$WHILE-0".to_string()))
+        );
     }
 
     #[test]
@@ -517,10 +553,13 @@ mod tests {
         };
 
         let message = "Expected a name for the label".to_string();
-        assert_eq!(parse_label("Main.main", &ins), Err(CompilationError {
-            message,
-            line_number: 3
-        }));
+        assert_eq!(
+            parse_label("Main.main", &ins),
+            Err(CompilationError {
+                message,
+                line_number: 3
+            })
+        );
     }
 
     #[test]
@@ -533,7 +572,10 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_goto("Main.test", &ins), Ok(Command::Goto("Main.test$WHILE-1".to_string())));
+        assert_eq!(
+            parse_goto("Main.test", &ins),
+            Ok(Command::Goto("Main.test$WHILE-1".to_string()))
+        );
     }
 
     #[test]
@@ -545,10 +587,13 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_goto("Main.test", &ins), Err(CompilationError {
-            message: "Expected a name for the goto".to_string(),
-            line_number: 3
-        }));
+        assert_eq!(
+            parse_goto("Main.test", &ins),
+            Err(CompilationError {
+                message: "Expected a name for the goto".to_string(),
+                line_number: 3
+            })
+        );
     }
 
     #[test]
@@ -561,7 +606,10 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_if_goto("Main.add", &ins), Ok(Command::IfGoto("Main.add$WHILE-1".to_string())));
+        assert_eq!(
+            parse_if_goto("Main.add", &ins),
+            Ok(Command::IfGoto("Main.add$WHILE-1".to_string()))
+        );
     }
 
     #[test]
@@ -573,10 +621,13 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_if_goto("Main.test", &ins), Err(CompilationError {
-            message: "Expected a name for the if-goto".to_string(),
-            line_number: 3
-        }));
+        assert_eq!(
+            parse_if_goto("Main.test", &ins),
+            Err(CompilationError {
+                message: "Expected a name for the if-goto".to_string(),
+                line_number: 3
+            })
+        );
     }
 
     #[test]
@@ -589,7 +640,10 @@ mod tests {
             arg2: Some("2"),
         };
 
-        assert_eq!(parse_function(&ins), Ok(Command::Function(function_name.to_string(), 2)));
+        assert_eq!(
+            parse_function(&ins),
+            Ok(Command::Function(function_name.to_string(), 2))
+        );
     }
 
     #[test]
@@ -601,10 +655,13 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_function(&ins), Err(CompilationError {
-            message: "Expected a name for the function".to_string(),
-            line_number: 3
-        }));
+        assert_eq!(
+            parse_function(&ins),
+            Err(CompilationError {
+                message: "Expected a name for the function".to_string(),
+                line_number: 3
+            })
+        );
 
         let ins = Instruction {
             line_number: 3,
@@ -613,10 +670,14 @@ mod tests {
             arg2: Some("-1"),
         };
 
-        assert_eq!(parse_function(&ins), Err(CompilationError {
-            message: "Expected a positive integer for number of locals for the function".to_string(),
-            line_number: 3
-        }));
+        assert_eq!(
+            parse_function(&ins),
+            Err(CompilationError {
+                message: "Expected a positive integer for number of locals for the function"
+                    .to_string(),
+                line_number: 3
+            })
+        );
     }
 
     #[test]
@@ -629,7 +690,10 @@ mod tests {
             arg2: Some("0"),
         };
 
-        assert_eq!(parse_call(&ins), Ok(Command::Call(function_name.to_string(), 0)));
+        assert_eq!(
+            parse_call(&ins),
+            Ok(Command::Call(function_name.to_string(), 0))
+        );
     }
 
     #[test]
@@ -641,10 +705,13 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_call(&ins), Err(CompilationError {
-            message: "Expected a name for the function".to_string(),
-            line_number: 8
-        }));
+        assert_eq!(
+            parse_call(&ins),
+            Err(CompilationError {
+                message: "Expected a name for the function".to_string(),
+                line_number: 8
+            })
+        );
 
         let ins = Instruction {
             line_number: 4,
@@ -680,10 +747,13 @@ mod tests {
             arg2: None,
         };
 
-        assert_eq!(parse_return(&ins), Err(CompilationError {
-            message: "Expected no arguments for return".to_string(),
-            line_number: 8
-        }));
+        assert_eq!(
+            parse_return(&ins),
+            Err(CompilationError {
+                message: "Expected no arguments for return".to_string(),
+                line_number: 8
+            })
+        );
 
         let ins = Instruction {
             line_number: 4,
@@ -692,10 +762,13 @@ mod tests {
             arg2: Some("-1"),
         };
 
-        assert_eq!(parse_return(&ins), Err(CompilationError {
-            message: "Expected no arguments for return".to_string(),
-            line_number: 4
-        }));
+        assert_eq!(
+            parse_return(&ins),
+            Err(CompilationError {
+                message: "Expected no arguments for return".to_string(),
+                line_number: 4
+            })
+        );
     }
 
     #[test]
@@ -707,12 +780,15 @@ mod tests {
                       ";
         let result = compile(&source[..]);
         match result {
-            Ok((prog, _)) =>  {
-                assert_eq!(vec!(
-                    Command::Push(Segment::CONSTANT, 5),
-                    Command::Push(Segment::CONSTANT, 4),
-                    Command::Arithmetic(Operator::ADD),
-                ), prog);
+            Ok((prog, _)) => {
+                assert_eq!(
+                    vec!(
+                        Command::Push(Segment::CONSTANT, 5),
+                        Command::Push(Segment::CONSTANT, 4),
+                        Command::Arithmetic(Operator::ADD),
+                    ),
+                    prog
+                );
             }
             Err(_) => {
                 panic!("Expected OK response");
@@ -741,36 +817,41 @@ mod tests {
         let result = compile(&source[..]);
         match result {
             Ok((prog, addresses)) => {
-                assert_eq!(vec!(
-                    Command::Push(Segment::CONSTANT, 1),
-                    Command::Push(Segment::CONSTANT, 1),
-                    Command::Arithmetic(Operator::ADD),
-                    Command::Goto("next_add".to_string()),
-                    Command::Arithmetic(Operator::ADD),
-                    Command::Function("add_two".to_string(), 2),
-                    Command::Push(Segment::ARG, 0),
-                    Command::Push(Segment::ARG, 1),
-                    Command::Arithmetic(Operator::ADD),
-                    Command::Return,
-                ), prog);
+                assert_eq!(
+                    vec!(
+                        Command::Push(Segment::CONSTANT, 1),
+                        Command::Push(Segment::CONSTANT, 1),
+                        Command::Arithmetic(Operator::ADD),
+                        Command::Goto("next_add".to_string()),
+                        Command::Arithmetic(Operator::ADD),
+                        Command::Function("add_two".to_string(), 2),
+                        Command::Push(Segment::ARG, 0),
+                        Command::Push(Segment::ARG, 1),
+                        Command::Arithmetic(Operator::ADD),
+                        Command::Return,
+                    ),
+                    prog
+                );
                 assert_eq!(addresses.get("next_add"), Some(&1));
                 assert_eq!(addresses.get("label1"), Some(&4));
                 assert_eq!(addresses.get("label2"), Some(&4));
                 assert_eq!(addresses.get("add_two"), Some(&5));
                 assert_eq!(addresses.get("add_two$before_add"), Some(&6));
-            },
+            }
             Err(errors) => panic!("Expected Ok response: {:?}", errors),
         }
     }
-
 
     #[test]
     fn test_compile_simple_incorrect_program() {
         let source = "foo constant 5";
         let prog = compile(&source[..]);
-        assert_eq!(Err(vec!(CompilationError {
-            line_number: 1,
-            message: "Unrecognized instruction".to_string(),
-        })), prog);
+        assert_eq!(
+            Err(vec!(CompilationError {
+                line_number: 1,
+                message: "Unrecognized instruction".to_string(),
+            })),
+            prog
+        );
     }
 }
