@@ -25,77 +25,55 @@
     </style>
   </head>
   <body>
-    <canvas id="screen" tabindex="1"></canvas>
-    <textarea style="height: 256px; width: 400px" id="editor">
+    <div style="display: flex">
+      <div>
+        <canvas id="screen" tabindex="1"></canvas>
+        <textarea style="height: 256px; width: 400px" id="editor">
 // Updates RAM[256] with 8 + 6 = 14.
 push constant 8
 push constant 6
 add
+        </textarea>
+        <button id="run">Run Program</button>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: row;">
+      <table id="registers" style="display: inline-block">
+        <tbody id="registers-body">
+          <tr>
+            <th colspan="2">REGISTERS</th>
+          </tr>
+          <tr>
+            <th>SP</th>
+            <td id="mem-0">0</td>
+          </tr>
+          <tr>
+            <th>ARG</th>
+            <td id="mem-1">0</td>
+          </tr>
+          <tr>
+            <th>LCL</th>
+            <td id="mem-2">0</td>
+          </tr>
+          <tr>
+            <th>THIS</th>
+            <td id="mem-3">0</td>
+          </tr>
+          <tr>
+            <th>THAT</th>
+            <td id="mem-4">0</td>
+          </tr>
+        </tbody>
+      </table>
 
-
-    </textarea>
-    <button id="run">Run Program</button>
-    <table id="memory">
-      <tbody id="memory-body">
-        <!-- <tr>
-          <th>SP</th>
-          <td id="mem-0">0</td>
-        </tr>
-        <tr>
-          <th>ARG</th>
-          <td id="mem-1">0</td>
-        </tr>
-        <tr>
-          <th>LCL</th>
-          <td id="mem-2">0</td>
-        </tr>
-        <tr>
-          <th>256</th>
-          <td id="mem-256">0</td>
-        </tr>
-        <tr>
-          <th>257</th>
-          <td id="mem-257">0</td>
-        </tr>
-        <tr>
-          <th>258</th>
-          <td id="mem-258">0</td>
-        </tr>
-        <tr>
-          <th>259</th>
-          <td id="mem-259">0</td>
-        </tr>
-        <tr>
-          <th>260</th>
-          <td id="mem-260">0</td>
-        </tr>
-        <tr>
-          <th>261</th>
-          <td id="mem-261">0</td>
-        </tr>
-        <tr>
-          <th>262</th>
-          <td id="mem-262">0</td>
-        </tr>
-        < !- - 16384, 16416, 16448 -- >
-        <tr>
-          <th>16384</th>
-          <td id="mem-16384">0</td>
-        </tr>
-        <tr>
-          <th>16416</th>
-          <td id="mem-16416">0</td>
-        </tr>
-        <tr>
-          <th>16448</th>
-          <td id="mem-16448">0</td>
-        </tr>
-        <tr>
-          <th>24575</th>
-          <td id="mem-24575">0</td>
-        </tr> -->
-      </tbody>
-    </table>
+      <table id="memory" style="display: inline-block">
+        <tbody id="memory-body">
+          <tr>
+            <th colspan="2">MEMORY</th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
     <div style="display: flex; flex-direction: row">
       <input id="memory-peek-address-0" type="text" value="0" />
       <button id="memory-peek-update-0">Peek</button>

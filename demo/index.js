@@ -17,8 +17,9 @@ console.log(progEl.value.split('\n').map(s => s.trim()));
 
 let runEl = document.querySelector("#run");
 
+let registerCellIds = [0, 1, 2, 3, 4]; // 5, 6, 7, 8];
 let memoryCells = {};
-let memoryCellIds = [0, 1, 2, 3, 4, 5, 6, 7, 8, 256, 257, 258, 259, 260, 261, 262]; // , 16384, 16416, 16448];
+let memoryCellIds = [256, 257, 258, 259, 260, 261, 262]; // , 16384, 16416, 16448];
 // // let bitmapStart = 16384+31;
 // let bitmapStart = 16384+32; // + 7648 + 31;
 // for (let i = 0; i < 10; i++) {
@@ -45,6 +46,12 @@ for (let i = 0; i < memoryCellIds.length; i++) {
     // memoryCells[cellId] = document.querySelector(`#mem-${cellId}`);
     memoryCells[cellId] = rowCell;
 }
+
+registerCellIds.forEach(cellId => {
+    memoryCells[cellId] = document.querySelector(`#mem-${cellId}`);
+});
+
+let allMemoryCellIds = registerCellIds.concat(memoryCellIds);
 // for (let i = 0; i < 3; i++) {
 //     memoryCells[i] = document.querySelector(`#mem-${i}`);
 // }
@@ -168,8 +175,8 @@ runEl.addEventListener("click", event => {
         // for (let i = 256; i < 262; i++) {
         //     memoryCells[i].innerHTML = `${vm.peek(i)}${stackPointer === i ? " < SP" : ""}`;
         // }
-        for (let i = 0; i < memoryCellIds.length - 1; i++) {
-            let cellId = memoryCellIds[i];
+        for (let i = 0; i < allMemoryCellIds.length - 1; i++) {
+            let cellId = allMemoryCellIds[i];
 //           memoryCells[cellId].innerHTML = `${dec2bin(vm.peek(cellId))}${stackPointer === cellId ? " < SP" : ""}`;
              memoryCells[cellId].innerHTML = `${vm.peek(cellId)}${stackPointer === cellId ? " < SP" : ""}`;
         }
