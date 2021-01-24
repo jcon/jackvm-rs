@@ -10,7 +10,7 @@ module.exports = {
   mode: "development",
   devtool: 'source-map',
   plugins: [
-    new CopyWebpackPlugin(['index.html'])
+    new CopyWebpackPlugin(['index.html', 'demo.html'])
   ],
   experiments: { asyncWebAssembly: true },
   module: {

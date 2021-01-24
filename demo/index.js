@@ -1,4 +1,4 @@
-import { JackVirtualMachine } from "jackvm-wasm";
+import { JackVirtualMachine } from "jackvm-core";
 
 const screenBuffer = new ArrayBuffer(512 * 256 * 4);
 const screenBytes = new Uint8Array(screenBuffer);
