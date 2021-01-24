@@ -1,5 +1,6 @@
 pub mod compiler;
 mod utils;
+mod jack_os;
 pub mod vm;
 
 use js_sys;

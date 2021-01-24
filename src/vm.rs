@@ -3,6 +3,7 @@ use crate::compiler::Command;
 use crate::compiler::CompilationError;
 use crate::compiler::Operator;
 use crate::compiler::Segment;
+use crate::jack_os::source as os_source;
 use std::cmp::max;
 use std::collections::HashMap;
 use std::num::Wrapping;
@@ -70,7 +71,21 @@ impl VirtualMachine {
     }
 
     pub fn compile_and_load(&mut self, program: &str) -> Result<(), Vec<CompilationError>> {
-        let (bytecode, addresses) = compile(program)?;
+        let (mut bytecode, mut addresses) = compile(program)?;
+        // Append the JacKOS bytecode if the bytecode has a proper entry-point,
+        // but no supplied OS itself.
+        match (addresses.get("Main.main"), addresses.get("Sys.init")) {
+            (Some(_), None) => {
+                let (os_bytecode, os_addresses) = compile(os_source)?;
+                let address_base = bytecode.len() as i16;
+                for (k, v) in &os_addresses {
+                    addresses.insert(k.to_string(), address_base + v);
+                }
+                bytecode = [bytecode, os_bytecode].concat();
+            },
+            _ => (),
+        }
+
         self.addresses = addresses;
         self.load(&bytecode[..]);
         match self.addresses.get("Sys.init") {
