@@ -1,4 +1,4 @@
-use jackvm_wasm::vm;
+use jackvm_rs::vm;
 
 pub fn compile_program(program: &str) -> vm::VirtualMachine {
     let mut jack_vm = vm::VirtualMachine::new();

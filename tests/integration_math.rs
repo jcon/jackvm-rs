@@ -4,7 +4,7 @@ mod helper;
 mod test {
     use super::*;
     use helper::compile_program;
-    use jackvm_wasm::vm;
+    use jackvm_rs::vm;
     use std::panic;
 
     #[test]
