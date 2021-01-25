@@ -15,7 +15,6 @@ imageData.data.set(screenBytes);
 let progEl = document.querySelector("#editor");
 console.log(progEl.value.split('\n').map(s => s.trim()));
 
-let runEl = document.querySelector("#run");
 
 class MemoryDebugger {
     constructor() {
@@ -50,10 +49,6 @@ class MemoryDebugger {
         }
     }
 
-    createCell(cellId) {
-
-    }
-
     update() {
         if (!this.initializedMemory) {
             return;
@@ -70,29 +65,6 @@ class MemoryDebugger {
 
 let memoryDebugger = new MemoryDebugger();
 
-(function drawScreen() {
-    requestAnimationFrame(drawScreen);
-    // screenBytes.fill(0x000000FF);
-    vm.render_screen();
-    imageData.data.set(screenBytes);
-    mainContext.putImageData(imageData, 0, 0);
-
-    // mainContext.fillStyle = "rgba(0,0,0,1)";
-    // for (let y = 16; y < 32; y++) {
-    //     for (let x = 0; x < 16; x++) {
-    //         if ((x + 16) == y) {
-    //             mainContext.fillRect(x, y, 1, 1);
-    //         }
-    //     }
-    // }
-
-    // let y = 48;
-    // for (let x = 0; x < 200; x++) {
-    //     if (x % 2 === 0) {
-    //         mainContext.fillRect(x, y, 1, 1);
-    //     }
-    // }
-})();
 
 document.onkeydown = function (e) {
     e = e || window.event;
@@ -117,59 +89,51 @@ function dec2bin(dec){
    return (dec >>> 0).toString(2).padStart(16, "0");
 }
 
+let isPaused = false;
+
+function drawScreen() {
+    if (!isPaused) {
+        requestAnimationFrame(drawScreen);
+    }
+    vm.render_screen();
+    imageData.data.set(screenBytes);
+    mainContext.putImageData(imageData, 0, 0);
+}
+
+const ticksPerStep = 30000;
+function executeSteps() {
+    if (!isPaused) {
+        requestAnimationFrame(executeSteps);
+    }
+    for (let i = 0; i < ticksPerStep; i++) {
+        vm.tick();
+    }
+    memoryDebugger.update();
+}
+
+let isLoaded = false;
+
+let runEl = document.querySelector("#run");
 runEl.addEventListener("click", event => {
-    const prog = progEl.value.split('\n').map(s => s.trim());
-    // console.log("loading program [", prog.join("\n"), "]");
-    let result = vm.load(prog.join("\n"));
-    if (!result.succeeded) {
-        console.log("errors ****", result.get_errors());
+    isPaused = false;
+    if (!isLoaded) {
+        const prog = progEl.value.split('\n').map(s => s.trim());
+        // console.log("loading program [", prog.join("\n"), "]");
+        let result = vm.load(prog.join("\n"));
+        if (!result.succeeded) {
+            console.log("errors ****", result.get_errors());
+        }
+        isLoaded = true;
     }
 
     imageData.data.set(screenBytes);
     mainContext.putImageData(imageData, 0, 0);
 
-    let frames = 0;
+    executeSteps();
+    drawScreen();
+});
 
-    let debugIns = false;
-    const ticksPerStep = 30000;
-    (function executeSteps() {
-    //    if (frames < 8) {
-        // if (frames < 512) {
-            requestAnimationFrame(executeSteps);
-        // }
-        frames++;
-//        30000i
-
-        for (let i = 0; i < ticksPerStep; i++) {
-            // let ins = vm.get_instruction();
-            // let stack_val = vm.peek(vm.peek(0) - 1);
-            // if (ins === "Call(\"Main.main\", 0)") {
-            //     debugIns = true;
-            //     debugger;
-            // }
-            if (debugIns) {
-                // console.log(ins);
-            }
-            vm.tick();
-        }
-        // updateMemory();
-        memoryDebugger.update();
-    })();
-
-    function updateMemory() {
-        // console.log("**** value from VM: " + vm.peek(256));
-        // for (let i = 0; i < 3; i++) {
-        //     memoryCells[i].innerHTML = `${vm.peek(i)}`;
-        // }
-        let stackPointer = vm.peek(0);
-        // for (let i = 256; i < 262; i++) {
-        //     memoryCells[i].innerHTML = `${vm.peek(i)}${stackPointer === i ? " < SP" : ""}`;
-        // }
-        for (let i = 0; i < allMemoryCellIds.length - 1; i++) {
-            let cellId = allMemoryCellIds[i];
-//           memoryCells[cellId].innerHTML = `${dec2bin(vm.peek(cellId))}${stackPointer === cellId ? " < SP" : ""}`;
-             memoryCells[cellId].innerHTML = `${vm.peek(cellId)}${stackPointer === cellId ? " < SP" : ""}`;
-        }
-        memoryCells[24576].innerHTML = `${vm.peek(24575)} (key: ${String.fromCharCode(vm.peek(24575))})`;
-    }
+let pauseEl = document.querySelector("#pause");
+pauseEl.addEventListener("click", event => {
+    isPaused = true;
 });
