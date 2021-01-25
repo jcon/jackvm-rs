@@ -1,7 +1,7 @@
 // The supplied "Operating System" source from the original Jack Virtual Machine.
 // The Java implementation goes a step further and implements the OS interfaces
 // inline in native Java. These impelemtantions are reasonably fast enough though.
-pub const source: &str = "
+pub const SOURCE: &str = "
 function Array.new 0
 push argument 0
 push constant 0

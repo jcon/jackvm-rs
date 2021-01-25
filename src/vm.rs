@@ -3,7 +3,7 @@ use crate::compiler::Command;
 use crate::compiler::CompilationError;
 use crate::compiler::Operator;
 use crate::compiler::Segment;
-use crate::jack_os::source as os_source;
+use crate::jack_os::SOURCE as os_source;
 use std::cmp::max;
 use std::collections::HashMap;
 use std::num::Wrapping;
