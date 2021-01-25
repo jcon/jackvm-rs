@@ -1,19 +1,31 @@
 import { JackVirtualMachine } from "../pkg/index";
 
-const screenBuffer = new ArrayBuffer(512 * 256 * 4);
+const HEIGHT = 256;
+const WIDTH = 512;
+
+const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
 const screenBytes = new Uint8Array(screenBuffer);
 const screenBytes32 = new Uint32Array(screenBuffer);
 const vm = JackVirtualMachine.new(screenBuffer);
 
-const mainCanvas = document.getElementById('screen');
-mainCanvas.height = 256;
-mainCanvas.width = 512;
+const parentEl = document.getElementById('screen-container');
+
+function createCanvas() {
+    const mainCanvas = document.createElement('canvas');
+    mainCanvas.className = "screen";
+    mainCanvas.height = HEIGHT;
+    mainCanvas.width = WIDTH;
+    return mainCanvas;
+}
+
+const mainCanvas = createCanvas();
+parentEl.appendChild(mainCanvas);
 const mainContext = mainCanvas.getContext('2d');
-const imageData = new ImageData(512, 256);
+const imageData = new ImageData(WIDTH, HEIGHT);
 imageData.data.set(screenBytes);
 
 let progEl = document.querySelector("#editor");
-console.log(progEl.value.split('\n').map(s => s.trim()));
+// console.log(progEl.value.split('\n').map(s => s.trim()));
 
 
 class MemoryDebugger {
@@ -112,6 +124,14 @@ function executeSteps() {
 }
 
 let isLoaded = false;
+function loadProgram() {
+    const prog = progEl.value.split('\n').map(s => s.trim());
+    let result = vm.load(prog.join("\n"));
+    if (!result.succeeded) {
+        console.log("errors ****", result.get_errors());
+    }
+    isLoaded = true;
+}
 
 progEl.addEventListener("change", event => {
     isLoaded = false;
@@ -121,13 +141,7 @@ let runEl = document.querySelector("#run");
 runEl.addEventListener("click", event => {
     isPaused = false;
     if (!isLoaded) {
-        const prog = progEl.value.split('\n').map(s => s.trim());
-        // console.log("loading program [", prog.join("\n"), "]");
-        let result = vm.load(prog.join("\n"));
-        if (!result.succeeded) {
-            console.log("errors ****", result.get_errors());
-        }
-        isLoaded = true;
+        loadProgram();
     }
 
     imageData.data.set(screenBytes);
