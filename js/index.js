@@ -113,6 +113,10 @@ function executeSteps() {
 
 let isLoaded = false;
 
+progEl.addEventListener("change", event => {
+    isLoaded = false;
+});
+
 let runEl = document.querySelector("#run");
 runEl.addEventListener("click", event => {
     isPaused = false;
