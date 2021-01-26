@@ -191,6 +191,12 @@ impl JackVirtualMachine {
         self.jack_vm.tick();
     }
 
+    pub fn tick_times(&mut self, times: u32) -> () {
+        for _ in 0..times {
+            self.jack_vm.tick();
+        }
+    }
+
     pub fn set_key(&mut self, key: i16) {
         self.jack_vm.poke(vm::KEYBOARD_START, key);
     }

@@ -3,12 +3,11 @@ import { JackVirtualMachine } from "../pkg/index";
 const HEIGHT = 256;
 const WIDTH = 512;
 
-// const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
-// const screenBytes = new Uint8Array(screenBuffer);
-// const screenBytes32 = new Uint32Array(screenBuffer);
-// const vm = JackVirtualMachine.new(screenBuffer);
 
 const parentEl = document.getElementById('screen-container');
+const mainCanvas = createCanvas(HEIGHT, WIDTH);
+parentEl.appendChild(mainCanvas);
+const progEl = document.querySelector("#editor");
 
 function createCanvas(height, width) {
     const mainCanvas = document.createElement('canvas');
@@ -17,16 +16,6 @@ function createCanvas(height, width) {
     mainCanvas.width = width;
     return mainCanvas;
 }
-
-const mainCanvas = createCanvas(HEIGHT, WIDTH);
-parentEl.appendChild(mainCanvas);
-const mainContext = mainCanvas.getContext('2d');
-// const imageData = new ImageData(WIDTH, HEIGHT);
-// imageData.data.set(screenBytes);
-
-let progEl = document.querySelector("#editor");
-// console.log(progEl.value.split('\n').map(s => s.trim()));
-
 
 class MemoryDebugger {
     constructor(vm) {
@@ -128,9 +117,10 @@ class Player {
         if (!this.isPaused) {
             requestAnimationFrame(this.executeSteps.bind(this));
         }
-        for (let i = 0; i < ticksPerStep; i++) {
-            this.vm.tick();
-        }
+        this.vm.tick_times(ticksPerStep);
+        // for (let i = 0; i < ticksPerStep; i++) {
+        //     this.vm.tick();
+        // }
         this.memoryDebugger.update();
     }
 
@@ -158,84 +148,24 @@ let player = new Player(mainCanvas);
 document.onkeydown = player.handleKeyDown.bind(player);
 
 
-// document.onkeydown = function (e) {
-//     e = e || window.event;
-
-//     let keyCode = e.keyCode;
-//     if (keyCode == 37) {
-//         keyCode = 130;
-//     }
-//     if (keyCode == 39) {
-//         keyCode = 132;
-//     }
-//     // console.log(`key pressed: ${e.keyCode} => ${keyCode}`);
-//     vm.set_key(keyCode);
-//     // use e.keyCode
-// };
-
-// document.onkeyup = function (e) {
-//     vm.set_key(0);
-// };
 document.onkeyup = player.handleKeyUp.bind(player);
 
 function dec2bin(dec){
    return (dec >>> 0).toString(2).padStart(16, "0");
 }
 
-// let isPaused = false;
-
-// function drawScreen() {
-//     if (!isPaused) {
-//         requestAnimationFrame(drawScreen);
-//     }
-//     vm.render_screen();
-//     imageData.data.set(screenBytes);
-//     mainContext.putImageData(imageData, 0, 0);
-// }
-
 const ticksPerStep = 30000;
-// function executeSteps() {
-//     if (!isPaused) {
-//         requestAnimationFrame(executeSteps);
-//     }
-//     for (let i = 0; i < ticksPerStep; i++) {
-//         vm.tick();
-//     }
-//     memoryDebugger.update();
-// }
-
-// let isLoaded = false;
-// function loadProgram() {
-//     const prog = progEl.value.split('\n').map(s => s.trim());
-//     let result = vm.load(prog.join("\n"));
-//     if (!result.succeeded) {
-//         console.log("errors ****", result.get_errors());
-//     }
-//     isLoaded = true;
-// }
 
 progEl.addEventListener("change", event => {
     player.isLoaded = false;
-    // isLoaded = false;
 });
 
 let runEl = document.querySelector("#run");
 runEl.addEventListener("click", event => {
-    // isPaused = false;
-    // if (!isLoaded) {
-    //     loadProgram();
-    // }
-
-    // imageData.data.set(screenBytes);
-    // mainContext.putImageData(imageData, 0, 0);
-
-    // executeSteps();
-    // drawScreen();
     player.run();
 });
 
 let pauseEl = document.querySelector("#pause");
 pauseEl.addEventListener("click", event => {
-    // isPaused = true;
     player.pause();
 });
