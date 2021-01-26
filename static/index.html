@@ -110,6 +110,15 @@ add
               player.pause();
           });
 
+          /* example loading vm program concatenated.
+          fetch('./space_invaders.vm')
+            .then(res => res.text())
+            .then(program => {
+              progEl.value = program;
+              updateProgram();
+            });
+            */
+
           // Helper to update the current program being run by the VM.
           function updateProgram() {
               const program = progEl.value.split('\n').map(s => s.trim()).join("\n");
