@@ -3,11 +3,12 @@ import { JackVirtualMachine } from "../pkg/index";
 const HEIGHT = 256;
 const WIDTH = 512;
 
+const TICKS_PER_STEP = 30000;
 
-const parentEl = document.getElementById('screen-container');
-const mainCanvas = createCanvas(HEIGHT, WIDTH);
-parentEl.appendChild(mainCanvas);
-const progEl = document.querySelector("#editor");
+// const parentEl = document.getElementById('screen-container');
+// const mainCanvas = createCanvas(HEIGHT, WIDTH);
+// parentEl.appendChild(mainCanvas);
+// const progEl = document.querySelector("#editor");
 
 function createCanvas(height, width) {
     const mainCanvas = document.createElement('canvas');
@@ -66,7 +67,10 @@ class MemoryDebugger {
 }
 
 class Player {
-    constructor(canvas) {
+    constructor(parentEl) {
+        const canvas = createCanvas(HEIGHT, WIDTH);
+        parentEl.appendChild(canvas);
+
         const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
         this.screenBytes = new Uint8Array(screenBuffer);
         this.vm = JackVirtualMachine.new(screenBuffer);
@@ -87,9 +91,8 @@ class Player {
         this.mainContext.putImageData(this.imageData, 0, 0);
     }
 
-    loadProgram() {
-        const prog = progEl.value.split('\n').map(s => s.trim());
-        let result = this.vm.load(prog.join("\n"));
+    loadProgram(prog) {
+        let result = this.vm.load(prog);
         if (!result.succeeded) {
             console.log("errors ****", result.get_errors());
         }
@@ -98,9 +101,9 @@ class Player {
 
     run() {
         this.isPaused = false;
-        if (!this.isLoaded) {
-            this.loadProgram();
-        }
+        // if (!this.isLoaded) {
+        //     this.loadProgram();
+        // }
 
         this.imageData.data.set(this.screenBytes);
         this.mainContext.putImageData(this.imageData, 0, 0);
@@ -117,8 +120,8 @@ class Player {
         if (!this.isPaused) {
             requestAnimationFrame(this.executeSteps.bind(this));
         }
-        this.vm.tick_times(ticksPerStep);
-        // for (let i = 0; i < ticksPerStep; i++) {
+        this.vm.tick_times(TICKS_PER_STEP);
+        // for (let i = 0; i < TICKS_PER_STEP; i++) {
         //     this.vm.tick();
         // }
         this.memoryDebugger.update();
@@ -143,29 +146,7 @@ class Player {
     }
 }
 
-// let memoryDebugger = new MemoryDebugger();
-let player = new Player(mainCanvas);
-document.onkeydown = player.handleKeyDown.bind(player);
 
-
-document.onkeyup = player.handleKeyUp.bind(player);
-
-function dec2bin(dec){
-   return (dec >>> 0).toString(2).padStart(16, "0");
-}
-
-const ticksPerStep = 30000;
-
-progEl.addEventListener("change", event => {
-    player.isLoaded = false;
-});
-
-let runEl = document.querySelector("#run");
-runEl.addEventListener("click", event => {
-    player.run();
-});
-
-let pauseEl = document.querySelector("#pause");
-pauseEl.addEventListener("click", event => {
-    player.pause();
-});
+export {
+    Player
+};
