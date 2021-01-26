@@ -1,11 +1,14 @@
 {
-    "author": "You <you@example.com>",
-    "name": "rust-webpack-template",
+    "author": "Jim Connell",
+    "name": "jackvm-player",
+    "description": "Runs Jack Language VM files on the web",
+    "main": "./index.js",
     "version": "0.1.0",
     "scripts": {
         "build": "rimraf dist pkg && webpack",
         "start": "rimraf dist pkg && webpack-dev-server --open -d",
-        "test": "cargo test && wasm-pack test --headless"
+        "test": "cargo test && wasm-pack test --headless",
+        "stage": "cp package.json dist"
     },
     "devDependencies": {
         "@wasm-tool/wasm-pack-plugin": "^1.1.0",
