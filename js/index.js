@@ -67,7 +67,7 @@ class MemoryDebugger {
 }
 
 class Player {
-    constructor(parentEl) {
+    constructor(parentEl, config = { debugMemory: false }) {
         const canvas = createCanvas(HEIGHT, WIDTH);
         parentEl.appendChild(canvas);
 
@@ -79,7 +79,9 @@ class Player {
         this.isPaused = true;
         this.isLoaded = false;
         this.mainContext = canvas.getContext('2d')
-        this.memoryDebugger = new MemoryDebugger(this.vm);
+        if (config.debugMemory) {
+            this.memoryDebugger = new MemoryDebugger(this.vm);
+        }
     }
 
     drawScreen() {

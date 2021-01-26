@@ -3,7 +3,7 @@
 // that no one else needs to worry about it again.
 import("./index.js")
   .then(m => {
-    window.JackPlayer = m.Player;
-    window.dispatchEvent(new Event('JackPlayerLoaded'));
+    window.JackVmPlayer = m.Player;
+    window.dispatchEvent(new Event('JackVmPlayerLoaded'));
   })
   .catch(e => console.error("Error importing `index.js`:", e));

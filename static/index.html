@@ -77,17 +77,17 @@ add
     </div>
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <script>
-      window.JackPlayer = window.JackPlayer || {};
-      console.log("***** player", window.JackPlayer);
+      window.JackVmPlayer = window.JackVmPlayer || {};
+      console.log("***** player", window.JackVmPlayer);
 
-      // TODO: Find a more standard way to listen to when JackPlayer is loaded.
-      window.addEventListener("JackPlayerLoaded", () => {
+      // TODO: Find a more standard way to listen to when JackVmPlayer is loaded.
+      window.addEventListener("JackVmPlayerLoaded", () => {
           console.log("document.readyState", document.readyState);
-          console.log("***** player was loaded", window.JackPlayer);
+          console.log("***** player was loaded", window.JackVmPlayer);
 
           const parentEl = document.getElementById('screen-container');
 
-          let player = new JackPlayer(parentEl);
+          let player = new JackVmPlayer(parentEl, { debugMemory: true });
           // TODO: bind these automatically.
           document.onkeydown = player.handleKeyDown.bind(player);
           document.onkeyup = player.handleKeyUp.bind(player);
