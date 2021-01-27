@@ -3,7 +3,7 @@ import { JackVirtualMachine } from "../pkg/index";
 const HEIGHT = 256;
 const WIDTH = 512;
 
-const TICKS_PER_STEP = 30000;
+const TICKS_PER_STEP = 24000;
 
 // const parentEl = document.getElementById('screen-container');
 // const mainCanvas = createCanvas(HEIGHT, WIDTH);
@@ -102,6 +102,10 @@ class Player {
     }
 
     run() {
+        if (!this.isPaused) {
+            return;
+        }
+
         this.isPaused = false;
         // if (!this.isLoaded) {
         //     this.loadProgram();
