@@ -1,7 +1,8 @@
-pub mod compiler;
+use vm::vm;
+// pub mod compiler;
 mod utils;
-mod jack_os;
-pub mod vm;
+// mod jack_os;
+// pub mod vm;
 
 use js_sys;
 extern crate web_sys;

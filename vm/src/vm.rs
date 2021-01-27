@@ -7,7 +7,7 @@ use crate::jack_os::SOURCE as os_source;
 use std::cmp::max;
 use std::collections::HashMap;
 use std::num::Wrapping;
-extern crate web_sys;
+// extern crate web_sys;
 
 struct FunctionCall {
     name: String,
@@ -35,12 +35,12 @@ pub struct VirtualMachine {
     is_debug: bool,
 }
 
-#[allow(unused_macros)]
-macro_rules! log {
-    ( $( $t:tt )* ) => {
-        web_sys::console::log_1(&format!( $( $t )* ).into());
-    }
-}
+// #[allow(unused_macros)]
+// macro_rules! log {
+//     ( $( $t:tt )* ) => {
+//         web_sys::console::log_1(&format!( $( $t )* ).into());
+//     }
+// }
 
 const SP: usize = 0;
 const LCL: usize = 1;
