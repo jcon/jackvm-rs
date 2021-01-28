@@ -1,10 +1,10 @@
 mod helper;
 
 #[cfg(test)]
-mod test {
+mod integration {
     use super::*;
     use helper::compile_program;
-    use jackvm_rs::vm;
+    use vm::vm;
     use std::panic;
 
     #[test]

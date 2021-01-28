@@ -1,7 +1,7 @@
 mod helper;
 
 #[cfg(test)]
-mod test {
+mod integration {
     use super::*;
     use helper::{compile_program, debug_address, debug_stack, execute_program};
     use std::panic;
