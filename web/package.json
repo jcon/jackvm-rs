@@ -1,17 +1,14 @@
 {
-    "name": "jackvm-player",
-    "collaborators": [
-      "Jim Connell <james.d.connell@gmail.com>"
-    ],
-    "version": "0.1.1",
-    "files": [
-      "web_bg.wasm",
-      "web_bg.wasm.d.ts",
-      "web_bg.js",
-      "web.js",
-      "web.d.ts"
-    ],
-    "module": "./web.js",
-    "types": "web.d.ts",
-    "sideEffects": false
-  }
+  "author": "Jim Connell",
+  "name": "jackvm-player",
+  "description": "Runs Jack Language VM files on the web",
+  "main": "./web.js",
+  "typings": "./web.d.ts",
+  "version": "0.1.4",
+  "files": [
+    "web_bg.wasm",
+    "web_bg.js",
+    "web.js",
+    "web.d.ts"
+  ]
+}
