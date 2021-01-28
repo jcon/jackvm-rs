@@ -1,7 +1,7 @@
 name: jackvm-rs.github.io
 on: [push]
 jobs:
-  build-and-deploy:
+  jackvm-rs.github.io:
     runs-on: ubuntu-latest
     defaults:
       run:
