@@ -21,6 +21,7 @@
 
 # Ignore generated JS files
 js
+_site
 
 # debug
 npm-debug.log*
