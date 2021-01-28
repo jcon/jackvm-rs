@@ -154,5 +154,5 @@ class Player {
 }
 
 export {
-    Player
+    Player as JackVmPlayer
 };

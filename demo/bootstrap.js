@@ -7,7 +7,7 @@
 
 import("./index.js")
   .then(m => {
-    window.JackVmPlayer = m.Player;
+    window.JackVmPlayer = m.JackVmPlayer;
     window.dispatchEvent(new Event('JackVmPlayerLoaded'));
   })
   .catch(e => console.error("Error importing `index.js`:", e));
