@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>JackVM Player Demo</title>
+    <style type="text/css">
+      body {
+        background-color: #efefef;
+      }
+      canvas.screen {
+/*        width: 1024px;
+        height: 512px; */
+        border: 5px solid #ddd;
+        image-rendering: optimizeSpeed;
+        image-rendering: -moz-crisp-edges;
+        image-rendering: -webkit-optimize-contrast;
+        image-rendering: optimize-contrast;
+        image-rendering: pixelated;
+        -ms-interpolation-mode: nearest-neighbor;
+      }
+      table#memory {
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div style="display: flex">
+      <div>
+        <span id="screen-container"></span>
+        <textarea style="height: 256px; width: 400px" id="editor">
+// Updates RAM[256] with 8 + 6 = 14.
+push constant 8
+push constant 6
+add
+        </textarea>
+        <button id="run">Run Program</button>
+        <button id="pause">Pause Program</button>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: row;">
+      <table id="registers" style="display: inline-block">
+        <tbody id="registers-body">
+          <tr>
+            <th colspan="2">REGISTERS</th>
+          </tr>
+          <tr>
+            <th>SP</th>
+            <td id="mem-0">0</td>
+          </tr>
+          <tr>
+            <th>ARG</th>
+            <td id="mem-1">0</td>
+          </tr>
+          <tr>
+            <th>LCL</th>
+            <td id="mem-2">0</td>
+          </tr>
+          <tr>
+            <th>THIS</th>
+            <td id="mem-3">0</td>
+          </tr>
+          <tr>
+            <th>THAT</th>
+            <td id="mem-4">0</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table id="memory" style="display: inline-block">
+        <tbody id="memory-body">
+          <tr>
+            <th colspan="2">MEMORY</th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
+    <script>
+      window.JackVmPlayer = window.JackVmPlayer || {};
+      console.log("***** player", window.JackVmPlayer);
+
+      // TODO: Find a more standard way to listen to when JackVmPlayer is loaded.
+      window.addEventListener("JackVmPlayerLoaded", () => {
+          console.log("document.readyState", document.readyState);
+          console.log("***** player was loaded", window.JackVmPlayer);
+
+          const parentEl = document.getElementById('screen-container');
+
+          let player = new JackVmPlayer(parentEl, { debugMemory: true });
+          // TODO: bind these automatically.
+          document.onkeydown = player.handleKeyDown.bind(player);
+          document.onkeyup = player.handleKeyUp.bind(player);
+
+          // Update the VM's program whenever the "editor" changes.
+          const progEl = document.querySelector("#editor");
+          progEl.addEventListener("change", event => {
+              updateProgram();
+          });
+
+          // Start running the VM if it's not already running.
+          let runEl = document.querySelector("#run");
+          runEl.addEventListener("click", event => {
+              updateProgram();
+              player.run();
+          });
+
+          // Pause the VM if it's not already paused.
+          let pauseEl = document.querySelector("#pause");
+          pauseEl.addEventListener("click", event => {
+              player.pause();
+          });
+
+          // example loading vm program concatenated.
+          fetch('./pong.vm')
+            .then(res => res.text())
+            .then(program => {
+              progEl.value = program;
+              updateProgram();
+            });
+
+          // Helper to update the current program being run by the VM.
+          function updateProgram() {
+              const program = progEl.value.split('\n').map(s => s.trim()).join("\n");
+              player.loadProgram(program);
+          }
+
+          updateProgram();
+
+      });
+    </script>
+    <script src="./bootstrap.js"></script>
+    <!-- <script src="http://localhost:5000/index.js">
+    </script> -->
+  </body>
+</html>
