@@ -9,6 +9,7 @@
   },
   "scripts": {
     "build:js": "webpack --config webpack.config.js",
+    "build:css": "tailwindcss-cli build -o css/tailwind.css",
     "build:site": "eleventy",
     "start": "webpack serve",
     "start:site": "eleventy --serve"
@@ -20,7 +21,8 @@
     "webpack"
   ],
   "dependencies": {
-    "jackvm-player": "^0.1.4"
+    "jackvm-player": "^0.1.4",
+    "tailwindcss-cli": "^0.1.2"
   },
   "devDependencies": {
     "@11ty/eleventy": "^0.11.1",
