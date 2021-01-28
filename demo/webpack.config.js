@@ -1,10 +1,14 @@
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const WasmPackPlugin = require("@wasm-tool/wasm-pack-plugin");
 const path = require('path');
+
+const crateDir = path.resolve(__dirname, '../web');
+const distDir = path.resolve(__dirname, 'dist');
 
 module.exports = {
   entry: "./bootstrap.js",
   output: {
-    path: path.resolve(__dirname, "dist"),
+    path: distDir,
     filename: "bootstrap.js",
   },
   mode: "development",
@@ -15,9 +19,12 @@ module.exports = {
   plugins: [
     new CopyWebpackPlugin({
       patterns: [
-        {from: 'static', to: path.resolve(__dirname, "dist") },
-        // {from: 'static/pong.vm', to: path.resolve(__dirname, "dist") }
+        {from: 'static', to: distDir },
       ]
+    }),
+    new WasmPackPlugin({
+      crateDirectory: crateDir,
+    //   forceMode: 'production',
     })
   ],
 };

@@ -19,10 +19,11 @@ This project was built using the rust-webpack template, so it follows that struc
 
 ## Running via the Webpack Dev Server
 
-You can run this project in webpack dev mode, and automatically test changes to any of the JS or rust code used to build this project:
+This project includes a simple demo page that uses this package in the demo folder. This project can be used to changes to the VM:
 
-1. Run `npm run start`
-2. The browser will automatically load the JackVM Player with a simple program.
+1. Change to the `demo` directory (e.g. `cd demo`)
+2. Run `npm run start`
+3. The browser will automatically load the JackVM Player with a simple single-player pong game.
 
 ## Running tests
 
