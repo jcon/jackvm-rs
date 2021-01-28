@@ -3,6 +3,8 @@ on: [push]
 jobs:
   jackvm-rs_github_io:
     runs-on: ubuntu-latest
+    env:
+      NODE_ENV: production
     defaults:
       run:
         working-directory: ./jackvm-rs.github.io
