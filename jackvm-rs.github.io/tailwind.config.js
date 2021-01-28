@@ -2,9 +2,9 @@
 
    purge: [
 
-     './src/**/*.html',
+     './**/*.html',
 
-     './src/**/*.js',
+     './_js/**/*.js',
 
    ],
     darkMode: false, // or 'media' or 'class'
