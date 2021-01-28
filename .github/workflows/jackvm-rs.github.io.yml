@@ -3,9 +3,9 @@ on: [push]
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    # defaults:
-    #   run:
-    #     working-directory: ./src
+    defaults:
+      run:
+        working-directory: ./jackvm-rs.github.io
 
     steps:
       - name: Checkout 🛎️
