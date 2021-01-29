@@ -21,7 +21,7 @@
     "webpack"
   ],
   "dependencies": {
-    "jackvm-player": "^0.1.4",
+    "jackvm-player": "^0.1.5",
     "tailwindcss-cli": "^0.1.2"
   },
   "devDependencies": {

@@ -4,7 +4,7 @@ import { JackVirtualMachine, greet } from "jackvm-player";
 const HEIGHT = 256;
 const WIDTH = 512;
 
-const TICKS_PER_STEP = 24000;
+const TICKS_PER_STEP = 30000;
 
 // const parentEl = document.getElementById('screen-container');
 // const mainCanvas = createCanvas(HEIGHT, WIDTH);
@@ -86,9 +86,12 @@ class Player {
     }
 
     drawScreen() {
-        if (!this.isPaused) {
+        if (!this.isPaused && !this.vm.isHalted()) {
             requestAnimationFrame(this.drawScreen.bind(this));
+        } else {
+            console.log('VM is halted, no more screen refreshes.');
         }
+
         this.vm.render_screen();
         this.imageData.data.set(this.screenBytes);
         this.mainContext.putImageData(this.imageData, 0, 0);
@@ -102,12 +105,26 @@ class Player {
         this.isLoaded = true;
     }
 
+    isHalted() {
+        return this.vm.isHalted();
+    }
+
+    restart() {
+        this.isPaused = true;
+        this.vm.restart();
+        this.run();
+    }
+
     run() {
         if (!this.isPaused) {
-            return;
+            return;``
         }
 
         this.isPaused = false;
+        // if (this.vm.isHalted()) {
+        //     console.log("VM was halted, restarting");
+        //     this.vm.restart();
+        // }
         // if (!this.isLoaded) {
         //     this.loadProgram();
         // }
@@ -124,9 +141,12 @@ class Player {
     }
 
     executeSteps() {
-        if (!this.isPaused) {
+        if (!this.isPaused && !this.vm.isHalted()) {
             requestAnimationFrame(this.executeSteps.bind(this));
+        } else {
+            console.log('VM is halted, no VM ticks.');
         }
+
         this.vm.tick_times(TICKS_PER_STEP);
         // for (let i = 0; i < TICKS_PER_STEP; i++) {
         //     this.vm.tick();
