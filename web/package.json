@@ -4,7 +4,7 @@
   "description": "Runs Jack Language VM files on the web",
   "main": "./web.js",
   "typings": "./web.d.ts",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "files": [
     "web_bg.wasm",
     "web_bg.js",

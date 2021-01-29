@@ -111,6 +111,20 @@ impl VirtualMachine {
         self.call_stack.clear();
     }
 
+    pub fn restart(&mut self) {
+        self.memory[SP] = STACK_START as i16;
+        match self.addresses.get("Sys.init") {
+            Some(addr) => {
+                self.pc = *addr as usize;
+//                println!("Loading with PC starting at {}", self.pc);
+            }
+            None => {
+//                println!("No Sys.init found");
+                self.pc = 0;
+            }
+        }
+    }
+
     pub fn get_instruction(&self) -> String {
         if self.pc < self.program.len() {
             format!("{:?}", self.program[self.pc])

@@ -86,6 +86,10 @@ impl JackVirtualMachine {
         }
     }
 
+    pub fn restart(&mut self) {
+        self.jack_vm.restart()
+    }
+
     pub fn get_instruction(&self) -> String {
         self.jack_vm.get_instruction()
     }
@@ -107,6 +111,9 @@ impl JackVirtualMachine {
         //         }
         //     }
         //     // count += 4;
+        // }
+        // if self.jack_vm.is_halted() {
+        //     return;
         // }
 
         let screen = &mut self.jack_vm.memory[vm::SCREEN_START..vm::KEYBOARD_START + 1];
@@ -190,6 +197,11 @@ impl JackVirtualMachine {
 
     pub fn tick(&mut self) -> () {
         self.jack_vm.tick();
+    }
+
+    #[wasm_bindgen(js_name = isHalted)]
+    pub fn is_halted(&self) -> bool {
+        self.jack_vm.is_halted()
     }
 
     pub fn tick_times(&mut self, times: u32) -> () {
