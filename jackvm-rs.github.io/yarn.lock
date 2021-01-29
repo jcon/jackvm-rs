@@ -3921,6 +3921,11 @@ isobject@^3.0.0, isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
 
+jackvm-player@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/jackvm-player/-/jackvm-player-0.1.5.tgz#a5dc87f1f048d0464cf45e1c77189e7954850c4a"
+  integrity sha512-6Dwr975lIBg149R7bT4jBb6qGHKXDMwmg5WG8JpeBU37jADI+jKc/ToMs/iGerY+mf3hQ0+hMLw6ct8godogkQ==
+
 javascript-stringify@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/javascript-stringify/-/javascript-stringify-2.0.1.tgz#6ef358035310e35d667c675ed63d3eb7c1aa19e5"

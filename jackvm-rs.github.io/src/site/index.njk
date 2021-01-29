@@ -1,20 +1,61 @@
 ---
-title: Elevenpack
+title: JackVM Player
 layout: default
 ---
 
-<div class="container">
-  <p>
-    This page is generated from the template <span class="code">src/site/index.njk</span>, using the default layout
-    <span class="code">src/site/_includes/layouts/default.njk</span>.
-  </p>
-  <p class="my-4">
-    Styles can be found under <span class="code">src/css</span> and the javascript under <span class="code">src/js</span>.
-    The <span class="code">src/vendor</span> folder will be copied verbatim when building the website and is meant for any
-    external dependencies that you don't want to add to your build process.
-  </p>
-  <p class="my-4">Any images should be placed under <span class="code">src/img</span> and this folder will be copied verbatim when building.</p>
-  <p>If you want to change Eleventy's configuration in any way, see <span class="code">.eleventy.js</span>.
+  <div class="bg-white flex flex-col space-x-4 space-y-4 items-center">
+    <h1 class="text-6xl text-purple-800 font-semibold font-serif">Jack VM Player</h1>
+    <h2 class="text-lg text-purple-600 font-thin">The Nand2Tetris Virtual Machine running on the web</h2>
+    <div class="flex flex-col space-y-4">
+      <div class="flex flex-row items-center ">
+        <button id="run" class="px-4 py-1 text-sm text-purple-600 font-semibold rounded-full border border-purple-200 hover:text-white hover:bg-purple-600 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2">Restart</button>
+        <button id="pause" class="px-4 py-1 text-sm text-purple-600 font-semibold rounded-full border border-purple-200 hover:text-white hover:bg-purple-600 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-20">Stop</button>
+      </div>
+      <div class="flex flex-row space-x-4">
+        <span id="screen-container" class="bg-gray-100 rounded-xl shadow-md flex items-center space-x-8 space-x-8"></span>
+        <textarea class="hidden rounded-xl border-2" style="height: 256px; width: 400px" id="editor">
+// Updates RAM[256] with 8 + 6 = 14.
+push constant 8
+push constant 6
+add
+        </textarea>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: row;">
+      <table id="registers" style="display: inline-block">
+        <tbody id="registers-body">
+          <tr>
+            <th colspan="2">REGISTERS</th>
+          </tr>
+          <tr>
+            <th>SP</th>
+            <td id="mem-0">0</td>
+          </tr>
+          <tr>
+            <th>ARG</th>
+            <td id="mem-1">0</td>
+          </tr>
+          <tr>
+            <th>LCL</th>
+            <td id="mem-2">0</td>
+          </tr>
+          <tr>
+            <th>THIS</th>
+            <td id="mem-3">0</td>
+          </tr>
+          <tr>
+            <th>THAT</th>
+            <td id="mem-4">0</td>
+          </tr>
+        </tbody>
+      </table>
 
-  <h3 class="mt-8 text-lg">Check out the <a href="https://github.com/deviousdodo/elevenpack#elevenpack" class="text-teal-600">README</a> for more docs.</h3>
-</div>
+      <table id="memory" style="display: inline-block">
+        <tbody id="memory-body">
+          <tr>
+            <th colspan="2">STACK</th>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>

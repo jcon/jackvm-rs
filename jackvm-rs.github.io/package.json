@@ -1,12 +1,11 @@
 {
-  "name": "elevenpack",
-  "version": "1.1.0",
-  "description": "Publish a website using Eleventy, webpack and PostCSS",
-  "author": "Adrian Gheorghe",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/deviousdodo/elevenpack"
+  "name": "jackvm-rs.github.io",
+  "version": "0.0.0",
+  "description": "JackVM rs demo site",
+  "main": "index.js",
+  "private": true,
+  "bin": {
+    "create-wasm-app": ".bin/create-wasm-app.js"
   },
   "scripts": {
     "build": "npm-run-all clean build:assets build:site",
@@ -19,6 +18,7 @@
     "webpack:assets": "NODE_ENV=development webpack --mode=development"
   },
   "dependencies": {
+    "jackvm-player": "^0.1.5",
     "@11ty/eleventy": "^0.11.0",
     "@babel/core": "^7.10.2",
     "@babel/preset-env": "^7.10.2",
