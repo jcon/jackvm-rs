@@ -119,6 +119,10 @@ impl VirtualMachine {
         }
     }
 
+    pub fn is_halted(&self) -> bool {
+        return self.pc >= self.program.len()
+    }
+
     pub fn tick(&mut self) -> () {
         if self.pc >= self.program.len() {
             return ();
@@ -201,27 +205,20 @@ impl VirtualMachine {
     }
 
     fn process_call(&mut self, function_name: &str, n_args: i32) -> usize {
-        // log!("calling {} @ {}", function_name, *self.addresses.get(function_name).unwrap_or(&0));
-        // let sp = self.memory[0];
-        // if n_args > 0 {
-        //     log!("arg0: {}", self.memory[(sp - n_args as i16 - 1) as usize]);
-        // }
-        // if n_args > 1 {
-        //     log!("arg1: {}", self.memory[(sp - n_args as i16 - 1 + 1) as usize]);
-        // }
-        // if n_args > 2 {
-        //     log!("arg2: {}", self.memory[(sp - n_args as i16 - 1 + 2) as usize]);
-        // }
-        self.stack_push((self.pc + 1) as i16);
-        self.stack_push(self.memory[LCL]);
-        self.stack_push(self.memory[ARG]);
-        self.stack_push(self.memory[THIS]);
-        self.stack_push(self.memory[THAT]);
-        self.memory[ARG] = self.memory[SP] - (n_args as i16) - 5;
-        self.memory[LCL] = self.memory[SP];
+        if function_name != "Sys.halt" {
+            self.stack_push((self.pc + 1) as i16);
+            self.stack_push(self.memory[LCL]);
+            self.stack_push(self.memory[ARG]);
+            self.stack_push(self.memory[THIS]);
+            self.stack_push(self.memory[THAT]);
+            self.memory[ARG] = self.memory[SP] - (n_args as i16) - 5;
+            self.memory[LCL] = self.memory[SP];
 
-        let new_pc = *self.addresses.get(function_name).unwrap() as usize;
-        new_pc
+            let new_pc = *self.addresses.get(function_name).unwrap() as usize;
+            new_pc
+        } else {
+            self.program.len()
+        }
     }
 
     fn process_function(&mut self, n_locals: i32) -> () {
@@ -866,5 +863,21 @@ mod test {
                 test2
             );
         }
+    }
+
+    #[test]
+    pub fn test_call_halt_halts_vm() {
+        let mut vm = VirtualMachine::new();
+        vm.load(&[
+            Command::Push(Segment::CONSTANT, 89),
+            Command::Call("Sys.halt".to_string(), 0),
+            Command::Push(Segment::CONSTANT, 23),
+            Command::Arithmetic(Operator::LT),
+        ]);
+        vm.tick();
+        assert_eq!(vm.is_halted(), false);
+        vm.tick();
+        assert_eq!(vm.pc, 4);
+        assert_eq!(vm.is_halted(), true);
     }
 }
