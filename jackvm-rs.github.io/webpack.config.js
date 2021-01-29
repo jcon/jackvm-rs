@@ -8,6 +8,9 @@ const baseFilename = isDev ? "index" : "index.[contenthash]";
 
 module.exports = {
   mode: isDev ? "development" : "production",
+  experiments: {
+    asyncWebAssembly: true,
+  },
   entry: [
     path.resolve(__dirname, "src", "js", "index.js"),
     path.resolve(__dirname, "src", "css", "index.css"),
