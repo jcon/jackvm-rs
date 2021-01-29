@@ -1,27 +1,15 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>JackVM Player Demo</title>
-    <link href="css/tailwind.css" rel="stylesheet">
-    <style type="text/css">
-      body {
-        background-color: #efefef;
-      }
-      canvas.screen {
-        image-rendering: optimizeSpeed;
-        image-rendering: -moz-crisp-edges;
-        image-rendering: -webkit-optimize-contrast;
-        image-rendering: optimize-contrast;
-        image-rendering: pixelated;
-        -ms-interpolation-mode: nearest-neighbor;
-      }
-      table#memory {
-        display: inline-block;
-      }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="/assets/index.5f27d378fffc0ef45346.css">
+    <title>JackVM Player</title>
   </head>
-  <body class="bg-white flex flex-col space-x-4 space-y-4 items-center">
+  <body>
+    
+  <div class="bg-white flex flex-col space-x-4 space-y-4 items-center">
     <h1 class="text-6xl text-purple-800 font-semibold font-serif">Jack VM Player</h1>
     <h2 class="text-lg text-purple-600 font-thin">The Nand2Tetris Virtual Machine running on the web</h2>
     <div class="flex flex-col space-y-4">
@@ -30,7 +18,7 @@
         <button id="pause" class="px-4 py-1 text-sm text-purple-600 font-semibold rounded-full border border-purple-200 hover:text-white hover:bg-purple-600 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-20">Stop</button>
       </div>
       <div class="flex flex-row space-x-4">
-        <span id="screen-container" class="bg-gray-100 rounded-xl shadow-md flex items-center space-x-8 space-x-8"></span>
+        <span id="screen-container" class="bg-gray-100 rounded-xl shadow-sm flex items-center space-x-8 space-x-8"></span>
         <textarea class="hidden rounded-xl border-2" style="height: 256px; width: 400px" id="editor">
 // Updates RAM[256] with 8 + 6 = 14.
 push constant 8
@@ -39,7 +27,8 @@ add
         </textarea>
       </div>
     </div>
-    <div style="display: flex; flex-direction: row;">
+    <!-- TODO: enable once these are more useful again. -->
+    <div style="display: none; flex-direction: row;">
       <table id="registers" style="display: inline-block">
         <tbody id="registers-body">
           <tr>
@@ -76,62 +65,7 @@ add
         </tbody>
       </table>
     </div>
-    <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
-    <script>
-      window.JackVmPlayer = window.JackVmPlayer || {};
-      console.log("***** player", window.JackVmPlayer);
-
-      // TODO: Find a more standard way to listen to when JackVmPlayer is loaded.
-      window.addEventListener("JackVmPlayerLoaded", () => {
-          console.log("document.readyState", document.readyState);
-          console.log("***** player was loaded", window.JackVmPlayer);
-
-          const parentEl = document.getElementById('screen-container');
-
-          let player = new JackVmPlayer(parentEl, { debugMemory: true });
-          // TODO: bind these automatically.
-          document.onkeydown = player.handleKeyDown.bind(player);
-          document.onkeyup = player.handleKeyUp.bind(player);
-
-          // Update the VM's program whenever the "editor" changes.
-          const progEl = document.querySelector("#editor");
-          progEl.addEventListener("change", event => {
-              updateProgram();
-          });
-
-          // Start running the VM if it's not already running.
-          let runEl = document.querySelector("#run");
-          runEl.addEventListener("click", event => {
-              updateProgram();
-              player.run();
-          });
-
-          // Pause the VM if it's not already paused.
-          let pauseEl = document.querySelector("#pause");
-          pauseEl.addEventListener("click", event => {
-              player.pause();
-          });
-
-          // example loading vm program concatenated.
-          fetch('vms/pong.vm')
-            .then(res => res.text())
-            .then(program => {
-              progEl.value = program;
-              updateProgram();
-            });
-
-          // Helper to update the current program being run by the VM.
-          function updateProgram() {
-              const program = progEl.value.split('\n').map(s => s.trim()).join("\n");
-              player.loadProgram(program);
-          }
-
-          updateProgram();
-
-      });
-    </script>
-    <script src="js/bootstrap.js"></script>
-    <!-- <script src="http://localhost:5000/index.js">
-    </script> -->
+  </div>
+    <script src="/assets/index.260082d2e9d3a65f4e72.js"></script>
   </body>
 </html>
