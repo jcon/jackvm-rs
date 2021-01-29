@@ -68,7 +68,7 @@ class MemoryDebugger {
 }
 
 class Player {
-    constructor(parentEl, config = { debugMemory: false }) {
+    constructor(parentEl, config = { debugMemory: true }) {
         const canvas = createCanvas(HEIGHT, WIDTH);
         parentEl.appendChild(canvas);
 
@@ -151,7 +151,9 @@ class Player {
         // for (let i = 0; i < TICKS_PER_STEP; i++) {
         //     this.vm.tick();
         // }
-        this.memoryDebugger.update();
+        if (this.memoryDebugger) {
+            this.memoryDebugger.update();
+        }
     }
 
     handleKeyDown(e) {
