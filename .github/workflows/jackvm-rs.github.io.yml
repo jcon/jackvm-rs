@@ -32,9 +32,7 @@ jobs:
 
       - name: Build site 👷
         run: |
-          yarn run build:js
-          yarn run build:css
-          yarn run build:site
+          yarn run build
           touch _site/.nojekyll
         env:
             CI: true
