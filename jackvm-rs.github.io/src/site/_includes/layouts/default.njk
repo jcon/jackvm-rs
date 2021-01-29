@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="{% webpackAsset 'main.css' %}">
+    <title>{{ title }}</title>
+  </head>
+  <body>
+    <div class="container mt-8 mb-8">
+      <h1 class="text-5xl">Elevenpack</h1>
+    </div>
+    {{ content | safe }}
+    <script src="{% webpackAsset 'main.js' %}"></script>
+  </body>
+</html>

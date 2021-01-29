@@ -1,16 +1,8 @@
-  module.exports = {
-
-   purge: [
-
-     './**/*.html',
-
-     './_js/**/*.js',
-
-   ],
-    darkMode: false, // or 'media' or 'class'
-    theme: {
-      extend: {},
-    },
-    variants: {},
-    plugins: [],
-  }
+module.exports = {
+  // Basic PurgeCSS config.  Read more at
+  // https://tailwindcss.com/docs/controlling-file-size/
+  purge: ["./src/site/**/*.njk"],
+  theme: {},
+  variants: {},
+  plugins: [],
+};
