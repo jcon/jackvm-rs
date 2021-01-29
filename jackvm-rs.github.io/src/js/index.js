@@ -3,7 +3,7 @@ import { JackVmPlayer } from './player';
 
 const parentEl = document.getElementById('screen-container');
 
-let player = new JackVmPlayer(parentEl, { debugMemory: true });
+let player = new JackVmPlayer(parentEl, { debugMemory: false });
 // TODO: bind these automatically.
 document.onkeydown = player.handleKeyDown.bind(player);
 document.onkeyup = player.handleKeyUp.bind(player);
