@@ -16,7 +16,7 @@ module.exports = function(eleventyConfig) {
     if (!manifest[name]) {
       throw new Error(`The asset ${name} does not exist in ${manifestPath}`);
     }
-    return manifest[name];
+    return '/jackvm-rs' + manifest[name];
   });
 
   // Copy all images directly to _site.
