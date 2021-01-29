@@ -1,7 +1,7 @@
 const fs = require("fs");
 const path = require("path");
 
-const manifestPath = path.resolve(__dirname, "dist", "assets", "manifest.json");
+const manifestPath = path.resolve(__dirname, "_site", "assets", "manifest.json");
 const manifest = JSON.parse(
   fs.readFileSync(manifestPath, { encoding: "utf8" })
 );
@@ -19,13 +19,13 @@ module.exports = function(eleventyConfig) {
     return manifest[name];
   });
 
-  // Copy all images directly to dist.
+  // Copy all images directly to _site.
   eleventyConfig.addPassthroughCopy({ "src/img": "img" });
 
-  // Copy all vms directly to dist.
+  // Copy all vms directly to _site.
   eleventyConfig.addPassthroughCopy({ "src/vms": "vms" });
 
-  // Copy external dependencies to dist.
+  // Copy external dependencies to _site.
   eleventyConfig.addPassthroughCopy({ "src/vendor": "vendor" });
 
   // Reload the page every time the JS/CSS are changed.
@@ -40,7 +40,7 @@ module.exports = function(eleventyConfig) {
     dir: {
       input: "src/site",
       includes: "_includes", // relative to dir.input
-      output: "dist",
+      output: "_site",
     },
     htmlTemplateEngine: "njk",
     markdownTemplateEngine: "njk",

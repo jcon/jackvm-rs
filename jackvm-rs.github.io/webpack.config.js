@@ -16,7 +16,7 @@ module.exports = {
     path.resolve(__dirname, "src", "css", "index.css"),
   ],
   output: {
-    path: path.resolve(__dirname, "dist", "assets"),
+    path: path.resolve(__dirname, "_site", "assets"),
     filename: `${baseFilename}.js`,
   },
   module: {
