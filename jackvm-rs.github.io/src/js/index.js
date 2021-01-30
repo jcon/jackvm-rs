@@ -15,18 +15,26 @@ progEl.addEventListener("change", event => {
 });
 
 // Start running the VM if it's not already running.
-let runEl = document.querySelector("#run");
+let runEl = document.querySelector("#play-overlay");
 runEl.addEventListener("click", event => {
     if (player.isPaused || player.isHalted()) {
       player.restart();
+      runEl.classList.toggle("hidden");
     }
+    return false;
+});
+
+player.addHaltListener(() => {
+  runEl.classList.toggle("hidden");
 });
 
 // Pause the VM if it's not already paused.
-let pauseEl = document.querySelector("#pause");
-pauseEl.addEventListener("click", event => {
-    player.pause();
-});
+// let pauseEl = document.querySelector("#screen-overlay canvas");
+// pauseEl.addEventListener("click", event => {
+//     if (!player.isPaused && !player.isHalted()) {
+//       player.pause();
+//     }
+// });
 
 // example loading vm program concatenated.
 // fetch('vms/pong.vm')

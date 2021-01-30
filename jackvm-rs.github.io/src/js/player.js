@@ -79,7 +79,8 @@ class Player {
         this.imageData.data.set(this.screenBytes);
         this.isPaused = true;
         this.isLoaded = false;
-        this.mainContext = canvas.getContext('2d')
+        this.mainContext = canvas.getContext('2d');
+        this.haltListeners = [];
         if (config.debugMemory) {
             this.memoryDebugger = new MemoryDebugger(this.vm);
         }
@@ -89,7 +90,7 @@ class Player {
         if (!this.isPaused && !this.vm.isHalted()) {
             requestAnimationFrame(this.drawScreen.bind(this));
         } else {
-            console.log('VM is halted, no more screen refreshes.');
+            // console.log('VM is halted, no more screen refreshes.');
         }
 
         this.vm.render_screen();
@@ -144,7 +145,8 @@ class Player {
         if (!this.isPaused && !this.vm.isHalted()) {
             requestAnimationFrame(this.executeSteps.bind(this));
         } else {
-            console.log('VM is halted, no VM ticks.');
+            this.handleHalt();
+            // console.log('VM is halted, no VM ticks.');
         }
 
         this.vm.tick_times(TICKS_PER_STEP);
@@ -154,6 +156,14 @@ class Player {
         if (this.memoryDebugger) {
             this.memoryDebugger.update();
         }
+    }
+
+    addHaltListener(f) {
+        this.haltListeners.push(f);
+    }
+
+    handleHalt() {
+        this.haltListeners.forEach(f => f());
     }
 
     handleKeyDown(e) {
