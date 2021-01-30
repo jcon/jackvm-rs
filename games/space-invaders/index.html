@@ -73,7 +73,7 @@
       window.addEventListener("JackVmPlayerLoaded", async (event) => {
         console.log("player loaded", event.detail);
         const player = event.detail;
-        fetch('/vms/space-invaders.vm')
+        fetch("/jackvm-rs/vms/space-invaders.vm")
             .then(res => res.text())
             .then(program => {
                 player.loadProgram(program);
