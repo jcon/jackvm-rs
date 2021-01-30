@@ -18,9 +18,7 @@ progEl.addEventListener("change", event => {
 let runEl = document.querySelector("#run");
 runEl.addEventListener("click", event => {
     if (player.isPaused || player.isHalted()) {
-      // updateProgram();
-      player.isPaused = true;
-      player.run();
+      player.restart();
     }
 });
 
