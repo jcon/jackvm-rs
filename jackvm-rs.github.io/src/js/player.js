@@ -4,7 +4,7 @@ import { JackVirtualMachine, greet } from "jackvm-player";
 const HEIGHT = 256;
 const WIDTH = 512;
 
-const TICKS_PER_STEP = 30000;
+const TICKS_PER_STEP = 40000;
 
 // const parentEl = document.getElementById('screen-container');
 // const mainCanvas = createCanvas(HEIGHT, WIDTH);
