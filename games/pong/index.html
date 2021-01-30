@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/img/favicon.ico">
+    <link rel="stylesheet" href="/jackvm-rs/assets/index.6938d1159802afc1a002.css">
+    <title>Pong (single player)</title>
+  </head>
+  <body>
+    <div class="bg-white flex flex-col space-x-4 space-y-8 items-center">
+        <h1 class="text-6xl text-blue-400 font-semibold font-serif"><a href="/jackvm-rs/">JackVM-rs</a></h1>
+
+        <h2 class="text-3xl text-blue-600 font-semibold font-serif">Pong (single player)</h2>
+        <h3 class="text-lg text-blue-700 font-thin">Running on a Nand2Tetris Virtual Machine</h3>
+        <div class="flex flex-col space-y-4">
+        <div class="flex flex-row items-center ">
+            <button id="run" class="px-4 py-1 text-sm text-blue-400 font-semibold rounded-full border border-blue-200 hover:text-white hover:bg-blue-400 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">Restart</button>
+            <button id="pause" class="px-4 py-1 text-sm text-blue-400 font-semibold rounded-full border border-blue-200 hover:text-white hover:bg-blue-400 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-20">Stop</button>
+        </div>
+        <div class="flex flex-row space-x-4">
+            <span id="screen-container" class="bg-gray-100 rounded-xl shadow-sm flex items-center space-x-8 space-x-8"></span>
+            <textarea class="hidden rounded-xl border-2" style="height: 256px; width: 400px" id="editor">
+    // Updates RAM[256] with 8 + 6 = 14.
+    push constant 8
+    push constant 6
+    add
+            </textarea>
+        </div>
+        </div>
+        <!-- TODO: enable once these are more useful again. -->
+        <div style="display: none; flex-direction: row;">
+        <table id="registers" style="display: inline-block">
+            <tbody id="registers-body">
+            <tr>
+                <th colspan="2">REGISTERS</th>
+            </tr>
+            <tr>
+                <th>SP</th>
+                <td id="mem-0">0</td>
+            </tr>
+            <tr>
+                <th>ARG</th>
+                <td id="mem-1">0</td>
+            </tr>
+            <tr>
+                <th>LCL</th>
+                <td id="mem-2">0</td>
+            </tr>
+            <tr>
+                <th>THIS</th>
+                <td id="mem-3">0</td>
+            </tr>
+            <tr>
+                <th>THAT</th>
+                <td id="mem-4">0</td>
+            </tr>
+            </tbody>
+        </table>
+
+        <table id="memory" style="display: inline-block">
+            <tbody id="memory-body">
+            <tr>
+                <th colspan="2">STACK</th>
+            </tr>
+            </tbody>
+        </table>
+        </div>
+    </div>
+    
+    <script src="/jackvm-rs/assets/index.f37cdb8c1bf2b82d3a7f.js"></script>
+    <script>
+      window.addEventListener("JackVmPlayerLoaded", async (event) => {
+        console.log("player loaded", event.detail);
+        const player = event.detail;
+        fetch('/vms/pong.vm')
+            .then(res => res.text())
+            .then(program => {
+                player.loadProgram(program);
+            });
+      });
+    </script>
+  </body>
+</html>
