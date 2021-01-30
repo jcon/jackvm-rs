@@ -9,6 +9,7 @@ const manifest = JSON.parse(
 module.exports = function(eleventyConfig) {
   // Layout aliases make templates more portable.
   eleventyConfig.addLayoutAlias("default", "layouts/default.njk");
+  eleventyConfig.addLayoutAlias("player", "layouts/player.njk");
 
   // Adds a universal shortcode to return the URL to a webpack asset. In Nunjack templates:
   // {% webpackAsset 'main.js' %} or {% webpackAsset 'main.css' %}
@@ -16,7 +17,12 @@ module.exports = function(eleventyConfig) {
     if (!manifest[name]) {
       throw new Error(`The asset ${name} does not exist in ${manifestPath}`);
     }
-    return '/jackvm-rs' + manifest[name];
+    // return '/jackvm-rs' + manifest[name];
+    let prefix = '';
+    if (process.env.NODE_ENV === 'production') {
+      prefix = '/jackvm-rs';
+    }
+    return prefix + manifest[name];
   });
 
   // Copy all images directly to _site.

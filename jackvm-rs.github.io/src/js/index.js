@@ -18,7 +18,7 @@ progEl.addEventListener("change", event => {
 let runEl = document.querySelector("#run");
 runEl.addEventListener("click", event => {
     if (player.isPaused || player.isHalted()) {
-      updateProgram();
+      // updateProgram();
       player.isPaused = true;
       player.run();
     }
@@ -31,17 +31,23 @@ pauseEl.addEventListener("click", event => {
 });
 
 // example loading vm program concatenated.
-fetch('vms/pong.vm')
-  .then(res => res.text())
-  .then(program => {
-    progEl.value = program;
-    updateProgram();
-  });
+// fetch('vms/pong.vm')
+//   .then(res => res.text())
+//   .then(program => {
+//     progEl.value = program;
+//     updateProgram();
+//   });
 
-// Helper to update the current program being run by the VM.
-function updateProgram() {
-    const program = progEl.value.split('\n').map(s => s.trim()).join("\n");
-    player.loadProgram(program);
-}
+// // Helper to update the current program being run by the VM.
+// function updateProgram() {
+//     const program = progEl.value.split('\n').map(s => s.trim()).join("\n");
+//     player.loadProgram(program);
+// }
 
-updateProgram();
+// updateProgram();
+
+// window.vmPlayer = player;
+
+window.dispatchEvent(new CustomEvent('JackVmPlayerLoaded', {
+  detail: player,
+}));
