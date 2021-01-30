@@ -4,29 +4,31 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/img/favicon.ico">
-    <link rel="stylesheet" href="/jackvm-rs/assets/index.6938d1159802afc1a002.css">
+    <link rel="stylesheet" href="/jackvm-rs/assets/index.e4192e036004b5f49872.css">
     <title>Space Invaders (clone)</title>
   </head>
   <body>
     <div class="bg-white flex flex-col space-x-4 space-y-8 items-center">
         <h1 class="text-6xl text-blue-400 font-semibold font-serif"><a href="/jackvm-rs/">JackVM-rs</a></h1>
 
-        <h2 class="text-3xl text-blue-600 font-semibold font-serif">Space Invaders (clone)</h2>
-        <h3 class="text-lg text-blue-700 font-thin">Running on a Nand2Tetris Virtual Machine</h3>
-        <div class="flex flex-col space-y-4">
-        <div class="flex flex-row items-center ">
-            <button id="run" class="px-4 py-1 text-sm text-blue-400 font-semibold rounded-full border border-blue-200 hover:text-white hover:bg-blue-400 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">Restart</button>
-            <button id="pause" class="px-4 py-1 text-sm text-blue-400 font-semibold rounded-full border border-blue-200 hover:text-white hover:bg-blue-400 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-20">Stop</button>
-        </div>
-        <div class="flex flex-row space-x-4">
-            <span id="screen-container" class="bg-gray-100 rounded-xl shadow-sm flex items-center space-x-8 space-x-8"></span>
-            <textarea class="hidden rounded-xl border-2" style="height: 256px; width: 400px" id="editor">
-    // Updates RAM[256] with 8 + 6 = 14.
-    push constant 8
-    push constant 6
-    add
-            </textarea>
-        </div>
+        <div class="flex flex-col space-y-2 items-center">
+            <div class="flex flex-row space-x-4">
+                <span id="screen-container" class="relative bg-gray-100 rounded-xl border-2 border-gray-200 flex items-center">
+                    <div id="play-overlay" class="opacity-50 bg-gray-100 absolute inset-0 flex justify-between items-center">
+                        <img class="h-40 w-40 w-full inset-0" src="/img/play.svg"/>
+                    </div>
+                </span>
+                <textarea class="hidden rounded-xl border-2" style="height: 256px; width: 400px" id="editor">
+        // Updates RAM[256] with 8 + 6 = 14.
+        push constant 8
+        push constant 6
+        add
+                </textarea>
+            </div>
+            <h4 class="text-lg text-blue-600 font-semibold font-serif">
+                Space Invaders (clone)
+                <a class="text-black underline" href="https://github.com/jcon/SpaceInvaders">[ Source ]</a>
+            </h4>
         </div>
         <!-- TODO: enable once these are more useful again. -->
         <div style="display: none; flex-direction: row;">
@@ -68,7 +70,7 @@
         </div>
     </div>
     
-    <script src="/jackvm-rs/assets/index.f37cdb8c1bf2b82d3a7f.js"></script>
+    <script src="/jackvm-rs/assets/index.9476021911bd234eab1a.js"></script>
     <script>
       window.addEventListener("JackVmPlayerLoaded", async (event) => {
         console.log("player loaded", event.detail);
