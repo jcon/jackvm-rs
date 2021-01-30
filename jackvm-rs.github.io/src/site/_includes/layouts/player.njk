@@ -8,13 +8,15 @@
     <title>{{ title }}</title>
   </head>
   <body>
-    <div class="bg-white flex flex-col space-x-4 space-y-4 items-center">
-        <h1 class="text-6xl text-purple-800 font-semibold font-serif">{{ title }}</h1>
-        <h2 class="text-lg text-purple-600 font-thin">Running on a Nand2Tetris Virtual Machine</h2>
+    <div class="bg-white flex flex-col space-x-4 space-y-8 items-center">
+        <h1 class="text-6xl text-blue-400 font-semibold font-serif"><a href="{{ '/' | url }}">JackVM-rs</a></h1>
+
+        <h2 class="text-3xl text-blue-600 font-semibold font-serif">{{ title }}</h2>
+        <h3 class="text-lg text-blue-700 font-thin">Running on a Nand2Tetris Virtual Machine</h3>
         <div class="flex flex-col space-y-4">
         <div class="flex flex-row items-center ">
-            <button id="run" class="px-4 py-1 text-sm text-purple-600 font-semibold rounded-full border border-purple-200 hover:text-white hover:bg-purple-600 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2">Restart</button>
-            <button id="pause" class="px-4 py-1 text-sm text-purple-600 font-semibold rounded-full border border-purple-200 hover:text-white hover:bg-purple-600 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-20">Stop</button>
+            <button id="run" class="px-4 py-1 text-sm text-blue-400 font-semibold rounded-full border border-blue-200 hover:text-white hover:bg-blue-400 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2">Restart</button>
+            <button id="pause" class="px-4 py-1 text-sm text-blue-400 font-semibold rounded-full border border-blue-200 hover:text-white hover:bg-blue-400 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-20">Stop</button>
         </div>
         <div class="flex flex-row space-x-4">
             <span id="screen-container" class="bg-gray-100 rounded-xl shadow-sm flex items-center space-x-8 space-x-8"></span>

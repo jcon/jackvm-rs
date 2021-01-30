@@ -25,6 +25,10 @@ module.exports = function(eleventyConfig) {
     return prefix + manifest[name];
   });
 
+  eleventyConfig.addShortcode("page_link", function() {
+    return 'underline hover:no-underline hover:bg-blue-500 hover:text-white ';
+  });
+
   // Copy all images directly to _site.
   eleventyConfig.addPassthroughCopy({ "src/img": "img" });
 
