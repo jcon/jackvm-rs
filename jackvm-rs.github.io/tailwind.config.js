@@ -1,7 +1,10 @@
 module.exports = {
   // Basic PurgeCSS config.  Read more at
   // https://tailwindcss.com/docs/controlling-file-size/
-  purge: ["./src/site/**/*.njk"],
+  purge: [
+    "./src/site/**/*.njk",
+    "./src/js/**/*.js"
+  ],
   theme: {
     extend: {
       width: {
