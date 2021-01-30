@@ -6,6 +6,6 @@ layout: default
   <h2 class="text-2xl text-blue-400">Demo Jack Programs</h2>
   <ul class="list-disc">
 {% for post in collections.games %}
-    <li><a class="{% page_link %}" href="{{ post.url }}">{{ post.data.title }}</a></li>
+    <li><a class="{% page_link %}" href="{{ post.url | url }}">{{ post.data.title }}</a></li>
 {% endfor %}
   </ul>
