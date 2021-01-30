@@ -73,7 +73,7 @@
       window.addEventListener("JackVmPlayerLoaded", async (event) => {
         console.log("player loaded", event.detail);
         const player = event.detail;
-        fetch('/vms/{{ vm_file }}')
+        fetch("{{ ('/vms/' + vm_file) | url }}")
             .then(res => res.text())
             .then(program => {
                 player.loadProgram(program);
