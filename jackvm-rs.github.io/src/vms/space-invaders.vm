@@ -2036,11 +2036,7 @@ push constant 4
 push constant 10
 call Util.outputMessage 3
 pop temp 0
-push pointer 0
-push local 6
-push local 5
-push local 8
-call Game.gameOverloop 4
+call Sys.halt 0
 pop temp 0
 label IF_FALSE9
 push local 5
