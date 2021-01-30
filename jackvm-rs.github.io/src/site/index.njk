@@ -3,60 +3,9 @@ title: JackVM Player
 layout: default
 ---
 
-  <div class="bg-white flex flex-col space-x-4 space-y-4 items-center">
-    <h1 class="text-6xl text-purple-800 font-semibold font-serif">Jack VM Player</h1>
-    <h2 class="text-lg text-purple-600 font-thin">The Nand2Tetris Virtual Machine running on the web</h2>
-    <div class="flex flex-col space-y-4">
-      <div class="flex flex-row items-center ">
-        <button id="run" class="px-4 py-1 text-sm text-purple-600 font-semibold rounded-full border border-purple-200 hover:text-white hover:bg-purple-600 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2">Restart</button>
-        <button id="pause" class="px-4 py-1 text-sm text-purple-600 font-semibold rounded-full border border-purple-200 hover:text-white hover:bg-purple-600 hover:border-transparent focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-20">Stop</button>
-      </div>
-      <div class="flex flex-row space-x-4">
-        <span id="screen-container" class="bg-gray-100 rounded-xl shadow-sm flex items-center space-x-8 space-x-8"></span>
-        <textarea class="hidden rounded-xl border-2" style="height: 256px; width: 400px" id="editor">
-// Updates RAM[256] with 8 + 6 = 14.
-push constant 8
-push constant 6
-add
-        </textarea>
-      </div>
-    </div>
-    <!-- TODO: enable once these are more useful again. -->
-    <div style="display: none; flex-direction: row;">
-      <table id="registers" style="display: inline-block">
-        <tbody id="registers-body">
-          <tr>
-            <th colspan="2">REGISTERS</th>
-          </tr>
-          <tr>
-            <th>SP</th>
-            <td id="mem-0">0</td>
-          </tr>
-          <tr>
-            <th>ARG</th>
-            <td id="mem-1">0</td>
-          </tr>
-          <tr>
-            <th>LCL</th>
-            <td id="mem-2">0</td>
-          </tr>
-          <tr>
-            <th>THIS</th>
-            <td id="mem-3">0</td>
-          </tr>
-          <tr>
-            <th>THAT</th>
-            <td id="mem-4">0</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <table id="memory" style="display: inline-block">
-        <tbody id="memory-body">
-          <tr>
-            <th colspan="2">STACK</th>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+  <h2 class="text-2xl text-blue-400">Demo Jack Programs</h2>
+  <ul class="list-disc">
+{% for post in collections.games %}
+    <li><a class="{% page_link %}" href="{{ post.url }}">{{ post.data.title }}</a></li>
+{% endfor %}
+  </ul>
