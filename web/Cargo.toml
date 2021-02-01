@@ -1,7 +1,10 @@
 [package]
-name = "web"
-version = "0.1.0"
+name = "jackvm-player"
+version = "0.1.6"
 authors = ["Jim Connell <james.d.connell@gmail.com>"]
+description = "Runs Jack Language VM files on the web"
+repository = "https://github.com/jcon/jackvm-rs"
+license = "MIT"
 edition = "2018"
 
 [lib]
@@ -43,3 +46,9 @@ version = "0.3"
 features = [
   "console",
 ]
+
+[package.metadata.wasm-pack.profile.release]
+# wasm-pack tries to automatically downlaod wasm-opt binaries from binaryen,
+# but there is no package available for M1 macs. This prevents wasm-pack
+# from generating a package.json
+wasm-opt = false
