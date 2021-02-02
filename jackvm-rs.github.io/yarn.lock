@@ -2288,7 +2288,7 @@ isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
 
-jackvm-player@^0.1.8:
+jackvm-player@^0.1.7:
   version "0.1.7"
   resolved "https://registry.yarnpkg.com/jackvm-player/-/jackvm-player-0.1.7.tgz#a2db90ca6b68485299b1a4813d2c9bbe948a103f"
   integrity sha512-ep3raX7pdDmAeLPf+pzJtPMAKtf9ndGTtmjB3MYwK5ZZgjcTcIeqeNI5WTYBbSVs4XTM0zKnlHMYIyeS/qJz9Q==
