@@ -39,17 +39,6 @@ class Player {
         return this.canvas;
     }
 
-    drawScreen() {
-        if (!this.isPaused && !this.vm.isHalted()) {
-            requestAnimationFrame(this.drawScreen.bind(this));
-        } else {
-            // console.log('VM is halted, no more screen refreshes.');
-        }
-
-        this.vm.render_screen();
-        this.imageData.data.set(this.screenBytes);
-        this.mainContext.putImageData(this.imageData, 0, 0);
-    }
 
     loadProgram(prog) {
         let result = this.vm.load(prog);
@@ -73,7 +62,7 @@ class Player {
 
     run() {
         if (!this.isPaused) {
-            return;``
+            return;
         }
 
         this.isPaused = false;
@@ -81,8 +70,7 @@ class Player {
         this.imageData.data.set(this.screenBytes);
         this.mainContext.putImageData(this.imageData, 0, 0);
 
-        this.executeSteps();
-        this.drawScreen();
+        this.nextFrame();
     }
 
     pause() {
@@ -90,14 +78,25 @@ class Player {
     }
 
     executeSteps() {
+        this.vm.tick_times(TICKS_PER_STEP);
+    }
+
+    drawScreen() {
+        this.vm.render_screen();
+        this.imageData.data.set(this.screenBytes);
+        this.mainContext.putImageData(this.imageData, 0, 0);
+    }
+
+    nextFrame() {
         if (!this.isPaused && !this.vm.isHalted()) {
-            requestAnimationFrame(this.executeSteps.bind(this));
+            requestAnimationFrame(this.nextFrame.bind(this));
         } else {
             this.handleHalt();
-            // console.log('VM is halted, no VM ticks.');
         }
 
-        this.vm.tick_times(TICKS_PER_STEP);
+        this.executeSteps();
+        this.drawScreen();
+
         if (this.memoryDebugger) {
             this.memoryDebugger.update();
         }
