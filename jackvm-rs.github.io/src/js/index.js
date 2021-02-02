@@ -15,44 +15,18 @@ progEl.addEventListener("change", event => {
 });
 
 // Start running the VM if it's not already running.
-let runEl = document.querySelector("#play-overlay");
-runEl.addEventListener("click", event => {
+let overlayEl = document.querySelector("#play-overlay");
+overlayEl.addEventListener("click", event => {
     if (player.isPaused || player.isHalted()) {
       player.restart();
-      runEl.classList.toggle("hidden");
+      overlayEl.classList.toggle("hidden");
     }
     return false;
 });
 
 player.addHaltListener(() => {
-  runEl.classList.toggle("hidden");
+  overlayEl.classList.toggle("hidden");
 });
-
-// Pause the VM if it's not already paused.
-// let pauseEl = document.querySelector("#screen-overlay canvas");
-// pauseEl.addEventListener("click", event => {
-//     if (!player.isPaused && !player.isHalted()) {
-//       player.pause();
-//     }
-// });
-
-// example loading vm program concatenated.
-// fetch('vms/pong.vm')
-//   .then(res => res.text())
-//   .then(program => {
-//     progEl.value = program;
-//     updateProgram();
-//   });
-
-// // Helper to update the current program being run by the VM.
-// function updateProgram() {
-//     const program = progEl.value.split('\n').map(s => s.trim()).join("\n");
-//     player.loadProgram(program);
-// }
-
-// updateProgram();
-
-// window.vmPlayer = player;
 
 window.dispatchEvent(new CustomEvent('JackVmPlayerLoaded', {
   detail: player,

@@ -22,7 +22,7 @@ function createCanvas(height, width) {
 
 
 class Player {
-    constructor(parentEl, config = { debugMemory: true }) {
+    constructor(parentEl, config = { debugMemory: false }) {
         const canvas = createCanvas(HEIGHT, WIDTH);
         parentEl.appendChild(canvas);
         // Support two modes depending on the tailwind breakpoint reached:
