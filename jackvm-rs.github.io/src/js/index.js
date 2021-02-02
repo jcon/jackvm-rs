@@ -4,6 +4,12 @@ import { JackVmPlayer } from './player';
 const parentEl = document.getElementById('screen-container');
 
 let player = new JackVmPlayer(parentEl, { debugMemory: false });
+// Support two modes depending on the tailwind breakpoint reached:
+// 1x or 2x
+['sm:w-512px', 'sm:h-256px', 'lg:w-1024px', 'lg:h-512px'].forEach(cls => {
+  player.getCanvas().classList.add(cls);
+});
+
 // TODO: bind these automatically.
 document.onkeydown = player.handleKeyDown.bind(player);
 document.onkeyup = player.handleKeyUp.bind(player);

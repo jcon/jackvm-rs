@@ -25,11 +25,7 @@ class Player {
     constructor(parentEl, config = { debugMemory: false }) {
         const canvas = createCanvas(HEIGHT, WIDTH);
         parentEl.appendChild(canvas);
-        // Support two modes depending on the tailwind breakpoint reached:
-        // 1x or 2x
-        ['sm:w-512px', 'sm:h-256px', 'lg:w-1024px', 'lg:h-512px'].forEach(cls => {
-            canvas.classList.add(cls);
-        });
+        this.canvas = canvas;
 
         const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
         this.screenBytes = new Uint8Array(screenBuffer);
@@ -43,6 +39,10 @@ class Player {
         if (config.debugMemory) {
             this.memoryDebugger = new MemoryDebugger(this.vm);
         }
+    }
+
+    getCanvas() {
+        return this.canvas;
     }
 
     drawScreen() {
