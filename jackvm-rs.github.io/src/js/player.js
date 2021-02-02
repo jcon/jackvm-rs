@@ -23,12 +23,13 @@ class Player {
 
         const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
         this.screenBytes = new Uint8Array(screenBuffer);
-        this.vm = JackVirtualMachine.new(screenBuffer);
         this.imageData = new ImageData(WIDTH, HEIGHT);
         this.imageData.data.set(this.screenBytes);
+        this.mainContext = canvas.getContext('2d');
+
+        this.vm = JackVirtualMachine.new(screenBuffer);
         this.isPaused = true;
         this.isLoaded = false;
-        this.mainContext = canvas.getContext('2d');
         this.haltListeners = [];
         if (config.debugMemory) {
             this.memoryDebugger = new MemoryDebugger(this.vm);
@@ -44,7 +45,7 @@ class Player {
         let result = this.vm.load(prog);
         if (!result.succeeded) {
             const message = `JackVmPlayer could not load program due to the following errors:\n\n${result.get_errors().join("\n")}`;
-            alert(message);
+            window.alert(message);
             return;
         }
         this.isLoaded = true;
@@ -89,7 +90,7 @@ class Player {
 
     nextFrame() {
         if (!this.isPaused && !this.vm.isHalted()) {
-            requestAnimationFrame(this.nextFrame.bind(this));
+            window.requestAnimationFrame(this.nextFrame.bind(this));
         } else {
             this.handleHalt();
         }
