@@ -1,4 +1,3 @@
-// import * as wasm from "jackvm-player";
 import { JackVirtualMachine, greet } from "jackvm-player";
 import { MemoryDebugger } from './memory-debugger';
 
@@ -7,10 +6,6 @@ const WIDTH = 512;
 
 const TICKS_PER_STEP = 40000;
 
-// const parentEl = document.getElementById('screen-container');
-// const mainCanvas = createCanvas(HEIGHT, WIDTH);
-// parentEl.appendChild(mainCanvas);
-// const progEl = document.querySelector("#editor");
 
 function createCanvas(height, width) {
     const mainCanvas = document.createElement('canvas');
@@ -81,13 +76,6 @@ class Player {
         }
 
         this.isPaused = false;
-        // if (this.vm.isHalted()) {
-        //     console.log("VM was halted, restarting");
-        //     this.vm.restart();
-        // }
-        // if (!this.isLoaded) {
-        //     this.loadProgram();
-        // }
 
         this.imageData.data.set(this.screenBytes);
         this.mainContext.putImageData(this.imageData, 0, 0);
@@ -109,9 +97,6 @@ class Player {
         }
 
         this.vm.tick_times(TICKS_PER_STEP);
-        // for (let i = 0; i < TICKS_PER_STEP; i++) {
-        //     this.vm.tick();
-        // }
         if (this.memoryDebugger) {
             this.memoryDebugger.update();
         }
