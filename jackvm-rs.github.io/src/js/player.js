@@ -89,10 +89,10 @@ class Player {
     //     this.vm.tick_times(TICKS_PER_STEP);
     // }
 
-    drawScreen() {
-        this.vm.render_screen();
-        this.copyScreen();
-    }
+    // drawScreen() {
+    //     this.vm.render_screen();
+    //     this.copyScreen();
+    // }
 
     nextFrame() {
         if (!this.isPaused && !this.vm.isHalted()) {
@@ -101,8 +101,9 @@ class Player {
             this.handleHalt();
         }
 
-        this.vm.executeSteps();
-        this.drawScreen();
+        this.vm.nextFrame();
+        // this.vm.executeSteps();
+        // this.drawScreen();
 
         // if (this.memoryDebugger) {
         //     this.memoryDebugger.update();

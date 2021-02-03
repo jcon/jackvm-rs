@@ -60,6 +60,7 @@ pub struct JackVirtualMachine {
     image_data: web_sys::ImageData,
     main_context: CanvasRenderingContext2d,
     screen_pixels: js_sys::Uint32Array,
+    paused: bool,
 }
 
 #[wasm_bindgen]
@@ -100,6 +101,7 @@ impl JackVirtualMachine {
                 0,
                 512 * 256,
             ),
+            paused: false,
         }
     }
 
@@ -270,9 +272,30 @@ impl JackVirtualMachine {
         self.jack_vm.is_halted()
     }
 
+    pub fn pause(&mut self) -> () {
+        self.paused = true;
+    }
+
+    #[wasm_bindgen(js_name = isStopped)]
+    pub fn is_stopped(&self) -> bool {
+        self.paused || self.jack_vm.is_halted()
+    }
+
+    #[wasm_bindgen(js_name = isPaused)]
+    pub fn is_paused(&self) -> bool {
+        self.paused
+    }
+
     #[wasm_bindgen(js_name = executeSteps)]
     pub fn execute_steps(&mut self) -> () {
         self.tick_times(TICKS_PER_STEP)
+    }
+
+    #[wasm_bindgen(js_name = nextFrame)]
+    pub fn next_frame(&mut self) -> () {
+        self.execute_steps();
+        self.render_screen();
+        self.copy_screen();
     }
 
     pub fn tick_times(&mut self, times: u32) -> () {
