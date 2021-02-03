@@ -101,7 +101,7 @@ impl JackVirtualMachine {
                 0,
                 512 * 256,
             ),
-            paused: false,
+            paused: true,
         }
     }
 
@@ -284,6 +284,11 @@ impl JackVirtualMachine {
     #[wasm_bindgen(js_name = isPaused)]
     pub fn is_paused(&self) -> bool {
         self.paused
+    }
+
+    #[wasm_bindgen(js_name = setIsPaused)]
+    pub fn set_is_paused(&mut self, paused: bool) {
+        self.paused = paused;
     }
 
     #[wasm_bindgen(js_name = executeSteps)]

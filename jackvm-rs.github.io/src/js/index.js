@@ -23,7 +23,9 @@ progEl.addEventListener("change", event => {
 // Start running the VM if it's not already running.
 let overlayEl = document.querySelector("#play-overlay");
 overlayEl.addEventListener("click", event => {
-    if (player.isPaused || player.isHalted()) {
+    console.log('player clicked');
+    // if (player.isPaused || player.isHalted()) {
+    if (player.isStopped()) {
       player.restart();
       overlayEl.classList.toggle("hidden");
     }

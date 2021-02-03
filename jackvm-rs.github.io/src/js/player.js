@@ -30,7 +30,8 @@ class Player {
         this.canvas = parentEl.querySelector('canvas');
 
         this.mainContext = this.canvas.getContext('2d');
-        this.isPaused = true;
+        this.vm.setIsPaused(true);
+        // this.isPaused = true;
 //        this.isLoaded = false;
         this.haltListeners = [];
         if (config.debugMemory) {
@@ -58,18 +59,26 @@ class Player {
         return this.vm.isHalted();
     }
 
+    isStopped() {
+        return this.vm.isStopped();
+    }
+
     restart() {
-        this.isPaused = true;
+        // this.isPaused = true;
+        this.vm.setIsPaused(true);
         this.vm.restart();
         this.run();
     }
 
     run() {
-        if (!this.isPaused) {
+        console.log('running');
+        //if (!this.isPaused) {
+        if (!this.vm.isPaused()) {
             return;
         }
 
-        this.isPaused = false;
+        // this.isPaused = false;
+        this.vm.setIsPaused(false);
 
         this.copyScreen();
         this.nextFrame();
@@ -82,7 +91,8 @@ class Player {
     }
 
     pause() {
-        this.isPaused = true;
+        // this.isPaused = true;
+        this.vm.setIsPaused(true);
     }
 
     // executeSteps() {
@@ -95,7 +105,8 @@ class Player {
     // }
 
     nextFrame() {
-        if (!this.isPaused && !this.vm.isHalted()) {
+        // if (!this.isPaused && !this.vm.isHalted()) {
+        if (!this.vm.isStopped()) {
             window.requestAnimationFrame(this.nextFrame.bind(this));
         } else {
             this.handleHalt();
