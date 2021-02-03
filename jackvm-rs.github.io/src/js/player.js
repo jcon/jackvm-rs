@@ -107,19 +107,21 @@ class Player {
     handleKeyDown(e) {
         e = e || window.event;
 
-        let keyCode = e.keyCode;
-        if (keyCode == 37) {
-            keyCode = 130;
-        }
-        if (keyCode == 39) {
-            keyCode = 132;
-        }
-        // console.log(`key pressed: ${e.keyCode} => ${keyCode}`);
-        this.vm.set_key(keyCode);
+        this.vm.handleKeyDown(e);
+        // let keyCode = e.keyCode;
+        // if (keyCode == 37) {
+        //     keyCode = 130;
+        // }
+        // if (keyCode == 39) {
+        //     keyCode = 132;
+        // }
+        // // console.log(`key pressed: ${e.keyCode} => ${keyCode}`);
+        // this.vm.set_key(keyCode);
     }
 
     handleKeyUp(e) {
-        this.vm.set_key(0);
+        // this.vm.set_key(0);
+        this.vm.handleKeyUp();
     }
 }
 

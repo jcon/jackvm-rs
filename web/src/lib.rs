@@ -324,6 +324,23 @@ impl JackVirtualMachine {
         }
     }
 
+    #[wasm_bindgen(js_name = handleKeyDown)]
+    pub fn handle_key_down(&mut self, e: JsValue) {
+        let mut key_code = js_sys::Reflect::get(&e, &JsValue::from_str("keyCode")).unwrap().as_f64().expect("Expected keyCode present on event") as i16;
+        if key_code == 37 {
+            key_code = 130;
+        }
+        if key_code == 39 {
+            key_code = 132;
+        }
+        self.set_key(key_code);
+    }
+
+    #[wasm_bindgen(js_name = handleKeyUp)]
+    pub fn handle_key_up(&mut self) {
+        self.set_key(0);
+    }
+
     pub fn set_key(&mut self, key: i16) {
         self.jack_vm.poke(vm::KEYBOARD_START, key);
     }
