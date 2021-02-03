@@ -28,23 +28,17 @@ class Player {
         // this.imageData.data.set(this.screenBytes);
 
         this.vm = JackVirtualMachine.new(screenBuffer, parentEl);
-        this.canvas = parentEl.querySelector('canvas');
 
         // SAVE FOR SCREEN TESTS.
         // this.mainContext = this.canvas.getContext('2d');
         this.vm.setIsPaused(true);
         // this.isPaused = true;
 //        this.isLoaded = false;
-        this.haltListeners = [];
+        // this.haltListeners = [];
         if (config.debugMemory) {
             this.memoryDebugger = new MemoryDebugger(this.vm);
         }
     }
-
-    getCanvas() {
-        return this.canvas;
-    }
-
 
     loadProgram(prog) {
         this.vm.load(prog);
