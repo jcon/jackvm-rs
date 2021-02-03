@@ -61,6 +61,7 @@ pub struct JackVirtualMachine {
     main_context: CanvasRenderingContext2d,
     screen_pixels: js_sys::Uint32Array,
     paused: bool,
+    halt_listeners: Vec<js_sys::Function>,
 }
 
 #[wasm_bindgen]
@@ -102,6 +103,7 @@ impl JackVirtualMachine {
                 512 * 256,
             ),
             paused: true,
+            halt_listeners: vec!(),
         }
     }
 
@@ -265,6 +267,19 @@ impl JackVirtualMachine {
 
     pub fn tick(&mut self) -> () {
         self.jack_vm.tick();
+    }
+
+    #[wasm_bindgen(js_name = addHaltListener)]
+    pub fn add_halt_listener(&mut self, f: js_sys::Function) {
+        self.halt_listeners.push(f);
+    }
+
+    #[wasm_bindgen(js_name = handleHalt)]
+    pub fn handle_halt(&mut self) {
+        let this = JsValue::null();
+        for f in &self.halt_listeners {
+            f.call0(&this).expect("Can't call handler");
+        }
     }
 
     #[wasm_bindgen(js_name = isHalted)]

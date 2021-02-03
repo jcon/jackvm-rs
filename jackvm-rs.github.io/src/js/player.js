@@ -21,15 +21,17 @@ class Player {
         // parentEl.appendChild(canvas);
         // this.canvas = canvas;
 
+        // SAVE FOR SCREEN TESTS.
         const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
-        this.screenBytes = new Uint8Array(screenBuffer);
-        this.imageData = new ImageData(WIDTH, HEIGHT);
+        // this.screenBytes = new Uint8Array(screenBuffer);
+        // this.imageData = new ImageData(WIDTH, HEIGHT);
         // this.imageData.data.set(this.screenBytes);
 
         this.vm = JackVirtualMachine.new(screenBuffer, parentEl);
         this.canvas = parentEl.querySelector('canvas');
 
-        this.mainContext = this.canvas.getContext('2d');
+        // SAVE FOR SCREEN TESTS.
+        // this.mainContext = this.canvas.getContext('2d');
         this.vm.setIsPaused(true);
         // this.isPaused = true;
 //        this.isLoaded = false;
@@ -84,6 +86,7 @@ class Player {
         this.nextFrame();
     }
 
+    // SAVE FOR SCREEN TESTS
     copyScreen() {
         // this.imageData.data.set(this.screenBytes);
         // this.mainContext.putImageData(this.imageData, 0, 0);
@@ -109,7 +112,7 @@ class Player {
         if (!this.vm.isStopped()) {
             window.requestAnimationFrame(this.nextFrame.bind(this));
         } else {
-            this.handleHalt();
+            this.vm.handleHalt();
         }
 
         this.vm.nextFrame();
@@ -122,12 +125,14 @@ class Player {
     }
 
     addHaltListener(f) {
-        this.haltListeners.push(f);
+        // this.haltListeners.push(f);
+        this.vm.addHaltListener(f);
     }
 
-    handleHalt() {
-        this.haltListeners.forEach(f => f());
-    }
+    // handleHalt() {
+    //     // this.haltListeners.forEach(f => f());
+    //     this.vm.handleHalt();
+    // }
 
     handleKeyDown(e) {
         e = e || window.event;
