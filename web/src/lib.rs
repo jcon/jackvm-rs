@@ -103,7 +103,8 @@ impl JackVirtualMachine {
         }
     }
 
-    pub fn load(&mut self, program: &str) -> CompilationResult {
+    #[wasm_bindgen(js_name = loadRaw)]
+    pub fn load_raw(&mut self, program: &str) -> CompilationResult {
         self.render_screen();
         match self.jack_vm.compile_and_load(program) {
             Err(errors) => {
@@ -120,6 +121,18 @@ impl JackVirtualMachine {
                 succeeded: true,
                 errors: vec![],
             },
+        }
+    }
+
+    pub fn load(&mut self, program: &str) -> () {
+        let result = self.load_raw(program);
+        if !result.succeeded {
+            let mut message = String::from("JackVmPlayer could not load program due to the following errors:\n\n");
+            for e in result.errors {
+                message.push_str(&e);
+                message.push_str("\n");
+            }
+            alert(&message);
         }
     }
 

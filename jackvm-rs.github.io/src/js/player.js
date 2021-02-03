@@ -44,12 +44,13 @@ class Player {
 
 
     loadProgram(prog) {
-        let result = this.vm.load(prog);
-        if (!result.succeeded) {
-            const message = `JackVmPlayer could not load program due to the following errors:\n\n${result.get_errors().join("\n")}`;
-            window.alert(message);
-            return;
-        }
+        this.vm.load(prog);
+        // let result = this.vm.load(prog);
+        // if (!result.succeeded) {
+        //     const message = `JackVmPlayer could not load program due to the following errors:\n\n${result.get_errors().join("\n")}`;
+        //     window.alert(message);
+        //     return;
+        // }
 //        this.isLoaded = true;
     }
 
