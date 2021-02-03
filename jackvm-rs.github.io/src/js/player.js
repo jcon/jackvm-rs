@@ -24,7 +24,7 @@ class Player {
         const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
         this.screenBytes = new Uint8Array(screenBuffer);
         this.imageData = new ImageData(WIDTH, HEIGHT);
-        this.imageData.data.set(this.screenBytes);
+        // this.imageData.data.set(this.screenBytes);
 
         this.vm = JackVirtualMachine.new(screenBuffer, parentEl);
         this.canvas = parentEl.querySelector('canvas');
@@ -71,15 +71,13 @@ class Player {
         this.isPaused = false;
 
         this.copyScreen();
-        // this.imageData.data.set(this.screenBytes);
-        // this.mainContext.putImageData(this.imageData, 0, 0);
-
         this.nextFrame();
     }
 
     copyScreen() {
-        this.imageData.data.set(this.screenBytes);
-        this.mainContext.putImageData(this.imageData, 0, 0);
+        // this.imageData.data.set(this.screenBytes);
+        // this.mainContext.putImageData(this.imageData, 0, 0);
+        this.vm.copyScreen();
     }
 
     pause() {
@@ -92,8 +90,6 @@ class Player {
 
     drawScreen() {
         this.vm.render_screen();
-        // this.imageData.data.set(this.screenBytes);
-        // this.mainContext.putImageData(this.imageData, 0, 0);
         this.copyScreen();
     }
 

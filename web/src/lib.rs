@@ -8,8 +8,8 @@ mod web;
 use js_sys;
 extern crate web_sys;
 
-use web_sys::{ Window, Document, HtmlElement, HtmlCanvasElement };
-use wasm_bindgen::JsCast;
+use web_sys::{ Window, Document, HtmlElement, HtmlCanvasElement, CanvasRenderingContext2d };
+use wasm_bindgen::{Clamped, JsCast};
 
 use wasm_bindgen::prelude::*;
 
@@ -55,6 +55,10 @@ impl CompilationResult {
 pub struct JackVirtualMachine {
     jack_vm: vm::VirtualMachine,
     canvas: HtmlCanvasElement,
+    // screen_buffer: js_sys::ArrayBuffer,
+    screen_bytes: Box<[u8; 512 * 256 * 4]>,
+    image_data: web_sys::ImageData,
+    main_context: CanvasRenderingContext2d,
     screen_pixels: js_sys::Uint32Array,
 }
 
@@ -72,9 +76,25 @@ impl JackVirtualMachine {
         let canvas = web::create_canvas(&js_global.document, 256, 512).expect("can't create canvas");
         container.append_child(&canvas).expect("Can't append canvas to parent");
 
+        // let screen_buffer = js_sys::ArrayBuffer::new(256 * 512 * 4);
+        // let screen_bytes = js_sys::Uint8Array::new_with_byte_offset_and_length(&screen_buffer, 0, 256 * 512 * 4);
+        let mut screen_bytes = Box::new([0; 256*512*4]);
+        let image_data = web_sys::ImageData::new_with_u8_clamped_array(Clamped(screen_bytes.as_mut()), 512).expect("Can't create image data");
+
+        let main_context = canvas
+            .get_context("2d")
+            .unwrap()
+            .unwrap()
+            .dyn_into::<web_sys::CanvasRenderingContext2d>()
+            .unwrap();
+
         JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
             canvas,
+            // screen_buffer,
+            screen_bytes,
+            image_data,
+            main_context,
             screen_pixels: js_sys::Uint32Array::new_with_byte_offset_and_length(
                 &screen,
                 0,
@@ -109,6 +129,13 @@ impl JackVirtualMachine {
 
     pub fn get_instruction(&self) -> String {
         self.jack_vm.get_instruction()
+    }
+
+    #[wasm_bindgen(js_name = copyScreen)]
+    pub fn copy_screen(&mut self) {
+        // this.imageData.data.set(this.screenBytes);
+        self.image_data = web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), 512).expect("Can't create image data");
+        self.main_context.put_image_data(&self.image_data, 0.0, 0.0).expect("Can't put image data");
     }
 
     pub fn render_screen(&mut self) {
@@ -186,6 +213,7 @@ impl JackVirtualMachine {
         //     screen[i] = 0;
         // }
 
+        let screen_bytes = self.screen_bytes.as_mut();
         for y in 0..256 {
             for x in 0..32 {
                 let i = 32 * y + x;
@@ -195,11 +223,19 @@ impl JackVirtualMachine {
                 for j in 0..16 {
                     let loc = ((512 * y) + (16 * x) + j) as u32;
                     if (value & 0x1) == 1 {
-                        //    log!("writing x = {}, y = {} at loc = {}", (16 * x) + j, y, loc);
-                        self.screen_pixels.set_index(loc, 0xFF000000);
+                        // log!("writing x = {}, y = {} at loc = {}", (16 * x) + j, y, loc);
+                        // self.screen_pixels.set_index(loc, 0xFF000000);
+                        screen_bytes[loc as usize * 4] = 0x00;
+                        screen_bytes[loc as usize * 4 + 1] = 0x00;
+                        screen_bytes[loc as usize * 4 + 2] = 0x00;
+                        screen_bytes[loc as usize * 4 + 3] = 0xFF;
                     } else {
                         // TODO: consider drawing white pixels
-                        self.screen_pixels.set_index(loc, 0xFFFFFFFF);
+                        // self.screen_pixels.set_index(loc, 0xFFFFFFFF);
+                        screen_bytes[loc as usize * 4] = 0xFF;
+                        screen_bytes[loc as usize * 4 + 1] = 0xFF;
+                        screen_bytes[loc as usize * 4 + 2] = 0xFF;
+                        screen_bytes[loc as usize * 4 + 3] = 0xFF;
                     }
 
                     value = value >> 1;
