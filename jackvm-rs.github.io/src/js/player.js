@@ -48,13 +48,6 @@ class Player {
 
     loadProgram(prog) {
         this.vm.load(prog);
-        // let result = this.vm.load(prog);
-        // if (!result.succeeded) {
-        //     const message = `JackVmPlayer could not load program due to the following errors:\n\n${result.get_errors().join("\n")}`;
-        //     window.alert(message);
-        //     return;
-        // }
-//        this.isLoaded = true;
     }
 
     isHalted() {
@@ -66,7 +59,6 @@ class Player {
     }
 
     restart() {
-        // this.isPaused = true;
         this.vm.setIsPaused(true);
         this.vm.restart();
         this.run();
@@ -74,12 +66,10 @@ class Player {
 
     run() {
         console.log('running');
-        //if (!this.isPaused) {
         if (!this.vm.isPaused()) {
             return;
         }
 
-        // this.isPaused = false;
         this.vm.setIsPaused(false);
 
         this.copyScreen();
@@ -94,7 +84,6 @@ class Player {
     }
 
     pause() {
-        // this.isPaused = true;
         this.vm.setIsPaused(true);
     }
 
@@ -108,7 +97,6 @@ class Player {
     // }
 
     nextFrame() {
-        // if (!this.isPaused && !this.vm.isHalted()) {
         if (!this.vm.isStopped()) {
             window.requestAnimationFrame(this.nextFrame.bind(this));
         } else {
@@ -116,23 +104,11 @@ class Player {
         }
 
         this.vm.nextFrame();
-        // this.vm.executeSteps();
-        // this.drawScreen();
-
-        // if (this.memoryDebugger) {
-        //     this.memoryDebugger.update();
-        // }
     }
 
     addHaltListener(f) {
-        // this.haltListeners.push(f);
         this.vm.addHaltListener(f);
     }
-
-    // handleHalt() {
-    //     // this.haltListeners.forEach(f => f());
-    //     this.vm.handleHalt();
-    // }
 
     handleKeyDown(e) {
         e = e || window.event;
