@@ -12,8 +12,8 @@ let canvas = parentEl.querySelector('canvas');
 });
 
 // TODO: bind these automatically.
-document.onkeydown = player.handleKeyDown.bind(player);
-document.onkeyup = player.handleKeyUp.bind(player);
+document.addEventListener("keydown", player.handleKeyDown.bind(player));
+document.addEventListener("keyup", player.handleKeyUp.bind(player));
 
 // Update the VM's program whenever the "editor" changes.
 const progEl = document.querySelector("#editor");
