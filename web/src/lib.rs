@@ -48,7 +48,7 @@ impl CompilationResult {
 #[wasm_bindgen]
 pub struct JackVirtualMachine {
     jack_vm: vm::VirtualMachine,
-    screen_canvas: js_sys::Uint32Array,
+    screen_pixels: js_sys::Uint32Array,
 }
 
 #[wasm_bindgen]
@@ -58,7 +58,7 @@ impl JackVirtualMachine {
 
         JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
-            screen_canvas: js_sys::Uint32Array::new_with_byte_offset_and_length(
+            screen_pixels: js_sys::Uint32Array::new_with_byte_offset_and_length(
                 &screen,
                 0,
                 512 * 256,
@@ -100,13 +100,13 @@ impl JackVirtualMachine {
         //         let loc = 512 * y + x;
         //         match (x, y) {
         //             (x, y) if x % 2 == 0 && y % 2 == 0 =>
-        //                 self.screen_canvas.set_index(loc , 0xFF000000),
+        //                 self.screen_pixels.set_index(loc , 0xFF000000),
         //             (x, y) if x % 2 == 1 && y % 2 == 0 =>
-        //                 self.screen_canvas.set_index(loc , 0xFFFFFFFF),
+        //                 self.screen_pixels.set_index(loc , 0xFFFFFFFF),
         //             (x, y) if x % 2 == 1 && y % 2 == 0 =>
-        //                 self.screen_canvas.set_index(loc , 0xFFFFFFFF),
+        //                 self.screen_pixels.set_index(loc , 0xFFFFFFFF),
         //             (x, y) if x % 2 == 1 && y % 2 == 1 =>
-        //                 self.screen_canvas.set_index(loc , 0xFF000000),
+        //                 self.screen_pixels.set_index(loc , 0xFF000000),
         //             _ => (),
         //         }
         //     }
@@ -179,10 +179,10 @@ impl JackVirtualMachine {
                     let loc = ((512 * y) + (16 * x) + j) as u32;
                     if (value & 0x1) == 1 {
                         //    log!("writing x = {}, y = {} at loc = {}", (16 * x) + j, y, loc);
-                        self.screen_canvas.set_index(loc, 0xFF000000);
+                        self.screen_pixels.set_index(loc, 0xFF000000);
                     } else {
                         // TODO: consider drawing white pixels
-                        self.screen_canvas.set_index(loc, 0xFFFFFFFF);
+                        self.screen_pixels.set_index(loc, 0xFFFFFFFF);
                     }
 
                     value = value >> 1;
