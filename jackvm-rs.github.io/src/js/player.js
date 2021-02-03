@@ -70,24 +70,31 @@ class Player {
 
         this.isPaused = false;
 
-        this.imageData.data.set(this.screenBytes);
-        this.mainContext.putImageData(this.imageData, 0, 0);
+        this.copyScreen();
+        // this.imageData.data.set(this.screenBytes);
+        // this.mainContext.putImageData(this.imageData, 0, 0);
 
         this.nextFrame();
+    }
+
+    copyScreen() {
+        this.imageData.data.set(this.screenBytes);
+        this.mainContext.putImageData(this.imageData, 0, 0);
     }
 
     pause() {
         this.isPaused = true;
     }
 
-    executeSteps() {
-        this.vm.tick_times(TICKS_PER_STEP);
-    }
+    // executeSteps() {
+    //     this.vm.tick_times(TICKS_PER_STEP);
+    // }
 
     drawScreen() {
         this.vm.render_screen();
-        this.imageData.data.set(this.screenBytes);
-        this.mainContext.putImageData(this.imageData, 0, 0);
+        // this.imageData.data.set(this.screenBytes);
+        // this.mainContext.putImageData(this.imageData, 0, 0);
+        this.copyScreen();
     }
 
     nextFrame() {
@@ -97,12 +104,12 @@ class Player {
             this.handleHalt();
         }
 
-        this.executeSteps();
+        this.vm.executeSteps();
         this.drawScreen();
 
-        if (this.memoryDebugger) {
-            this.memoryDebugger.update();
-        }
+        // if (this.memoryDebugger) {
+        //     this.memoryDebugger.update();
+        // }
     }
 
     addHaltListener(f) {

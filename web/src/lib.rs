@@ -13,6 +13,8 @@ use wasm_bindgen::JsCast;
 
 use wasm_bindgen::prelude::*;
 
+const TICKS_PER_STEP: u32 = 40000;
+
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
 #[cfg(feature = "wee_alloc")]
@@ -217,6 +219,11 @@ impl JackVirtualMachine {
     #[wasm_bindgen(js_name = isHalted)]
     pub fn is_halted(&self) -> bool {
         self.jack_vm.is_halted()
+    }
+
+    #[wasm_bindgen(js_name = executeSteps)]
+    pub fn execute_steps(&mut self) -> () {
+        self.tick_times(TICKS_PER_STEP)
     }
 
     pub fn tick_times(&mut self, times: u32) -> () {
