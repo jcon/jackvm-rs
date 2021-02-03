@@ -7,29 +7,31 @@ const WIDTH = 512;
 const TICKS_PER_STEP = 40000;
 
 
-function createCanvas(height, width) {
-    const mainCanvas = document.createElement('canvas');
-    mainCanvas.className = "screen";
-    mainCanvas.height = height;
-    mainCanvas.width = width;
-    return mainCanvas;
-}
+// function createCanvas(height, width) {
+//     const mainCanvas = document.createElement('canvas');
+//     mainCanvas.className = "screen";
+//     mainCanvas.height = height;
+//     mainCanvas.width = width;
+//     return mainCanvas;
+// }
 
 class Player {
     constructor(parentEl, config = { debugMemory: false }) {
-        const canvas = createCanvas(HEIGHT, WIDTH);
-        parentEl.appendChild(canvas);
-        this.canvas = canvas;
+        // const canvas = createCanvas(HEIGHT, WIDTH);
+        // parentEl.appendChild(canvas);
+        // this.canvas = canvas;
 
         const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
         this.screenBytes = new Uint8Array(screenBuffer);
         this.imageData = new ImageData(WIDTH, HEIGHT);
         this.imageData.data.set(this.screenBytes);
-        this.mainContext = canvas.getContext('2d');
 
-        this.vm = JackVirtualMachine.new(screenBuffer);
+        this.vm = JackVirtualMachine.new(screenBuffer, parentEl);
+        this.canvas = parentEl.querySelector('canvas');
+
+        this.mainContext = this.canvas.getContext('2d');
         this.isPaused = true;
-        this.isLoaded = false;
+//        this.isLoaded = false;
         this.haltListeners = [];
         if (config.debugMemory) {
             this.memoryDebugger = new MemoryDebugger(this.vm);
@@ -48,7 +50,7 @@ class Player {
             window.alert(message);
             return;
         }
-        this.isLoaded = true;
+//        this.isLoaded = true;
     }
 
     isHalted() {

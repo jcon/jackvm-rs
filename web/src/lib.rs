@@ -1,11 +1,15 @@
 use vm::vm;
 // pub mod compiler;
 mod utils;
+mod web;
 // mod jack_os;
 // pub mod vm;
 
 use js_sys;
 extern crate web_sys;
+
+use web_sys::{ Window, Document, HtmlElement, HtmlCanvasElement };
+use wasm_bindgen::JsCast;
 
 use wasm_bindgen::prelude::*;
 
@@ -48,16 +52,27 @@ impl CompilationResult {
 #[wasm_bindgen]
 pub struct JackVirtualMachine {
     jack_vm: vm::VirtualMachine,
+    canvas: HtmlCanvasElement,
     screen_pixels: js_sys::Uint32Array,
 }
 
 #[wasm_bindgen]
 impl JackVirtualMachine {
-    pub fn new(screen: JsValue) -> JackVirtualMachine {
+    pub fn new(screen: JsValue, container: JsValue) -> JackVirtualMachine {
         utils::set_panic_hook();
+
+        let container: HtmlElement = container
+            .dyn_into::<HtmlElement>()
+            .expect("Can't create container");
+
+        let js_global = web::JsGlobal::create().expect("Can't create JS global environment");
+
+        let canvas = web::create_canvas(&js_global.document, 256, 512).expect("can't create canvas");
+        container.append_child(&canvas).expect("Can't append canvas to parent");
 
         JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
+            canvas,
             screen_pixels: js_sys::Uint32Array::new_with_byte_offset_and_length(
                 &screen,
                 0,

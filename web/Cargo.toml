@@ -44,7 +44,13 @@ debug = true
 [dependencies.web-sys]
 version = "0.3"
 features = [
-  "console",
+  'console',
+  'Document',
+  'Element',
+  'HtmlElement',
+  'HtmlCanvasElement',
+  'Node',
+  'Window',
 ]
 
 [package.metadata.wasm-pack.profile.release]
