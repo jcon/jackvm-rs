@@ -1,4 +1,4 @@
-import { JackVirtualMachine, greet } from "jackvm-player";
+import { JackVmPlayer, greet } from "jackvm-player";
 import { MemoryDebugger } from './memory-debugger';
 
 const HEIGHT = 256;
@@ -27,7 +27,7 @@ class Player {
         // this.imageData = new ImageData(WIDTH, HEIGHT);
         // this.imageData.data.set(this.screenBytes);
 
-        this.vm = JackVirtualMachine.new(screenBuffer, parentEl);
+        this.vm = JackVmPlayer.new(screenBuffer, parentEl);
 
         // SAVE FOR SCREEN TESTS.
         // this.mainContext = this.canvas.getContext('2d');
@@ -40,12 +40,9 @@ class Player {
         }
     }
 
+    // ----- public methods -----
     loadProgram(prog) {
         this.vm.load(prog);
-    }
-
-    isHalted() {
-        return this.vm.isHalted();
     }
 
     isStopped() {
@@ -58,6 +55,18 @@ class Player {
         this.run();
     }
 
+    addHaltListener(f) {
+        this.vm.addHaltListener(f);
+    }
+
+
+    // isHalted() {
+    //     return this.vm.isHalted();
+    // }
+
+
+
+    // ----- private methods -----
     run() {
         console.log('running');
         if (!this.vm.isPaused()) {
@@ -100,10 +109,8 @@ class Player {
         this.vm.nextFrame();
     }
 
-    addHaltListener(f) {
-        this.vm.addHaltListener(f);
-    }
 
+    // ----- event listeners -----
     handleKeyDown(e) {
         e = e || window.event;
 
