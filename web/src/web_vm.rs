@@ -110,22 +110,22 @@ impl JackVirtualMachine {
 
         // *callback_machine.borrow_mut() = Some(player);
 
-        {
-            // let context = context.clone();
-            // let pressed = pressed.clone();
-            // let my_callback_machine = callback_machine.clone();
-            let closure = Closure::wrap(Box::new(move |event: JsValue| {
-                // my_callback_machine.borrow_mut().unwrap().handle_key_down(event);
+        // {
+        //     // let context = context.clone();
+        //     // let pressed = pressed.clone();
+        //     // let my_callback_machine = callback_machine.clone();
+        //     let closure = Closure::wrap(Box::new(move |event: JsValue| {
+        //         // my_callback_machine.borrow_mut().unwrap().handle_key_down(event);
 
-                log!("clicked! ");
-                // context.begin_path();
-                // context.move_to(event.offset_x() as f64, event.offset_y() as f64);
-                // pressed.set(true);
-            }) as Box<dyn FnMut(_)>);
+        //         log!("clicked! ");
+        //         // context.begin_path();
+        //         // context.move_to(event.offset_x() as f64, event.offset_y() as f64);
+        //         // pressed.set(true);
+        //     }) as Box<dyn FnMut(_)>);
 
-            js_global.document.add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).expect("add event listener");
-            closure.forget();
-        }
+        //     js_global.document.add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).expect("add event listener");
+        //     closure.forget();
+        // }
 
         // let a = Closure::wrap(Box::new(move |e: &JsValue| {
         //     log!("clicked!");

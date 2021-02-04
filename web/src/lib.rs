@@ -46,8 +46,31 @@ pub struct JackVmPlayer {
 #[wasm_bindgen]
 impl JackVmPlayer {
     pub fn new(screen: JsValue, container: JsValue) -> JackVmPlayer {
+        let js_global = web::JsGlobal::create().expect("Can't initialize JS global environment.");
+        let vm = Rc::new(RefCell::new(web_vm::JackVirtualMachine::new(screen, container)));
+
+        {
+            let vm = Rc::clone(&vm);
+            let closure = Closure::wrap(Box::new(move |event: JsValue| {
+                vm.borrow_mut().handle_key_down(event);
+            }) as Box<dyn FnMut(_)>);
+
+            js_global.document.add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).expect("add event listener");
+            closure.forget();
+        }
+
+        {
+            let vm = Rc::clone(&vm);
+            let closure = Closure::wrap(Box::new(move |_: JsValue| {
+                vm.borrow_mut().handle_key_up();
+            }) as Box<dyn FnMut(_)>);
+
+            js_global.document.add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref()).expect("add event listener");
+            closure.forget();
+        }
+
         JackVmPlayer {
-            vm: Rc::new(RefCell::new(web_vm::JackVirtualMachine::new(screen, container)))
+            vm: Rc::clone(&vm),
         }
     }
 
