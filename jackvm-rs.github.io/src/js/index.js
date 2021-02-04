@@ -1,9 +1,9 @@
 // console.log("Elevenpack javascript is loaded");
-import { JackVmPlayer } from './player';
-
+// import { JackVmPlayer } from './player';
+import { JackVmPlayer } from "jackvm-player";
 const parentEl = document.getElementById('screen-container');
 
-let player = new JackVmPlayer(parentEl, { debugMemory: false });
+let player = new JackVmPlayer(parentEl); // , { debugMemory: false });
 let canvas = parentEl.querySelector('canvas');
 // Support two modes depending on the tailwind breakpoint reached:
 // 1x or 2x

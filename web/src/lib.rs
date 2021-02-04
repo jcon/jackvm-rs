@@ -56,6 +56,7 @@ fn request_animation_frame(f: &Closure<dyn FnMut()>) {
 
 #[wasm_bindgen]
 impl JackVmPlayer {
+    #[wasm_bindgen(constructor)]
     pub fn new(container: JsValue) -> JackVmPlayer {
         let js_global = web::JsGlobal::create().expect("Can't initialize JS global environment.");
         let vm = Rc::new(RefCell::new(web_vm::JackVirtualMachine::new(container)));

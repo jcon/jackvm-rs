@@ -27,7 +27,7 @@ class Player {
         // this.imageData = new ImageData(WIDTH, HEIGHT);
         // this.imageData.data.set(this.screenBytes);
 
-        this.vm = JackVmPlayer.new(parentEl);
+        this.vm = new JackVmPlayer(parentEl);
 
         // SAVE FOR SCREEN TESTS.
         // this.mainContext = this.canvas.getContext('2d');
