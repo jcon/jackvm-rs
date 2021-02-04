@@ -127,7 +127,14 @@ impl JackVmPlayer {
     }
 
     pub fn restart(&mut self) {
-        self.vm.borrow_mut().restart()
+        {
+            let mut vm = self.vm.borrow_mut();
+            // needed by vm restart logic.
+            vm.set_is_paused(true);
+            vm.restart();
+        }
+
+        self.run();
     }
 
     #[wasm_bindgen(js_name = copyScreen)]

@@ -50,9 +50,10 @@ class Player {
     }
 
     restart() {
-        this.vm.setIsPaused(true);
         this.vm.restart();
-        this.run();
+        // this.vm.setIsPaused(true);
+        // this.vm.restart();
+        // this.run();
     }
 
     addHaltListener(f) {
