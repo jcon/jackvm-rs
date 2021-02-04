@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/img/favicon.ico">
-    <link rel="stylesheet" href="/jackvm-rs/assets/index.cd37d67260f1cc1589a0.css">
+    <link rel="stylesheet" href="/jackvm-rs/assets/index.5da1d2254c6377137b54.css">
     <title>Space Invaders (clone)</title>
   </head>
   <body>
@@ -70,7 +70,7 @@
         </div>
     </div>
     
-    <script src="/jackvm-rs/assets/index.9476021911bd234eab1a.js"></script>
+    <script src="/jackvm-rs/assets/index.9f207d360a401abc236a.js"></script>
     <script>
       window.addEventListener("JackVmPlayerLoaded", async (event) => {
         console.log("player loaded", event.detail);
@@ -78,7 +78,7 @@
         fetch("/jackvm-rs/vms/space-invaders.vm")
             .then(res => res.text())
             .then(program => {
-                player.loadProgram(program);
+                player.load(program);
             });
       });
     </script>

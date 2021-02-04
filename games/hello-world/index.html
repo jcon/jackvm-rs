@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="/img/favicon.ico">
     <link rel="stylesheet" href="/jackvm-rs/assets/index.5da1d2254c6377137b54.css">
-    <title>Pong (single player)</title>
+    <title>Hello World</title>
   </head>
   <body>
     <div class="bg-white flex flex-col space-x-4 space-y-8 items-center">
@@ -26,7 +26,7 @@
                 </textarea>
             </div>
             <h4 class="text-lg text-blue-600 font-semibold font-serif">
-                Pong (single player)
+                Hello World
                 <a class="text-black underline" href="https://www.nand2tetris.org/software">[ Source ]</a>
             </h4>
         </div>
@@ -75,7 +75,7 @@
       window.addEventListener("JackVmPlayerLoaded", async (event) => {
         console.log("player loaded", event.detail);
         const player = event.detail;
-        fetch("/jackvm-rs/vms/pong.vm")
+        fetch("/jackvm-rs/vms/hello-world.vm")
             .then(res => res.text())
             .then(program => {
                 player.load(program);
