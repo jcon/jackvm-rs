@@ -40,7 +40,18 @@ extern "C" {
 
 #[wasm_bindgen]
 pub struct JackVmPlayer {
+    js_global: web::JsGlobal,
     vm: Rc<RefCell<web_vm::JackVirtualMachine>>,
+}
+
+fn window() -> web_sys::Window {
+    web_sys::window().expect("no global `window` exists")
+}
+
+fn request_animation_frame(f: &Closure<dyn FnMut()>) {
+    window()
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .expect("should register `requestAnimationFrame` OK");
 }
 
 #[wasm_bindgen]
@@ -70,6 +81,7 @@ impl JackVmPlayer {
         }
 
         JackVmPlayer {
+            js_global,
             vm: Rc::clone(&vm),
         }
     }
@@ -126,6 +138,54 @@ impl JackVmPlayer {
     #[wasm_bindgen(js_name = nextFrame)]
     pub fn next_frame(&mut self) -> () {
         self.vm.borrow_mut().next_frame()
+
+        // let vm = self.vm.borrow_mut();
+        // if !vm.is_stopped() {
+        //     self.js_global.window.request_animation_frame(this.nextFrame.bind(this));
+        // } else {
+        //     vm.handle_halt();
+        // }
+
+        // vm.next_frame();
+    }
+
+    pub fn run(&mut self) {
+        log!("running from RUST!");
+        if !self.vm.borrow().is_paused() {
+            return;
+        }
+
+        self.vm.borrow_mut().set_is_paused(false);
+        self.copy_screen();
+
+        self.start_animation_loop();
+    }
+
+    // Sets up an animation loop. The structure for this was take from
+    // https://rustwasm.github.io/wasm-bindgen/examples/request-animation-frame.html
+    fn start_animation_loop(&mut self) {
+        // setup animation loop.
+        let vm = Rc::clone(&self.vm);
+
+        let f = Rc::new(RefCell::new(None));
+        let g = f.clone();
+
+        *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
+            if vm.borrow().is_stopped() {
+                // Drop our handle to this closure so that it will get cleaned
+                // up once we return.
+                let _ = f.borrow_mut().take();
+                vm.borrow_mut().handle_halt();
+                return;
+            }
+
+            vm.borrow_mut().next_frame();
+
+            // Schedule ourself for another requestAnimationFrame callback.
+            request_animation_frame(f.borrow().as_ref().unwrap());
+        }) as Box<dyn FnMut()>));
+
+        request_animation_frame(g.borrow().as_ref().unwrap());
     }
 
     #[wasm_bindgen(js_name = handleKeyDown)]

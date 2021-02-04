@@ -68,15 +68,16 @@ class Player {
 
     // ----- private methods -----
     run() {
-        console.log('running');
-        if (!this.vm.isPaused()) {
-            return;
-        }
+        this.vm.run();
+        // console.log('running');
+        // if (!this.vm.isPaused()) {
+        //     return;
+        // }
 
-        this.vm.setIsPaused(false);
+        // this.vm.setIsPaused(false);
 
-        this.copyScreen();
-        this.nextFrame();
+        // this.copyScreen();
+        // this.nextFrame();
     }
 
     // SAVE FOR SCREEN TESTS
