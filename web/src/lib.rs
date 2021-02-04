@@ -106,7 +106,6 @@ impl JackVmPlayer {
     }
 
     fn run(&mut self) {
-        log!("running from RUST!");
         if !self.vm.borrow().is_paused() {
             return;
         }
