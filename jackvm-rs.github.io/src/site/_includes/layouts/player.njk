@@ -78,7 +78,7 @@
         fetch("{{ ('/vms/' + vm_file) | url }}")
             .then(res => res.text())
             .then(program => {
-                player.loadProgram(program);
+                player.load(program);
             });
       });
     </script>

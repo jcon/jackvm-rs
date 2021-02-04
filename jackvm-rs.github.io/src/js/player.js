@@ -41,7 +41,7 @@ class Player {
     }
 
     // ----- public methods -----
-    loadProgram(prog) {
+    load(prog) {
         this.vm.load(prog);
     }
 
