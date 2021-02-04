@@ -68,29 +68,29 @@ class Player {
 
 
     // ----- private methods -----
-    run() {
-        this.vm.run();
-        // console.log('running');
-        // if (!this.vm.isPaused()) {
-        //     return;
-        // }
+    // run() {
+    //     this.vm.run();
+    //     // console.log('running');
+    //     // if (!this.vm.isPaused()) {
+    //     //     return;
+    //     // }
 
-        // this.vm.setIsPaused(false);
+    //     // this.vm.setIsPaused(false);
 
-        // this.copyScreen();
-        // this.nextFrame();
-    }
+    //     // this.copyScreen();
+    //     // this.nextFrame();
+    // }
 
     // SAVE FOR SCREEN TESTS
-    copyScreen() {
-        // this.imageData.data.set(this.screenBytes);
-        // this.mainContext.putImageData(this.imageData, 0, 0);
-        this.vm.copyScreen();
-    }
+    // copyScreen() {
+    //     // this.imageData.data.set(this.screenBytes);
+    //     // this.mainContext.putImageData(this.imageData, 0, 0);
+    //     this.vm.copyScreen();
+    // }
 
-    pause() {
-        this.vm.setIsPaused(true);
-    }
+    // pause() {
+    //     this.vm.setIsPaused(true);
+    // }
 
     // executeSteps() {
     //     this.vm.tick_times(TICKS_PER_STEP);
@@ -101,15 +101,15 @@ class Player {
     //     this.copyScreen();
     // }
 
-    nextFrame() {
-        if (!this.vm.isStopped()) {
-            window.requestAnimationFrame(this.nextFrame.bind(this));
-        } else {
-            this.vm.handleHalt();
-        }
+    // nextFrame() {
+    //     if (!this.vm.isStopped()) {
+    //         window.requestAnimationFrame(this.nextFrame.bind(this));
+    //     } else {
+    //         this.vm.handleHalt();
+    //     }
 
-        this.vm.nextFrame();
-    }
+    //     this.vm.nextFrame();
+    // }
 
 
     // ----- event listeners -----
