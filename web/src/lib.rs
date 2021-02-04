@@ -40,79 +40,79 @@ extern "C" {
 
 #[wasm_bindgen]
 pub struct JackVmPlayer {
-    vm: web_vm::JackVirtualMachine,
+    vm: Rc<RefCell<web_vm::JackVirtualMachine>>,
 }
 
 #[wasm_bindgen]
 impl JackVmPlayer {
     pub fn new(screen: JsValue, container: JsValue) -> JackVmPlayer {
         JackVmPlayer {
-            vm: web_vm::JackVirtualMachine::new(screen, container)
+            vm: Rc::new(RefCell::new(web_vm::JackVirtualMachine::new(screen, container)))
         }
     }
 
     pub fn load(&mut self, program: &str) -> () {
-        self.vm.load(program)
+        self.vm.borrow_mut().load(program)
     }
 
     #[wasm_bindgen(js_name = addHaltListener)]
     pub fn add_halt_listener(&mut self, f: js_sys::Function) {
-        self.vm.add_halt_listener(f);
+        self.vm.borrow_mut().add_halt_listener(f);
     }
 
     #[wasm_bindgen(js_name = handleHalt)]
     pub fn handle_halt(&mut self) {
-        self.vm.handle_halt();
+        self.vm.borrow_mut().handle_halt();
     }
 
     #[wasm_bindgen(js_name = isHalted)]
     pub fn is_halted(&self) -> bool {
-        self.vm.is_halted()
+        self.vm.borrow().is_halted()
     }
 
     // needed?
     pub fn pause(&mut self) -> () {
-        self.vm.pause();
+        self.vm.borrow_mut().pause();
     }
     // handleHalt
 
     #[wasm_bindgen(js_name = isStopped)]
     pub fn is_stopped(&self) -> bool {
-        self.vm.is_stopped()
+        self.vm.borrow().is_stopped()
     }
 
     #[wasm_bindgen(js_name = isPaused)]
     pub fn is_paused(&self) -> bool {
-        self.vm.is_paused()
+        self.vm.borrow().is_paused()
     }
 
     #[wasm_bindgen(js_name = setIsPaused)]
     pub fn set_is_paused(&mut self, paused: bool) {
-        self.vm.set_is_paused(paused)
+        self.vm.borrow_mut().set_is_paused(paused)
     }
 
     pub fn restart(&mut self) {
-        self.vm.restart()
+        self.vm.borrow_mut().restart()
     }
 
     #[wasm_bindgen(js_name = copyScreen)]
     pub fn copy_screen(&mut self) {
-        self.vm.copy_screen()
+        self.vm.borrow_mut().copy_screen()
     }
 
     #[wasm_bindgen(js_name = nextFrame)]
     pub fn next_frame(&mut self) -> () {
-        self.vm.next_frame()
+        self.vm.borrow_mut().next_frame()
     }
 
     #[wasm_bindgen(js_name = handleKeyDown)]
     pub fn handle_key_down(&mut self, e: JsValue) {
-        self.vm.handle_key_down(e)
+        self.vm.borrow_mut().handle_key_down(e)
     }
 
     #[wasm_bindgen(js_name = handleKeyUp)]
     pub fn handle_key_up(&mut self) {
-        self.vm.handle_key_up()
+        self.vm.borrow_mut().handle_key_up()
     }
 
 //     setIsPaused
