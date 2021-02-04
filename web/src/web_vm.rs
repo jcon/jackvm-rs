@@ -48,6 +48,8 @@ impl CompilationResult {
     }
 }
 
+use std::collections::HashMap;
+
 // #[wasm_bindgen]
 pub struct JackVirtualMachine {
     jack_vm: vm::VirtualMachine,
@@ -61,6 +63,7 @@ pub struct JackVirtualMachine {
     halt_listeners: Vec<js_sys::Function>,
 
     callback_machine: Rc<RefCell<Option<JackVirtualMachine>>>,
+    special_keys: HashMap<i16, i16>,
 }
 
 // #[wasm_bindgen]
@@ -91,6 +94,26 @@ impl JackVirtualMachine {
 
         let callback_machine = Rc::new(RefCell::new(None));
 
+        let mut special_keys: HashMap<i16, i16> = [
+            (13, 128), // newline / return
+            (8, 129),  // backspace
+            (37, 130), // left arrow
+            (38, 131), // up arrow
+            (39, 132), // right arrow
+            (40, 133), // down arrow
+            (36, 134), // home
+            (35, 135), // end
+            (33, 136), // page up
+            (45, 138), // page up
+            (46, 139), // delete
+            (27, 140), // escape
+        ].iter().copied().collect();
+        // Set keys f1 .. f12
+        for i in 0..12 {
+            // In JS they're 112..123, in Jack, they're 141..152
+            special_keys.insert(112 + i, 141 + i);
+        }
+
         let player = JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
             canvas,
@@ -106,6 +129,7 @@ impl JackVirtualMachine {
             paused: true,
             halt_listeners: vec!(),
             callback_machine: Rc::clone(&callback_machine),
+            special_keys,
         };
 
         // *callback_machine.borrow_mut() = Some(player);
@@ -358,11 +382,9 @@ impl JackVirtualMachine {
     //  #[wasm_bindgen(js_name = handleKeyDown)]
     pub fn handle_key_down(&mut self, e: JsValue) {
         let mut key_code = js_sys::Reflect::get(&e, &JsValue::from_str("keyCode")).unwrap().as_f64().expect("Expected keyCode present on event") as i16;
-        if key_code == 37 {
-            key_code = 130;
-        }
-        if key_code == 39 {
-            key_code = 132;
+        // Override keys that have different keymappings between JS <=> Hack.
+        if self.special_keys.contains_key(&key_code) {
+            key_code = *self.special_keys.get(&key_code).unwrap();
         }
         self.set_key(key_code);
     }
