@@ -6,6 +6,8 @@ mod web;
 // pub mod vm;
 
 use js_sys;
+use std::rc::Rc;
+use std::cell::RefCell;
 extern crate web_sys;
 
 use web_sys::{ Window, Document, HtmlElement, HtmlCanvasElement, CanvasRenderingContext2d };
@@ -62,6 +64,8 @@ pub struct JackVirtualMachine {
     screen_pixels: js_sys::Uint32Array,
     paused: bool,
     halt_listeners: Vec<js_sys::Function>,
+
+    callback_machine: Rc<RefCell<Option<JackVirtualMachine>>>,
 }
 
 #[wasm_bindgen]
@@ -90,7 +94,9 @@ impl JackVirtualMachine {
             .dyn_into::<web_sys::CanvasRenderingContext2d>()
             .unwrap();
 
-        JackVirtualMachine {
+        let callback_machine = Rc::new(RefCell::new(None));
+
+        let player = JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
             canvas,
             // screen_buffer,
@@ -104,7 +110,37 @@ impl JackVirtualMachine {
             ),
             paused: true,
             halt_listeners: vec!(),
+            callback_machine: Rc::clone(&callback_machine),
+        };
+
+        // *callback_machine.borrow_mut() = Some(player);
+
+        {
+            // let context = context.clone();
+            // let pressed = pressed.clone();
+            // let my_callback_machine = callback_machine.clone();
+            let closure = Closure::wrap(Box::new(move |event: JsValue| {
+                // my_callback_machine.borrow_mut().unwrap().handle_key_down(event);
+
+                log!("clicked! ");
+                // context.begin_path();
+                // context.move_to(event.offset_x() as f64, event.offset_y() as f64);
+                // pressed.set(true);
+            }) as Box<dyn FnMut(_)>);
+
+            js_global.document.add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).expect("add event listener");
+            closure.forget();
         }
+
+        // let a = Closure::wrap(Box::new(move |e: &JsValue| {
+        //     log!("clicked!");
+        // }) as Box<dyn FnMut()>);
+
+        // js_global.document.add_event_listener_with_callback("keydown", a.as_ref().unchecked_ref()).expect("add event listener");
+
+        // a.forget();
+
+        player
     }
 
     #[wasm_bindgen(js_name = loadRaw)]
