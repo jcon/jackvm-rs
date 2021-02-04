@@ -22,12 +22,12 @@ class Player {
         // this.canvas = canvas;
 
         // SAVE FOR SCREEN TESTS.
-        const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
+        // const screenBuffer = new ArrayBuffer(HEIGHT * WIDTH * 4);
         // this.screenBytes = new Uint8Array(screenBuffer);
         // this.imageData = new ImageData(WIDTH, HEIGHT);
         // this.imageData.data.set(this.screenBytes);
 
-        this.vm = JackVmPlayer.new(screenBuffer, parentEl);
+        this.vm = JackVmPlayer.new(parentEl);
 
         // SAVE FOR SCREEN TESTS.
         // this.mainContext = this.canvas.getContext('2d');

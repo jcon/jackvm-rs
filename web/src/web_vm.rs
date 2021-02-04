@@ -56,7 +56,7 @@ pub struct JackVirtualMachine {
     screen_bytes: Box<[u8; 512 * 256 * 4]>,
     image_data: web_sys::ImageData,
     main_context: CanvasRenderingContext2d,
-    screen_pixels: js_sys::Uint32Array,
+    // screen_pixels: js_sys::Uint32Array,
     paused: bool,
     halt_listeners: Vec<js_sys::Function>,
 
@@ -65,7 +65,7 @@ pub struct JackVirtualMachine {
 
 // #[wasm_bindgen]
 impl JackVirtualMachine {
-    pub fn new(screen: JsValue, container: JsValue) -> JackVirtualMachine {
+    pub fn new(container: JsValue) -> JackVirtualMachine {
         utils::set_panic_hook();
 
         let container: HtmlElement = container
@@ -98,11 +98,11 @@ impl JackVirtualMachine {
             screen_bytes,
             image_data,
             main_context,
-            screen_pixels: js_sys::Uint32Array::new_with_byte_offset_and_length(
-                &screen,
-                0,
-                512 * 256,
-            ),
+            // screen_pixels: js_sys::Uint32Array::new_with_byte_offset_and_length(
+            //     &screen,
+            //     0,
+            //     512 * 256,
+            // ),
             paused: true,
             halt_listeners: vec!(),
             callback_machine: Rc::clone(&callback_machine),
