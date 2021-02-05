@@ -16,7 +16,7 @@ The easiest way to test this project locally is to run the demo site. To run dem
 ```sh
 > cd demo
 > npm install
-> npm run build
+> npm run start
 ```
 
 Webpack will print out the port it's serving the site on (usually 8080, or the next available port after that). Your web browser will automatically load the JackVM Player with a simple single-player pong game.
