@@ -4,8 +4,8 @@ mod helper;
 mod integration {
     use super::*;
     use helper::compile_program;
-    use vm::vm;
     use std::panic;
+    use vm::vm;
 
     #[test]
     pub fn test_os_memory() {

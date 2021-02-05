@@ -82,7 +82,7 @@ impl VirtualMachine {
                     addresses.insert(k.to_string(), address_base + v);
                 }
                 bytecode = [bytecode, os_bytecode].concat();
-            },
+            }
             _ => (),
         }
 
@@ -116,10 +116,10 @@ impl VirtualMachine {
         match self.addresses.get("Sys.init") {
             Some(addr) => {
                 self.pc = *addr as usize;
-//                println!("Loading with PC starting at {}", self.pc);
+                //                println!("Loading with PC starting at {}", self.pc);
             }
             None => {
-//                println!("No Sys.init found");
+                //                println!("No Sys.init found");
                 self.pc = 0;
             }
         }
@@ -134,7 +134,7 @@ impl VirtualMachine {
     }
 
     pub fn is_halted(&self) -> bool {
-        return self.pc >= self.program.len()
+        return self.pc >= self.program.len();
     }
 
     pub fn tick(&mut self) -> () {

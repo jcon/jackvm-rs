@@ -1,6 +1,6 @@
 pub mod compiler;
-pub mod vm;
 mod jack_os;
+pub mod vm;
 
 #[cfg(test)]
 mod tests {
