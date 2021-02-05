@@ -31,7 +31,6 @@ pub struct CompilationResult {
     errors: Vec<String>,
 }
 
-// #[wasm_bindgen]
 pub struct JackVirtualMachine {
     jack_vm: vm::VirtualMachine,
     screen_bytes: Box<[u8; 512 * 256 * 4]>,
@@ -43,7 +42,6 @@ pub struct JackVirtualMachine {
     special_keys: HashMap<i16, i16>,
 }
 
-// #[wasm_bindgen]
 impl JackVirtualMachine {
     pub fn new(container: JsValue) -> JackVirtualMachine {
         utils::set_panic_hook();
@@ -60,8 +58,6 @@ impl JackVirtualMachine {
             .append_child(&canvas)
             .expect("Can't append canvas to parent");
 
-        // let screen_buffer = js_sys::ArrayBuffer::new(256 * 512 * 4);
-        // let screen_bytes = js_sys::Uint8Array::new_with_byte_offset_and_length(&screen_buffer, 0, 256 * 512 * 4);
         let mut screen_bytes = Box::new([0; 256 * 512 * 4]);
         let image_data =
             web_sys::ImageData::new_with_u8_clamped_array(Clamped(screen_bytes.as_mut()), 512)
@@ -110,7 +106,6 @@ impl JackVirtualMachine {
         player
     }
 
-    // #[wasm_bindgen(js_name = loadRaw)]
     pub fn load_raw(&mut self, program: &str) -> CompilationResult {
         self.render_screen();
         match self.jack_vm.compile_and_load(program) {
@@ -153,7 +148,6 @@ impl JackVirtualMachine {
         self.jack_vm.get_instruction()
     }
 
-    //    #[wasm_bindgen(js_name = copyScreen)]
     pub fn copy_screen(&mut self) {
         self.image_data =
             web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), 512)
@@ -227,12 +221,10 @@ impl JackVirtualMachine {
         self.jack_vm.tick();
     }
 
-    //  #[wasm_bindgen(js_name = addHaltListener)]
     pub fn add_halt_listener(&mut self, f: js_sys::Function) {
         self.halt_listeners.push(f);
     }
 
-    //  #[wasm_bindgen(js_name = handleHalt)]
     pub fn handle_halt(&mut self) {
         let this = JsValue::null();
         for f in &self.halt_listeners {
@@ -240,7 +232,6 @@ impl JackVirtualMachine {
         }
     }
 
-    //  #[wasm_bindgen(js_name = isHalted)]
     pub fn is_halted(&self) -> bool {
         self.jack_vm.is_halted()
     }
@@ -249,27 +240,22 @@ impl JackVirtualMachine {
         self.paused = true;
     }
 
-    //  #[wasm_bindgen(js_name = isStopped)]
     pub fn is_stopped(&self) -> bool {
         self.paused || self.jack_vm.is_halted()
     }
 
-    //  #[wasm_bindgen(js_name = isPaused)]
     pub fn is_paused(&self) -> bool {
         self.paused
     }
 
-    //  #[wasm_bindgen(js_name = setIsPaused)]
     pub fn set_is_paused(&mut self, paused: bool) {
         self.paused = paused;
     }
 
-    //  #[wasm_bindgen(js_name = executeSteps)]
     pub fn execute_steps(&mut self) -> () {
         self.tick_times(TICKS_PER_STEP)
     }
 
-    //  #[wasm_bindgen(js_name = nextFrame)]
     pub fn next_frame(&mut self) -> () {
         self.execute_steps();
         self.render_screen();
@@ -282,7 +268,6 @@ impl JackVirtualMachine {
         }
     }
 
-    //  #[wasm_bindgen(js_name = handleKeyDown)]
     pub fn handle_key_down(&mut self, e: JsValue) {
         let mut key_code = js_sys::Reflect::get(&e, &JsValue::from_str("keyCode"))
             .unwrap()
@@ -295,7 +280,6 @@ impl JackVirtualMachine {
         self.set_key(key_code);
     }
 
-    //  #[wasm_bindgen(js_name = handleKeyUp)]
     pub fn handle_key_up(&mut self) {
         self.set_key(0);
     }
