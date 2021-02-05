@@ -1,20 +1,15 @@
-use vm::vm;
-// pub mod compiler;
-use crate::utils;
-use crate::web;
-
-// mod jack_os;
-// pub mod vm;
-
-use js_sys;
-use std::cell::RefCell;
-use std::rc::Rc;
 extern crate web_sys;
 
-use wasm_bindgen::{Clamped, JsCast};
-use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlElement, Window};
+use std::collections::HashMap;
 
+use js_sys;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen::{Clamped, JsCast};
+use web_sys::{CanvasRenderingContext2d, HtmlElement};
+
+use crate::utils;
+use crate::web;
+use vm::vm;
 
 const TICKS_PER_STEP: u32 = 40000;
 
@@ -31,24 +26,10 @@ macro_rules! log {
     }
 }
 
-//  #[wasm_bindgen]
 pub struct CompilationResult {
     pub succeeded: bool,
     errors: Vec<String>,
 }
-
-//  #[wasm_bindgen]
-impl CompilationResult {
-    pub fn get_errors(&self) -> js_sys::Array {
-        let arr = js_sys::Array::new_with_length(self.errors.len() as u32);
-        for (i, s) in self.errors.iter().enumerate() {
-            arr.set(i as u32, JsValue::from_str(s));
-        }
-        arr
-    }
-}
-
-use std::collections::HashMap;
 
 // #[wasm_bindgen]
 pub struct JackVirtualMachine {
@@ -216,7 +197,6 @@ impl JackVirtualMachine {
         push constant 864
         pop that 256
         */
-
 
         let screen_bytes = self.screen_bytes.as_mut();
         for y in 0..256 {
