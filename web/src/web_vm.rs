@@ -144,10 +144,6 @@ impl JackVirtualMachine {
         self.jack_vm.restart()
     }
 
-    pub fn get_instruction(&self) -> String {
-        self.jack_vm.get_instruction()
-    }
-
     pub fn copy_screen(&mut self) {
         self.image_data =
             web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), 512)
@@ -217,10 +213,6 @@ impl JackVirtualMachine {
         }
     }
 
-    pub fn tick(&mut self) -> () {
-        self.jack_vm.tick();
-    }
-
     pub fn add_halt_listener(&mut self, f: js_sys::Function) {
         self.halt_listeners.push(f);
     }
@@ -230,14 +222,6 @@ impl JackVirtualMachine {
         for f in &self.halt_listeners {
             f.call0(&this).expect("Can't call handler");
         }
-    }
-
-    pub fn is_halted(&self) -> bool {
-        self.jack_vm.is_halted()
-    }
-
-    pub fn pause(&mut self) -> () {
-        self.paused = true;
     }
 
     pub fn is_stopped(&self) -> bool {
