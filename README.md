@@ -4,6 +4,8 @@ This repository contains the source for a Jack language Virtual Machine that run
 
 Previously, Jack programs only run for those who've installed the nand2tetris software suite on their desktops. This project aims to allow people to share their work more easily on the web.
 
+[Demo Site](https://jcon.github.com/jackvm-rs)
+
 Rough Demo of JackVM Player:
 
 ![Rough Demo](./doc/rough-demo.png)
