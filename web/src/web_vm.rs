@@ -53,7 +53,6 @@ use std::collections::HashMap;
 // #[wasm_bindgen]
 pub struct JackVirtualMachine {
     jack_vm: vm::VirtualMachine,
-    canvas: HtmlCanvasElement,
     // screen_buffer: js_sys::ArrayBuffer,
     screen_bytes: Box<[u8; 512 * 256 * 4]>,
     image_data: web_sys::ImageData,
@@ -62,7 +61,6 @@ pub struct JackVirtualMachine {
     paused: bool,
     halt_listeners: Vec<js_sys::Function>,
 
-    callback_machine: Rc<RefCell<Option<JackVirtualMachine>>>,
     special_keys: HashMap<i16, i16>,
 }
 
@@ -97,8 +95,6 @@ impl JackVirtualMachine {
             .dyn_into::<web_sys::CanvasRenderingContext2d>()
             .unwrap();
 
-        let callback_machine = Rc::new(RefCell::new(None));
-
         let mut special_keys: HashMap<i16, i16> = [
             (13, 128), // newline / return
             (8, 129),  // backspace
@@ -124,7 +120,6 @@ impl JackVirtualMachine {
 
         let player = JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
-            canvas,
             // screen_buffer,
             screen_bytes,
             image_data,
@@ -136,7 +131,6 @@ impl JackVirtualMachine {
             // ),
             paused: true,
             halt_listeners: vec![],
-            callback_machine: Rc::clone(&callback_machine),
             special_keys,
         };
 
