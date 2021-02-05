@@ -70,29 +70,6 @@ impl JackVirtualMachine {
             .dyn_into::<web_sys::CanvasRenderingContext2d>()
             .unwrap();
 
-        let mut special_keys: HashMap<i16, i16> = [
-            (13, 128), // newline / return
-            (8, 129),  // backspace
-            (37, 130), // left arrow
-            (38, 131), // up arrow
-            (39, 132), // right arrow
-            (40, 133), // down arrow
-            (36, 134), // home
-            (35, 135), // end
-            (33, 136), // page up
-            (45, 138), // page up
-            (46, 139), // delete
-            (27, 140), // escape
-        ]
-        .iter()
-        .copied()
-        .collect();
-        // Set keys f1 .. f12
-        for i in 0..12 {
-            // In JS they're 112..123, in Jack, they're 141..152
-            special_keys.insert(112 + i, 141 + i);
-        }
-
         let player = JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
             screen_bytes,
@@ -100,7 +77,7 @@ impl JackVirtualMachine {
             main_context,
             paused: true,
             halt_listeners: vec![],
-            special_keys,
+            special_keys: setup_special_keys(),
         };
 
         player
@@ -275,4 +252,31 @@ impl JackVirtualMachine {
     pub fn peek(&self, address: usize) -> i16 {
         self.jack_vm.peek(address)
     }
+}
+
+fn setup_special_keys() -> HashMap<i16, i16> {
+    let mut special_keys: HashMap<i16, i16> = [
+            (13, 128), // newline / return
+            (8, 129),  // backspace
+            (37, 130), // left arrow
+            (38, 131), // up arrow
+            (39, 132), // right arrow
+            (40, 133), // down arrow
+            (36, 134), // home
+            (35, 135), // end
+            (33, 136), // page up
+            (45, 138), // page up
+            (46, 139), // delete
+            (27, 140), // escape
+        ]
+        .iter()
+        .copied()
+        .collect();
+    // Set keys f1 .. f12
+    for i in 0..12 {
+        // In JS they're 112..123, in Jack, they're 141..152
+        special_keys.insert(112 + i, 141 + i);
+    }
+
+    special_keys
 }
