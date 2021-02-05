@@ -18,6 +18,10 @@ module.exports = {
   devtool: "source-map",
   module: {
     rules: [
+      // This is a work-around for wasm-pack generated modules. Their package.json files currently
+      // are written with { sideEffects: false }. This value doesn't seem to break webpack 3.x, but
+      // does break webpack 4+. These modules do actually have side-effects though: they load files
+      // external to the package's main module.
       {
         test: () => true,
         sideEffects: true,
