@@ -16,6 +16,14 @@ module.exports = {
     asyncWebAssembly: true,
   },
   devtool: "source-map",
+  module: {
+    rules: [
+      {
+        test: () => true,
+        sideEffects: true,
+      }
+    ]
+  },
   plugins: [
     new CopyWebpackPlugin({
       patterns: [

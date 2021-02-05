@@ -4,10 +4,12 @@
 // import("./index.js")
 //   .catch(e => console.error("Error importing `index.js`:", e));
 
+import { MemoryDebugger } from './debugger';
 
-import("./index.js")
+import("jackvm-player")
   .then(m => {
     window.JackVmPlayer = m.JackVmPlayer;
+    window.MemoryDebugger = MemoryDebugger;
     window.dispatchEvent(new Event('JackVmPlayerLoaded'));
   })
   .catch(e => console.error("Error importing `index.js`:", e));

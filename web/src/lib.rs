@@ -111,6 +111,10 @@ impl JackVmPlayer {
         self.run();
     }
 
+    pub fn peek(&self, address: usize) -> i16 {
+        self.vm.borrow().peek(address)
+    }
+
     fn run(&mut self) {
         if !self.vm.borrow().is_paused() {
             return;

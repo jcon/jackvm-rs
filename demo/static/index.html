@@ -34,7 +34,6 @@ push constant 6
 add
         </textarea>
         <button id="run">Run Program</button>
-        <button id="pause">Pause Program</button>
       </div>
     </div>
     <div style="display: flex; flex-direction: row;">
@@ -77,6 +76,8 @@ add
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <script>
       window.JackVmPlayer = window.JackVmPlayer || {};
+      window.MemoryDebugger = window.MemoryDebugger || {};
+
       console.log("***** player", window.JackVmPlayer);
 
       // TODO: Find a more standard way to listen to when JackVmPlayer is loaded.
@@ -86,10 +87,21 @@ add
 
           const parentEl = document.getElementById('screen-container');
 
-          let player = new JackVmPlayer(parentEl, { debugMemory: true });
-          // TODO: bind these automatically.
-          document.onkeydown = player.handleKeyDown.bind(player);
-          document.onkeyup = player.handleKeyUp.bind(player);
+          let player = new JackVmPlayer(parentEl);
+          let memoryDebugger = new MemoryDebugger(player);
+
+          // Update the memory in an animation loop.
+          function updateMemory() {
+            if (!player.isStopped()) {
+              requestAnimationFrame(updateMemory);
+            }
+            memoryDebugger.update();
+          }
+
+          // Helper to update the current program being run by the VM.
+          function updateProgram() {
+              player.load(progEl.value);
+          }
 
           // Update the VM's program whenever the "editor" changes.
           const progEl = document.querySelector("#editor");
@@ -100,15 +112,14 @@ add
           // Start running the VM if it's not already running.
           let runEl = document.querySelector("#run");
           runEl.addEventListener("click", event => {
+              if (!player.isStopped()) {
+                return;
+              }
               updateProgram();
-              player.run();
+              player.restart();
+              updateMemory();
           });
 
-          // Pause the VM if it's not already paused.
-          let pauseEl = document.querySelector("#pause");
-          pauseEl.addEventListener("click", event => {
-              player.pause();
-          });
 
           // example loading vm program concatenated.
           fetch('./pong.vm')
@@ -118,18 +129,8 @@ add
               updateProgram();
             });
 
-          // Helper to update the current program being run by the VM.
-          function updateProgram() {
-              const program = progEl.value.split('\n').map(s => s.trim()).join("\n");
-              player.loadProgram(program);
-          }
-
-          updateProgram();
-
       });
     </script>
     <script src="./bootstrap.js"></script>
-    <!-- <script src="http://localhost:5000/index.js">
-    </script> -->
   </body>
 </html>
