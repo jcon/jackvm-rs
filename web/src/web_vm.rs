@@ -7,12 +7,12 @@ use crate::web;
 // pub mod vm;
 
 use js_sys;
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 extern crate web_sys;
 
-use web_sys::{ Window, Document, HtmlElement, HtmlCanvasElement, CanvasRenderingContext2d };
 use wasm_bindgen::{Clamped, JsCast};
+use web_sys::{CanvasRenderingContext2d, Document, HtmlCanvasElement, HtmlElement, Window};
 
 use wasm_bindgen::prelude::*;
 
@@ -77,13 +77,18 @@ impl JackVirtualMachine {
 
         let js_global = web::JsGlobal::create().expect("Can't create JS global environment");
 
-        let canvas = web::create_canvas(&js_global.document, 256, 512).expect("can't create canvas");
-        container.append_child(&canvas).expect("Can't append canvas to parent");
+        let canvas =
+            web::create_canvas(&js_global.document, 256, 512).expect("can't create canvas");
+        container
+            .append_child(&canvas)
+            .expect("Can't append canvas to parent");
 
         // let screen_buffer = js_sys::ArrayBuffer::new(256 * 512 * 4);
         // let screen_bytes = js_sys::Uint8Array::new_with_byte_offset_and_length(&screen_buffer, 0, 256 * 512 * 4);
-        let mut screen_bytes = Box::new([0; 256*512*4]);
-        let image_data = web_sys::ImageData::new_with_u8_clamped_array(Clamped(screen_bytes.as_mut()), 512).expect("Can't create image data");
+        let mut screen_bytes = Box::new([0; 256 * 512 * 4]);
+        let image_data =
+            web_sys::ImageData::new_with_u8_clamped_array(Clamped(screen_bytes.as_mut()), 512)
+                .expect("Can't create image data");
 
         let main_context = canvas
             .get_context("2d")
@@ -107,7 +112,10 @@ impl JackVirtualMachine {
             (45, 138), // page up
             (46, 139), // delete
             (27, 140), // escape
-        ].iter().copied().collect();
+        ]
+        .iter()
+        .copied()
+        .collect();
         // Set keys f1 .. f12
         for i in 0..12 {
             // In JS they're 112..123, in Jack, they're 141..152
@@ -127,7 +135,7 @@ impl JackVirtualMachine {
             //     512 * 256,
             // ),
             paused: true,
-            halt_listeners: vec!(),
+            halt_listeners: vec![],
             callback_machine: Rc::clone(&callback_machine),
             special_keys,
         };
@@ -186,7 +194,9 @@ impl JackVirtualMachine {
     pub fn load(&mut self, program: &str) -> () {
         let result = self.load_raw(program);
         if !result.succeeded {
-            let mut message = String::from("JackVmPlayer could not load program due to the following errors:\n\n");
+            let mut message = String::from(
+                "JackVmPlayer could not load program due to the following errors:\n\n",
+            );
             for e in result.errors {
                 message.push_str(&e);
                 message.push_str("\n");
@@ -203,11 +213,15 @@ impl JackVirtualMachine {
         self.jack_vm.get_instruction()
     }
 
-//    #[wasm_bindgen(js_name = copyScreen)]
+    //    #[wasm_bindgen(js_name = copyScreen)]
     pub fn copy_screen(&mut self) {
         // this.imageData.data.set(this.screenBytes);
-        self.image_data = web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), 512).expect("Can't create image data");
-        self.main_context.put_image_data(&self.image_data, 0.0, 0.0).expect("Can't put image data");
+        self.image_data =
+            web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), 512)
+                .expect("Can't create image data");
+        self.main_context
+            .put_image_data(&self.image_data, 0.0, 0.0)
+            .expect("Can't put image data");
     }
 
     pub fn render_screen(&mut self) {
@@ -381,7 +395,10 @@ impl JackVirtualMachine {
 
     //  #[wasm_bindgen(js_name = handleKeyDown)]
     pub fn handle_key_down(&mut self, e: JsValue) {
-        let mut key_code = js_sys::Reflect::get(&e, &JsValue::from_str("keyCode")).unwrap().as_f64().expect("Expected keyCode present on event") as i16;
+        let mut key_code = js_sys::Reflect::get(&e, &JsValue::from_str("keyCode"))
+            .unwrap()
+            .as_f64()
+            .expect("Expected keyCode present on event") as i16;
         // Override keys that have different keymappings between JS <=> Hack.
         if self.special_keys.contains_key(&key_code) {
             key_code = *self.special_keys.get(&key_code).unwrap();

@@ -3,11 +3,11 @@ mod web;
 mod web_vm;
 
 use js_sys;
-use std::rc::Rc;
 use std::cell::RefCell;
+use std::rc::Rc;
 extern crate web_sys;
 
-use wasm_bindgen::{JsCast};
+use wasm_bindgen::JsCast;
 
 use wasm_bindgen::prelude::*;
 
@@ -60,7 +60,10 @@ impl JackVmPlayer {
                 vm.borrow_mut().handle_key_down(event);
             }) as Box<dyn FnMut(_)>);
 
-            js_global.document.add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).expect("add event listener");
+            js_global
+                .document
+                .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
+                .expect("add event listener");
             closure.forget();
         }
 
@@ -70,7 +73,10 @@ impl JackVmPlayer {
                 vm.borrow_mut().handle_key_up();
             }) as Box<dyn FnMut(_)>);
 
-            js_global.document.add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref()).expect("add event listener");
+            js_global
+                .document
+                .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
+                .expect("add event listener");
             closure.forget();
         }
 
