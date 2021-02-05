@@ -53,11 +53,9 @@ use std::collections::HashMap;
 // #[wasm_bindgen]
 pub struct JackVirtualMachine {
     jack_vm: vm::VirtualMachine,
-    // screen_buffer: js_sys::ArrayBuffer,
     screen_bytes: Box<[u8; 512 * 256 * 4]>,
     image_data: web_sys::ImageData,
     main_context: CanvasRenderingContext2d,
-    // screen_pixels: js_sys::Uint32Array,
     paused: bool,
     halt_listeners: Vec<js_sys::Function>,
 
@@ -120,46 +118,13 @@ impl JackVirtualMachine {
 
         let player = JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
-            // screen_buffer,
             screen_bytes,
             image_data,
             main_context,
-            // screen_pixels: js_sys::Uint32Array::new_with_byte_offset_and_length(
-            //     &screen,
-            //     0,
-            //     512 * 256,
-            // ),
             paused: true,
             halt_listeners: vec![],
             special_keys,
         };
-
-        // *callback_machine.borrow_mut() = Some(player);
-
-        // {
-        //     // let context = context.clone();
-        //     // let pressed = pressed.clone();
-        //     // let my_callback_machine = callback_machine.clone();
-        //     let closure = Closure::wrap(Box::new(move |event: JsValue| {
-        //         // my_callback_machine.borrow_mut().unwrap().handle_key_down(event);
-
-        //         log!("clicked! ");
-        //         // context.begin_path();
-        //         // context.move_to(event.offset_x() as f64, event.offset_y() as f64);
-        //         // pressed.set(true);
-        //     }) as Box<dyn FnMut(_)>);
-
-        //     js_global.document.add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref()).expect("add event listener");
-        //     closure.forget();
-        // }
-
-        // let a = Closure::wrap(Box::new(move |e: &JsValue| {
-        //     log!("clicked!");
-        // }) as Box<dyn FnMut()>);
-
-        // js_global.document.add_event_listener_with_callback("keydown", a.as_ref().unchecked_ref()).expect("add event listener");
-
-        // a.forget();
 
         player
     }
@@ -209,7 +174,6 @@ impl JackVirtualMachine {
 
     //    #[wasm_bindgen(js_name = copyScreen)]
     pub fn copy_screen(&mut self) {
-        // this.imageData.data.set(this.screenBytes);
         self.image_data =
             web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), 512)
                 .expect("Can't create image data");
@@ -219,27 +183,6 @@ impl JackVirtualMachine {
     }
 
     pub fn render_screen(&mut self) {
-        // for y in 0..256 {
-        //     for x in 0..512 {
-        //         let loc = 512 * y + x;
-        //         match (x, y) {
-        //             (x, y) if x % 2 == 0 && y % 2 == 0 =>
-        //                 self.screen_pixels.set_index(loc , 0xFF000000),
-        //             (x, y) if x % 2 == 1 && y % 2 == 0 =>
-        //                 self.screen_pixels.set_index(loc , 0xFFFFFFFF),
-        //             (x, y) if x % 2 == 1 && y % 2 == 0 =>
-        //                 self.screen_pixels.set_index(loc , 0xFFFFFFFF),
-        //             (x, y) if x % 2 == 1 && y % 2 == 1 =>
-        //                 self.screen_pixels.set_index(loc , 0xFF000000),
-        //             _ => (),
-        //         }
-        //     }
-        //     // count += 4;
-        // }
-        // if self.jack_vm.is_halted() {
-        //     return;
-        // }
-
         let screen = &mut self.jack_vm.memory[vm::SCREEN_START..vm::KEYBOARD_START + 1];
         /*
         // Simple JackVM instructions for drawing a space invader alien sprite drawn at (0, 0)
@@ -274,44 +217,20 @@ impl JackVirtualMachine {
         pop that 256
         */
 
-        // bytes representing a space invader alien sprite drawn at (0, 0)
-        // screen[0] = 1040;
-        // screen[32] = 544;
-        // screen[64] = 2032;
-        // screen[96] = 3544;
-        // screen[128] = 8188;
-        // screen[160] = 8188;
-        // screen[192] = 6132;
-        // screen[224] = 5140;
-        // screen[256] = 864;
-        // screen[256] = 864;
-        // screen[288] = 0;
-        // screen[320] = -1;
-
-        // screen.fill(0xFFFFFFFF);
-        // for i in 0..screen.len() {
-        //     screen[i] = 0;
-        // }
 
         let screen_bytes = self.screen_bytes.as_mut();
         for y in 0..256 {
             for x in 0..32 {
                 let i = 32 * y + x;
-                // if screen[i] != 0 {
-                //   log!("slot {} is {}; x = {}, y = {}", i, screen[i], x, y);
                 let mut value = screen[i];
                 for j in 0..16 {
                     let loc = ((512 * y) + (16 * x) + j) as u32;
                     if (value & 0x1) == 1 {
-                        // log!("writing x = {}, y = {} at loc = {}", (16 * x) + j, y, loc);
-                        // self.screen_pixels.set_index(loc, 0xFF000000);
                         screen_bytes[loc as usize * 4] = 0x00;
                         screen_bytes[loc as usize * 4 + 1] = 0x00;
                         screen_bytes[loc as usize * 4 + 2] = 0x00;
                         screen_bytes[loc as usize * 4 + 3] = 0xFF;
                     } else {
-                        // TODO: consider drawing white pixels
-                        // self.screen_pixels.set_index(loc, 0xFFFFFFFF);
                         screen_bytes[loc as usize * 4] = 0xFF;
                         screen_bytes[loc as usize * 4 + 1] = 0xFF;
                         screen_bytes[loc as usize * 4 + 2] = 0xFF;
@@ -320,12 +239,8 @@ impl JackVirtualMachine {
 
                     value = value >> 1;
                 }
-                // } else {
-
-                // }
             }
         }
-        // log!("wrote {} bytes", count);
     }
 
     pub fn tick(&mut self) -> () {
