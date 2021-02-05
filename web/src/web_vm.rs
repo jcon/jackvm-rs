@@ -11,6 +11,8 @@ use crate::utils;
 use crate::web;
 use vm::vm;
 
+const SCREEN_HEIGHT: u32 = 256;
+const SCREEN_WIDTH: u32 = 512;
 const TICKS_PER_STEP: u32 = 40000;
 
 #[wasm_bindgen]
@@ -58,9 +60,9 @@ impl JackVirtualMachine {
             .append_child(&canvas)
             .expect("Can't append canvas to parent");
 
-        let mut screen_bytes = Box::new([0; 256 * 512 * 4]);
+        let mut screen_bytes = Box::new([0; (SCREEN_WIDTH * SCREEN_HEIGHT * 4) as usize]);
         let image_data =
-            web_sys::ImageData::new_with_u8_clamped_array(Clamped(screen_bytes.as_mut()), 512)
+            web_sys::ImageData::new_with_u8_clamped_array(Clamped(screen_bytes.as_mut()), SCREEN_WIDTH)
                 .expect("Can't create image data");
 
         let main_context = canvas
@@ -123,7 +125,7 @@ impl JackVirtualMachine {
 
     pub fn copy_screen(&mut self) {
         self.image_data =
-            web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), 512)
+            web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), SCREEN_WIDTH)
                 .expect("Can't create image data");
         self.main_context
             .put_image_data(&self.image_data, 0.0, 0.0)
@@ -166,12 +168,12 @@ impl JackVirtualMachine {
         */
 
         let screen_bytes = self.screen_bytes.as_mut();
-        for y in 0..256 {
+        for y in 0..SCREEN_HEIGHT{
             for x in 0..32 {
-                let i = 32 * y + x;
+                let i = (32 * y + x) as usize;
                 let mut value = screen[i];
                 for j in 0..16 {
-                    let loc = ((512 * y) + (16 * x) + j) as u32;
+                    let loc = ((SCREEN_WIDTH * y) + (16 * x) + j) as u32;
                     if (value & 0x1) == 1 {
                         screen_bytes[loc as usize * 4] = 0x00;
                         screen_bytes[loc as usize * 4 + 1] = 0x00;
