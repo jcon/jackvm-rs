@@ -36,16 +36,6 @@ pub struct JackVmPlayer {
     vm: Rc<RefCell<web_vm::JackVirtualMachine>>,
 }
 
-fn window() -> web_sys::Window {
-    web_sys::window().expect("no global `window` exists")
-}
-
-fn request_animation_frame(f: &Closure<dyn FnMut()>) {
-    window()
-        .request_animation_frame(f.as_ref().unchecked_ref())
-        .expect("should register `requestAnimationFrame` OK");
-}
-
 #[wasm_bindgen]
 impl JackVmPlayer {
     #[wasm_bindgen(constructor)]
@@ -63,7 +53,7 @@ impl JackVmPlayer {
             js_global
                 .document
                 .add_event_listener_with_callback("keydown", closure.as_ref().unchecked_ref())
-                .expect("add event listener");
+                .expect("add keydown listener");
             closure.forget();
         }
 
@@ -76,7 +66,7 @@ impl JackVmPlayer {
             js_global
                 .document
                 .add_event_listener_with_callback("keyup", closure.as_ref().unchecked_ref())
-                .expect("add event listener");
+                .expect("add keyup listener");
             closure.forget();
         }
 
@@ -129,12 +119,19 @@ impl JackVmPlayer {
     // Sets up an animation loop. The structure for this was take from
     // https://rustwasm.github.io/wasm-bindgen/examples/request-animation-frame.html
     fn start_animation_loop(&mut self) {
-        // setup animation loop.
+        // Clone VM so we can share it with the callback requestAnimationFrame receives
         let vm = Rc::clone(&self.vm);
 
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
 
+        // This closure borrows the VM instance for each animation frame.
+        // This code will be safe as long as the VM is running inside the main thread of the browser.
+        // This will be guaranteed because:
+        // - JavaScript is single threaded, so two threads cannot access the VM at the same time.
+        // - The entry point for all logic for all IO to the VM is excuted within `vm.next_frame`.
+        // - The keyboard listener callbacks also happen in the JavaScript event loop, so cannot
+        //   happen at the same time as each animation frame.
         *g.borrow_mut() = Some(Closure::wrap(Box::new(move || {
             if vm.borrow().is_stopped() {
                 // Drop our handle to this closure so that it will get cleaned
@@ -147,10 +144,10 @@ impl JackVmPlayer {
             vm.borrow_mut().next_frame();
 
             // Schedule ourself for another requestAnimationFrame callback.
-            request_animation_frame(f.borrow().as_ref().unwrap());
+            web::request_animation_frame(f.borrow().as_ref().unwrap());
         }) as Box<dyn FnMut()>));
 
-        request_animation_frame(g.borrow().as_ref().unwrap());
+        web::request_animation_frame(g.borrow().as_ref().unwrap());
     }
 }
 

@@ -1,4 +1,4 @@
-use wasm_bindgen::prelude::JsValue;
+use wasm_bindgen::prelude::{Closure, JsValue};
 use wasm_bindgen::JsCast;
 use web_sys::{Document, HtmlCanvasElement, HtmlElement, Window};
 
@@ -27,6 +27,16 @@ impl JsGlobal {
             body,
         })
     }
+}
+
+pub fn window() -> web_sys::Window {
+    web_sys::window().expect("no global `window` exists")
+}
+
+pub fn request_animation_frame(f: &Closure<dyn FnMut()>) -> i32 {
+    window()
+        .request_animation_frame(f.as_ref().unchecked_ref())
+        .expect("Can't register callback with `requestAnimationFrame`")
 }
 
 pub fn create_canvas(
