@@ -54,7 +54,6 @@ pub fn create_canvas(
 
     canvas.set_height(height);
     canvas.set_width(width);
-    canvas.set_tab_index(1);
 
     Ok(canvas)
 }
