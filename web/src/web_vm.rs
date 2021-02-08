@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{Clamped, JsCast};
-use web_sys::{CanvasRenderingContext2d, HtmlElement, HtmlCanvasElement};
+use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlElement};
 
 use serde::Deserialize;
 
@@ -76,9 +76,11 @@ impl JackVirtualMachine {
             .expect("Can't append canvas to parent");
 
         let mut screen_bytes = Box::new([0; (SCREEN_WIDTH * SCREEN_HEIGHT * 4) as usize]);
-        let image_data =
-            web_sys::ImageData::new_with_u8_clamped_array(Clamped(screen_bytes.as_mut()), SCREEN_WIDTH)
-                .expect("Can't create image data");
+        let image_data = web_sys::ImageData::new_with_u8_clamped_array(
+            Clamped(screen_bytes.as_mut()),
+            SCREEN_WIDTH,
+        )
+        .expect("Can't create image data");
 
         let main_context = canvas
             .get_context("2d")
@@ -102,7 +104,6 @@ impl JackVirtualMachine {
 
         player
     }
-
 
     pub fn load_raw(&mut self, program: &str) -> CompilationResult {
         self.render_screen();
@@ -143,9 +144,11 @@ impl JackVirtualMachine {
     }
 
     pub fn copy_screen(&mut self) {
-        self.image_data =
-            web_sys::ImageData::new_with_u8_clamped_array(Clamped(self.screen_bytes.as_mut()), SCREEN_WIDTH)
-                .expect("Can't create image data");
+        self.image_data = web_sys::ImageData::new_with_u8_clamped_array(
+            Clamped(self.screen_bytes.as_mut()),
+            SCREEN_WIDTH,
+        )
+        .expect("Can't create image data");
         self.main_context
             .put_image_data(&self.image_data, 0.0, 0.0)
             .expect("Can't put image data");
@@ -186,9 +189,13 @@ impl JackVirtualMachine {
         pop that 256
         */
 
-        let JackVirtualMachine { on_color, off_color, .. } = self;
+        let JackVirtualMachine {
+            on_color,
+            off_color,
+            ..
+        } = self;
         let screen_bytes = self.screen_bytes.as_mut();
-        for y in 0..SCREEN_HEIGHT{
+        for y in 0..SCREEN_HEIGHT {
             for x in 0..32 {
                 let i = (32 * y + x) as usize;
                 let mut value = screen[i];
@@ -295,22 +302,22 @@ fn parse_color(c: u32) -> [u8; 4] {
 
 fn setup_special_keys() -> HashMap<i16, i16> {
     let mut special_keys: HashMap<i16, i16> = [
-            (13, 128), // newline / return
-            (8, 129),  // backspace
-            (37, 130), // left arrow
-            (38, 131), // up arrow
-            (39, 132), // right arrow
-            (40, 133), // down arrow
-            (36, 134), // home
-            (35, 135), // end
-            (33, 136), // page up
-            (45, 138), // page up
-            (46, 139), // delete
-            (27, 140), // escape
-        ]
-        .iter()
-        .copied()
-        .collect();
+        (13, 128), // newline / return
+        (8, 129),  // backspace
+        (37, 130), // left arrow
+        (38, 131), // up arrow
+        (39, 132), // right arrow
+        (40, 133), // down arrow
+        (36, 134), // home
+        (35, 135), // end
+        (33, 136), // page up
+        (45, 138), // page up
+        (46, 139), // delete
+        (27, 140), // escape
+    ]
+    .iter()
+    .copied()
+    .collect();
     // Set keys f1 .. f12
     for i in 0..12 {
         // In JS they're 112..123, in Jack, they're 141..152

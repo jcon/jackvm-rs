@@ -112,7 +112,9 @@ impl VirtualMachine {
     }
 
     pub fn restart(&mut self) {
-        for elem in self.memory.iter_mut() { *elem = 0; }
+        for elem in self.memory.iter_mut() {
+            *elem = 0;
+        }
 
         self.memory[SP] = STACK_START as i16;
 
