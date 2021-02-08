@@ -5,7 +5,9 @@ use std::collections::HashMap;
 use js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{Clamped, JsCast};
-use web_sys::{CanvasRenderingContext2d, HtmlElement};
+use web_sys::{CanvasRenderingContext2d, HtmlElement, HtmlCanvasElement};
+
+use serde::Deserialize;
 
 use crate::utils;
 use crate::web;
@@ -18,6 +20,13 @@ const TICKS_PER_STEP: u32 = 40000;
 #[wasm_bindgen]
 extern "C" {
     fn alert(s: &str);
+}
+
+// TODO: Serde adds almost 60k to the wasm size, consider manually parsing options.
+#[derive(Deserialize)]
+pub struct Options {
+    pub on_color: u32,
+    pub off_color: u32,
 }
 
 // A macro to provide `println!(..)`-style syntax for `console.log` logging.
@@ -38,14 +47,18 @@ pub struct JackVirtualMachine {
     screen_bytes: Box<[u8; 512 * 256 * 4]>,
     image_data: web_sys::ImageData,
     main_context: CanvasRenderingContext2d,
+    canvas: HtmlCanvasElement,
     paused: bool,
     halt_listeners: Vec<js_sys::Function>,
 
     special_keys: HashMap<i16, i16>,
+
+    on_color: [u8; 4],
+    off_color: [u8; 4],
 }
 
 impl JackVirtualMachine {
-    pub fn new(container: JsValue) -> JackVirtualMachine {
+    pub fn new(container: JsValue, options: Options) -> JackVirtualMachine {
         utils::set_panic_hook();
 
         let container: HtmlElement = container
@@ -76,14 +89,18 @@ impl JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
             screen_bytes,
             image_data,
+            canvas: canvas,
             main_context,
             paused: true,
             halt_listeners: vec![],
             special_keys: setup_special_keys(),
+            on_color: parse_color(options.on_color),
+            off_color: parse_color(options.off_color),
         };
 
         player
     }
+
 
     pub fn load_raw(&mut self, program: &str) -> CompilationResult {
         self.render_screen();
@@ -167,6 +184,7 @@ impl JackVirtualMachine {
         pop that 256
         */
 
+        let JackVirtualMachine { on_color, off_color, .. } = self;
         let screen_bytes = self.screen_bytes.as_mut();
         for y in 0..SCREEN_HEIGHT{
             for x in 0..32 {
@@ -175,15 +193,15 @@ impl JackVirtualMachine {
                 for j in 0..16 {
                     let loc = ((SCREEN_WIDTH * y) + (16 * x) + j) as u32;
                     if (value & 0x1) == 1 {
-                        screen_bytes[loc as usize * 4] = 0x00;
-                        screen_bytes[loc as usize * 4 + 1] = 0x00;
-                        screen_bytes[loc as usize * 4 + 2] = 0x00;
-                        screen_bytes[loc as usize * 4 + 3] = 0xFF;
+                        screen_bytes[loc as usize * 4] = on_color[0];
+                        screen_bytes[loc as usize * 4 + 1] = on_color[1];
+                        screen_bytes[loc as usize * 4 + 2] = on_color[2];
+                        screen_bytes[loc as usize * 4 + 3] = on_color[3];
                     } else {
-                        screen_bytes[loc as usize * 4] = 0xFF;
-                        screen_bytes[loc as usize * 4 + 1] = 0xFF;
-                        screen_bytes[loc as usize * 4 + 2] = 0xFF;
-                        screen_bytes[loc as usize * 4 + 3] = 0xFF;
+                        screen_bytes[loc as usize * 4] = off_color[0];
+                        screen_bytes[loc as usize * 4 + 1] = off_color[1];
+                        screen_bytes[loc as usize * 4 + 2] = off_color[2];
+                        screen_bytes[loc as usize * 4 + 3] = off_color[3];
                     }
 
                     value = value >> 1;
@@ -254,6 +272,19 @@ impl JackVirtualMachine {
     pub fn peek(&self, address: usize) -> i16 {
         self.jack_vm.peek(address)
     }
+}
+
+fn parse_color(c: u32) -> [u8; 4] {
+    let mut result = [0; 4];
+
+    result[0] = ((c >> 24) & 0xff) as u8;
+    result[1] = ((c >> 16) & 0xff) as u8;
+    result[2] = ((c >> 8) & 0xff) as u8;
+    result[3] = (c & 0xff) as u8;
+
+    // log!("color is {} [{}, {}, {}, {}]", c, result[0], result[1], result[2], result[3]);
+
+    result
 }
 
 fn setup_special_keys() -> HashMap<i16, i16> {
