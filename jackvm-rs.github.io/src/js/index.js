@@ -3,7 +3,7 @@
 import { JackVmPlayer } from "jackvm-player";
 const parentEl = document.getElementById('screen-container');
 
-let player = new JackVmPlayer(parentEl); // , { debugMemory: false });
+let player = new JackVmPlayer(parentEl, { onColor: 0xffffffff, offColor: 0x000000ff }); // , { debugMemory: false });
 let canvas = parentEl.querySelector('canvas');
 // Support two modes depending on the tailwind breakpoint reached:
 // 1x or 2x
