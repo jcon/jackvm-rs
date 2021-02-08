@@ -25,7 +25,9 @@ extern "C" {
 // TODO: Serde adds almost 60k to the wasm size, consider manually parsing options.
 #[derive(Deserialize)]
 pub struct Options {
+    #[serde(rename = "onColor")]
     pub on_color: u32,
+    #[serde(rename = "offColor")]
     pub off_color: u32,
 }
 
