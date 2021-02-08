@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use js_sys;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::{Clamped, JsCast};
-use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlElement};
+use web_sys::{CanvasRenderingContext2d, HtmlElement};
 
 use serde::Deserialize;
 
@@ -49,7 +49,6 @@ pub struct JackVirtualMachine {
     screen_bytes: Box<[u8; 512 * 256 * 4]>,
     image_data: web_sys::ImageData,
     main_context: CanvasRenderingContext2d,
-    canvas: HtmlCanvasElement,
     paused: bool,
     halt_listeners: Vec<js_sys::Function>,
 
@@ -93,7 +92,6 @@ impl JackVirtualMachine {
             jack_vm: vm::VirtualMachine::new(),
             screen_bytes,
             image_data,
-            canvas: canvas,
             main_context,
             paused: true,
             halt_listeners: vec![],

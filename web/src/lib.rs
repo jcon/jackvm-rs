@@ -32,7 +32,6 @@ extern "C" {
 
 #[wasm_bindgen]
 pub struct JackVmPlayer {
-    js_global: web::JsGlobal,
     vm: Rc<RefCell<web_vm::JackVirtualMachine>>,
 }
 
@@ -82,7 +81,6 @@ impl JackVmPlayer {
         }
 
         JackVmPlayer {
-            js_global,
             vm: Rc::clone(&vm),
         }
     }

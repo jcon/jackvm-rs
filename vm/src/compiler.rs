@@ -71,18 +71,16 @@ pub struct Instruction<'a> {
 
 impl<'a> fmt::Display for Instruction<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.command_type.and_then(|ct| {
-            write!(f, "{}", ct);
-            Some(ct)
-        });
-        self.arg1.and_then(|a1| {
-            write!(f, " {}", a1);
-            Some(a1)
-        });
-        self.arg2.and_then(|a2| {
-            write!(f, " {}", a2);
-            Some(a2)
-        });
+        if let Some(ct) = self.command_type {
+            write!(f, "{}", ct)?;
+        }
+        if let Some(a1) = self.arg1 {
+            write!(f, "{}", a1)?;
+        }
+        if let Some(a2) = self.arg2 {
+            write!(f, "{}", a2)?;
+        }
+
         Ok(())
     }
 }

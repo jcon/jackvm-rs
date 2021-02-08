@@ -13,6 +13,7 @@ struct FunctionCall {
     name: String,
 }
 
+#[allow(unused)]
 impl FunctionCall {
     pub fn get_class_name(&self) -> &str {
         let end = self.name.find(".").unwrap_or(self.name.len());
