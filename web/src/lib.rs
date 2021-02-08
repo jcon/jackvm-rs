@@ -114,6 +114,19 @@ impl JackVmPlayer {
         self.vm.borrow().peek(address)
     }
 
+    #[wasm_bindgen(js_name = toggleRun)]
+    pub fn toggle_run(&mut self) {
+        if self.vm.borrow().is_halted() {
+            return;
+        }
+
+        if self.vm.borrow().is_paused() {
+            self.run();
+        } else {
+            self.vm.borrow_mut().set_is_paused(true);
+        }
+    }
+
     fn run(&mut self) {
         if !self.vm.borrow().is_paused() {
             return;

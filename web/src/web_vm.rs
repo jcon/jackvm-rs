@@ -225,6 +225,10 @@ impl JackVirtualMachine {
         self.paused || self.jack_vm.is_halted()
     }
 
+    pub fn is_halted(&self) -> bool {
+        self.jack_vm.is_halted()
+    }
+
     pub fn is_paused(&self) -> bool {
         self.paused
     }

@@ -103,6 +103,12 @@ add
               player.load(progEl.value);
           }
 
+          function toggleRun() {
+            player.toggleRun();
+            updateMemory();
+          }
+
+
           // Update the VM's program whenever the "editor" changes.
           const progEl = document.querySelector("#editor");
           progEl.addEventListener("change", event => {
@@ -118,6 +124,12 @@ add
               updateProgram();
               player.restart();
               updateMemory();
+              event.stopPropagation();
+          });
+
+          document.addEventListener("click", event => {
+            console.log("document click");
+            toggleRun();
           });
 
 
