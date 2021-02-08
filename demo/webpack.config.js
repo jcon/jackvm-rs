@@ -36,7 +36,6 @@ module.exports = {
     }),
     new WasmPackPlugin({
       crateDirectory: crateDir,
-      outName: 'web',
     //   forceMode: 'production',
     })
   ],

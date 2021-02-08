@@ -87,7 +87,7 @@ add
 
           const parentEl = document.getElementById('screen-container');
 
-          let player = new JackVmPlayer(parentEl);
+          let player = new JackVmPlayer(parentEl, { on_color: 0xffffffff, off_color: 0x000000ff});
           let memoryDebugger = new MemoryDebugger(player);
 
           // Update the memory in an animation loop.
