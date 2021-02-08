@@ -1,6 +1,6 @@
 [package]
 name = "jackvm-player"
-version = "0.1.10"
+version = "0.1.11"
 authors = ["Jim Connell <james.d.connell@gmail.com>"]
 description = "Runs Jack Language VM files on the web"
 repository = "https://github.com/jcon/jackvm-rs"

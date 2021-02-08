@@ -2288,10 +2288,10 @@ isobject@^3.0.1:
   resolved "https://registry.yarnpkg.com/isobject/-/isobject-3.0.1.tgz#4e431e92b11a9731636aa1f9c8d1ccbcfdab78df"
   integrity sha1-TkMekrEalzFjaqH5yNHMvP2reN8=
 
-jackvm-player@^0.1.10:
-  version "0.1.10"
-  resolved "https://registry.yarnpkg.com/jackvm-player/-/jackvm-player-0.1.10.tgz#359c7713066da6c88a786e5eb47badaa315be3f2"
-  integrity sha512-Ib8fjLPdHd4FWl4JsDDA4Djc/MWkbq9SGGnJhC4McooXwZyRt1kjMwQc7NhC4AI8AVPtVgE4lgbIQNXW77XnMg==
+jackvm-player@^0.1.11:
+  version "0.1.11"
+  resolved "https://registry.yarnpkg.com/jackvm-player/-/jackvm-player-0.1.11.tgz#92e4b755d3c2efd2ea5757ce8c6033370b035f9a"
+  integrity sha512-OfBIBItwOBo3Trl3XGk4ZphlYlmk4GwsgT2nl7TjqfCcDXJFGtq9vAo+Pl6G+zx1BLVZSqGODZkaCmAoMHKf/g==
 
 javascript-stringify@^2.0.1:
   version "2.0.1"
