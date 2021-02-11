@@ -1,34 +1,59 @@
+// The virtual registers of the Hack computer.
+const REGISTER_NAMES = {
+    0: 'SP',
+    1: 'ARG',
+    2: 'LCL',
+    3: 'THIS',
+    4: 'THAT',
+}
+for (let i = 0; i < 8; i++) {
+    REGISTER_NAMES[i + 5] = `TEMP${i}`;
+}
+for (let i = 13; i < 16; i++) {
+    REGISTER_NAMES[i] = `R${i}`;
+}
+
+function range(start, end) {
+    return [...Array(end - start).keys()].map((key) => key + start);
+}
+
+function createMemoryCell(address) {
+    let tableRow = document.createElement("tr");
+    let rowHead = document.createElement("th");
+    const name = address in REGISTER_NAMES ? REGISTER_NAMES[address] : address.toString();
+    rowHead.innerHTML = name;
+    tableRow.appendChild(rowHead);
+    let rowCell = document.createElement("td");
+    rowCell.innerHTML = "0";
+    tableRow.appendChild(rowCell);
+    return [tableRow, rowCell];
+}
+
 class MemoryDebugger {
     constructor(vm) {
         this.vm = vm;
-        let registerCellIds = [0, 1, 2, 3, 4]; // 5, 6, 7, 8];
-        let memoryCellIds = [256, 257, 258, 259, 260, 261, 262, 24576]; // , 16384, 16416, 16448];
+        let registerCellIds = range(0, 5);
+        let memoryCellIds = range(256, 268); // [256, 257, 258, 259, 260, 261, 262, 24576]; // , 16384, 16416, 16448];
 
         this.memoryCells = {};
         this.initializedMemory = false;
         this.allMemoryCellIds = [];
-        let tableBody = document.querySelector("#memory-body");
+        this.createCells('#memory-body', memoryCellIds);
+        this.createCells('#registers-body', registerCellIds);
+        this.allMemoryCellIds = registerCellIds.concat(memoryCellIds);
+        this.initializedMemory = true;
+    }
+
+    createCells(tableId, cellIds) {
+        let tableBody = document.querySelector(tableId);
         if (tableBody !== undefined) {
-            for (let i = 0; i < memoryCellIds.length; i++) {
-                let tableRow = document.createElement("tr");
-                let rowHead = document.createElement("th");
-                rowHead.innerHTML = memoryCellIds[i].toString();
-                tableRow.appendChild(rowHead);
-                let rowCell = document.createElement("td");
-                rowCell.innerHTML = "0";
-                tableRow.appendChild(rowCell);
+            for (let i = 0; i < cellIds.length; i++) {
+                let [tableRow, rowCell] = createMemoryCell(cellIds[i]);
                 tableBody.appendChild(tableRow);
-                let cellId = memoryCellIds[i];
+                let cellId = cellIds[i];
 
                 this.memoryCells[cellId] = rowCell;
             }
-            let that = this;
-            registerCellIds.forEach(cellId => {
-                that.memoryCells[cellId] = document.querySelector(`#mem-${cellId}`);
-            });
-
-            this.allMemoryCellIds = registerCellIds.concat(memoryCellIds);
-            this.initializedMemory = true;
         }
     }
 
@@ -41,7 +66,6 @@ class MemoryDebugger {
             let cellId = this.allMemoryCellIds[i];
             this.memoryCells[cellId].innerHTML = `${this.vm.peek(cellId)}${stackPointer === cellId ? " < SP" : ""}`;
         }
-        this.memoryCells[24576].innerHTML = `${this.vm.peek(24575)} (key: ${String.fromCharCode(this.vm.peek(24575))})`;
     }
 
 }
