@@ -36,7 +36,8 @@ module.exports = {
     }),
     new WasmPackPlugin({
       crateDirectory: crateDir,
-    //   forceMode: 'production',
+      outName: 'jackvm_player',
+      forceMode: 'production',
     })
   ],
 };
