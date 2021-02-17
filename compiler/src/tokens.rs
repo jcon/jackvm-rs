@@ -21,7 +21,7 @@ pub enum Keyword {
     TRUE,
     FALSE,
     NULL,
-    THIS
+    THIS,
 }
 
 pub enum Token {
@@ -29,17 +29,22 @@ pub enum Token {
     Symbol(char),
     Identifier(String),
     IntConstant(i16),
-    StringConstant(String)
+    StringConstant(String),
 }
 
+// NOTE: lazy_static would have bee more concise, but it uses features that add 36k to WASM output.
 pub fn parse_symbol(c: char) -> Option<Token> {
-    Some(Token::Symbol(c))
+    match c {
+        '{' | '}' | '(' | ')' | '[' | ']' | '.' | ',' | ';' | '+' | '-' | '*' | '/' | '&' | '|'
+        | '<' | '>' | '=' | '~' => Some(Token::Symbol(c)),
+        _ => None,
+    }
 }
 
 pub fn tokenize(source: &str) -> Vec<Token> {
     let s = parse_symbol('+');
     match s {
-        Some(t) => vec!(t),
-        _ => vec!()
+        Some(t) => vec![t],
+        _ => vec![],
     }
 }
