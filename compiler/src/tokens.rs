@@ -54,8 +54,7 @@ fn parse_symbol_char(c: char) -> Option<Token> {
 }
 
 fn parse_symbol(chars: &mut Tokenizer) -> Option<Token> {
-    chars.get_current()
-        .and_then(|c| parse_symbol_char(c))
+    chars.get_current().and_then(|c| parse_symbol_char(c))
 }
 
 // NOTE: a lazy_static HashMap would have bee more concise, but lazy_static uses features that add 36k to WASM output.
@@ -101,19 +100,11 @@ fn is_whitespace(c: char) -> bool {
 fn next_word(it: &mut Tokenizer) -> String {
     let mut word = String::new();
     word.push(it.get_current().unwrap());
-    loop {
-        let opt_c = it.next().and_then(|c| {
-            if is_whitespace(c) || is_symbol(c) {
-                it.backup();
-                return None
-            }
-            word.push(c);
-            Some(true)
-        });
 
-        if let None = opt_c {
-            break;
-        }
+    let is_word_char = |c| !is_whitespace(c) && !is_symbol(c);
+    while it.has_next(is_word_char) {
+        let next = it.next().unwrap();
+        word.push(next);
     }
     word
 }
@@ -135,12 +126,21 @@ impl Tokenizer {
 
     pub fn next(&mut self) -> Option<char> {
         self.pos += 1;
-        if (self.pos as usize) < self.chars.len() {
-            self.current = Some(self.chars[self.pos as usize]);
+        let pos = self.pos as usize;
+        if pos < self.chars.len() {
+            self.current = Some(self.chars[pos]);
             self.current
         } else {
             None
         }
+    }
+
+    pub fn has_next<F>(&mut self, test: F) -> bool
+    where
+        F: FnOnce(char) -> bool,
+    {
+        let pos = (self.pos + 1) as usize;
+        pos < self.chars.len() && test(self.chars[pos])
     }
 
     pub fn get_current(&self) -> Option<char> {
@@ -199,15 +199,9 @@ mod test {
 
         // The same expression should parse with / without whitespace
         let result = tokenize("a+5");
-        assert_eq!(
-            result,
-            expected
-        );
+        assert_eq!(result, expected);
 
         let result = tokenize("a + 5");
-        assert_eq!(
-            result,
-            expected
-        );
+        assert_eq!(result, expected);
     }
 }
