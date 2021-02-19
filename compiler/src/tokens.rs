@@ -174,24 +174,14 @@ impl Tokenizer {
     }
 
     pub fn matches(&mut self, pattern: &str) -> bool {
-        let source = pattern;
-        let mut pattern = pattern.chars();
-        let still_matches= |c: &char| self.get_current().filter(|b| b == c).is_some();
-        if pattern.next().filter(still_matches).is_none() {
-            false
-        } else {
-            let mut look_ahead = 1;
-            for c in pattern {
-                look_ahead += 1;
-                if self.next().filter(|b| *b == c).is_none() {
-                    break;
-                }
-            }
-            for _ in 0..look_ahead-1 {
-                self.backup();
-            }
-            look_ahead == source.len()
+        let pos = self.pos as usize;
+        if pos + pattern.len() >= self.chars.len() {
+            return false;
         }
+
+        let source = &self.chars[pos..(pos + pattern.len())];
+        let pattern: Vec<char> = pattern.chars().collect();
+        source == &pattern
     }
 
 }
