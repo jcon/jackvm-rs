@@ -53,16 +53,9 @@ fn parse_symbol_char(c: char) -> Option<Token> {
     }
 }
 
-fn parse_symbol(chars: &mut Peekable<Chars<'_>>) -> Option<Token> {
-    let next_c = chars.peek();
-    if let Some(c) = next_c {
-        parse_symbol_char(*c).and_then(|s| {
-            chars.next();
-            Some(s)
-        })
-    } else {
-        None
-    }
+fn parse_symbol(chars: &mut Tokenizer) -> Option<Token> {
+    chars.get_current()
+        .and_then(|c| parse_symbol_char(c))
 }
 
 // NOTE: a lazy_static HashMap would have bee more concise, but lazy_static uses features that add 36k to WASM output.
@@ -105,66 +98,79 @@ fn is_whitespace(c: char) -> bool {
     }
 }
 
-fn next_word(it: &mut Peekable<Chars<'_>>) -> String {
+fn next_word(it: &mut Tokenizer) -> String {
     let mut word = String::new();
+    word.push(it.get_current().unwrap());
     loop {
-        let opt_c = it.peek();
-        if let Some(c) = opt_c {
-            if is_whitespace(*c) || is_symbol(*c) {
-                break;
+        let opt_c = it.next().and_then(|c| {
+            if is_whitespace(c) || is_symbol(c) {
+                it.backup();
+                return None
             }
-            word.push(it.next().unwrap());
-        } else {
+            word.push(c);
+            Some(true)
+        });
+
+        if let None = opt_c {
             break;
         }
     }
     word
 }
 
-// struct Tokenizer<'a> {
-//     source: Chars<'a>,
-//     position: Option<usize>,
-// }
+struct Tokenizer {
+    chars: Vec<char>,
+    current: Option<char>,
+    pos: i32,
+}
 
-// impl<'a> Tokenizer<'a> {
-//     pub fn new(source: &str) -> Tokenizer {
-//         Tokenizer {
-//             source: source.chars(),
-//             position: None,
-//         }
-//     }
-//     // pub fn get_next_pos(&self, start: usize) -> Option<usize> {
-//     //     let look_ahead = Some(start + 1);
-//     //     loop {
-//     //         let next_index: usize = match look_ahead {
-//     //             None => return None,
-//     //             Some(n) => n
-//     //         };
-//     //         let c: char = self.source[next_index];
-//     //     }
-//     //     0
-//     // }
+impl Tokenizer {
+    pub fn new(chars: Chars<'_>) -> Tokenizer {
+        Tokenizer {
+            chars: chars.collect(),
+            current: None,
+            pos: -1,
+        }
+    }
 
-// }
+    pub fn next(&mut self) -> Option<char> {
+        self.pos += 1;
+        if (self.pos as usize) < self.chars.len() {
+            self.current = Some(self.chars[self.pos as usize]);
+            self.current
+        } else {
+            None
+        }
+    }
+
+    pub fn get_current(&self) -> Option<char> {
+        self.current
+    }
+
+    pub fn backup(&mut self) {
+        if self.pos >= 0 {
+            self.pos -= 1;
+        }
+    }
+}
 
 pub fn tokenize(source: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = vec![];
-    let mut chars = source.chars().peekable();
+    let mut chars = Tokenizer::new(source.chars());
 
     println!("got some chars");
 
     // TODO: handle comments
     loop {
-        match chars.peek() {
-            Some(c) if is_whitespace(*c) => {
-                chars.next();
+        match chars.next() {
+            Some(c) if is_whitespace(c) => {
                 continue;
             }
             None => break,
             _ => (),
         };
 
-        println!("next c is {}", chars.peek().unwrap());
+        println!("next c is {}", chars.get_current().unwrap());
 
         let token = parse_symbol(&mut chars).or_else(|| {
             let word = next_word(&mut chars);
@@ -185,14 +191,23 @@ mod test {
 
     #[test]
     fn test_parse_simple_expression() {
+        let expected = vec![
+            Token::Identifier("a".to_string()),
+            Token::Symbol('+'),
+            Token::IntConstant(5),
+        ];
+
+        // The same expression should parse with / without whitespace
+        let result = tokenize("a+5");
+        assert_eq!(
+            result,
+            expected
+        );
+
         let result = tokenize("a + 5");
         assert_eq!(
             result,
-            vec![
-                Token::Identifier("a".to_string()),
-                Token::Symbol('+'),
-                Token::IntConstant(5),
-            ]
+            expected
         );
     }
 }
