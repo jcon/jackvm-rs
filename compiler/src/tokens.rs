@@ -1,6 +1,12 @@
-use std::str::Chars;
+//! Tokenizer for Jack language.
+//!
+//! Provides a [`tokenize`] function for breaking a Jack language source file
+//! into a Vec of tokens. Token types can be either keywords, symbols, identifiers,
+//! int constants, or string constants.
+
 use std::vec::Vec;
 
+/// An enum representing all possible Jack language keywords.
 #[derive(Debug, PartialEq)]
 pub enum Keyword {
     CLASS,
@@ -26,6 +32,7 @@ pub enum Keyword {
     THIS,
 }
 
+/// Represents the different types of tokens that exist in the Jack language.
 #[derive(Debug, PartialEq)]
 pub enum Token {
     Keyword(Keyword),
@@ -35,7 +42,12 @@ pub enum Token {
     StringConstant(String),
 }
 
-// NOTE: lazy_static HashMap would have bee more concise, but lazy_static uses features that add 36k to WASM output.
+/// Returns true if the given char is one the Jack language symbols.
+/// NOTE: this function does not consider (") a symbol, because the
+/// tokenizer handles string constants directly.
+///
+/// NOTE: lazy_static HashMap would have bee more concise, but lazy_static
+/// uses features that add 36k to WASM output.
 fn is_symbol(c: char) -> bool {
     match c {
         '{' | '}' | '(' | ')' | '[' | ']' | '.' | ',' | ';' | '+' | '-' | '*' | '/' | '&' | '|'
@@ -44,6 +56,8 @@ fn is_symbol(c: char) -> bool {
     }
 }
 
+/// Returns a Symbol token if the specified char is a Jack language token
+/// otherwise None.
 fn parse_symbol_char(c: char) -> Option<Token> {
     if is_symbol(c) {
         //        println!("{} is a symbol", c);
@@ -53,7 +67,11 @@ fn parse_symbol_char(c: char) -> Option<Token> {
     }
 }
 
-// NOTE: a lazy_static HashMap would have bee more concise, but lazy_static uses features that add 36k to WASM output.
+/// Returns a Keyword token for the specified word if it is one
+/// of the Jack language keywords, otherwise None.
+///
+/// NOTE: a lazy_static HashMap would have bee more concise, but lazy_static
+/// uses features that add 36k to WASM output.
 fn parse_keyword(word: &str) -> Option<Token> {
     match word {
         "class" => Some(Token::Keyword(Keyword::CLASS)),
@@ -81,10 +99,13 @@ fn parse_keyword(word: &str) -> Option<Token> {
     }
 }
 
+/// Returns an integer constant token if this function can parse
+/// the specified word as an i16, otherwise None.
 fn parse_int(word: &str) -> Option<Token> {
     word.parse::<i16>().map(|i| Token::IntConstant(i)).ok()
 }
 
+/// Returns a string constant if s begins with '"', otherwise None.
 fn parse_string_constant(s: &str) -> Option<Token> {
     match s.chars().next() {
         Some(c) if c != '"' => return None,
@@ -100,6 +121,8 @@ fn parse_string_constant(s: &str) -> Option<Token> {
     Some(Token::StringConstant(word))
 }
 
+/// Returns a reference to the slice of ptr that starts with needle
+/// otherwise returns an empty string.
 fn advance_to<'a>(ptr: &'a str, needle: &str) -> &'a str {
     match ptr.find(needle) {
         Some(i) => &ptr[i..],
@@ -107,6 +130,8 @@ fn advance_to<'a>(ptr: &'a str, needle: &str) -> &'a str {
     }
 }
 
+/// Returns a reference to the slice of ptr that starts right _after_ needle
+/// otherwise returns an empty string.
 fn advance_to_after<'a>(ptr: &'a str, needle: &str) -> &'a str {
     let ptr = advance_to(ptr, needle);
     if needle.len() < ptr.len() {
@@ -116,6 +141,8 @@ fn advance_to_after<'a>(ptr: &'a str, needle: &str) -> &'a str {
     }
 }
 
+/// Returns the next word (sequence of characters that are neither whitespace
+/// nor a symbol).
 fn next_word<'a>(ptr: &'a str) -> (&'a str, &'a str) {
     let end = ptr
         .find(|c: char| c.is_whitespace() || is_symbol(c))
@@ -123,9 +150,14 @@ fn next_word<'a>(ptr: &'a str) -> (&'a str, &'a str) {
     (&ptr[..end], &ptr[end..])
 }
 
+/// Translates the string into a Vec of Jack language tokens.
+/// This function performs no lexical analysis of the program.
 pub fn tokenize(source: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = vec![];
 
+    // Keep a pointer to our current position in the source.
+    // We update the pointer as we consume chars to make
+    // up each token.
     let mut ptr = source;
 
     while ptr.len() > 0 {
@@ -137,12 +169,12 @@ pub fn tokenize(source: &str) -> Vec<Token> {
         } else if ptr.starts_with("/*") {
             ptr = advance_to_after(&ptr[2..], "*/");
         } else {
-            let token = parse_symbol_char(next_c)
+            let token = parse_symbol_char(next_c) // try parsing symbol
                 .and_then(|t| {
                     ptr = &ptr[1..];
                     Some(t)
                 })
-                .or_else(|| {
+                .or_else(|| { // try parsing string constant
                     let s = parse_string_constant(ptr);
                     if s.is_some() {
                         // move pointer past second '"'
@@ -151,7 +183,7 @@ pub fn tokenize(source: &str) -> Vec<Token> {
                     }
                     s
                 })
-                .or_else(|| {
+                .or_else(|| { // try parsing word as keyword, int, or identifier
                     let (word, next) = next_word(ptr);
                     ptr = next;
                     parse_keyword(&word)
@@ -170,6 +202,12 @@ pub fn tokenize(source: &str) -> Vec<Token> {
 #[cfg(test)]
 mod test {
     use super::*;
+
+    #[test]
+    fn test_parse_empty_program() {
+        let result = tokenize("");
+        assert_eq!(result, vec![]);
+    }
 
     #[test]
     fn test_parse_simple_expression() {
