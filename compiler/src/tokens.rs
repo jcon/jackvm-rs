@@ -121,13 +121,11 @@ pub fn tokenize(source: &str) -> Vec<Token> {
                 continue;
             }
             Some(_) if chars.matches("//") => {
-                println!("matched comment begin");
                 chars.read_until(&mut dummy, |c| c != '\n');
                 continue;
             }
             Some(_) if chars.matches("/*") => {
-                println!("matched multi-line comment begin");
-                chars.next();
+                chars.next(); // consume *, so we don't accidentally work for this pattern: /*/
                 chars.consume_until_matches("*/");
                 continue;
             }
@@ -188,12 +186,6 @@ impl Tokenizer {
         self.current
     }
 
-    pub fn backup(&mut self) {
-        if self.pos >= 0 {
-            self.pos -= 1;
-        }
-    }
-
     pub fn read_until<F>(self: &mut Tokenizer, dest: &mut String, test: F)
     where
         F: FnOnce(char) -> bool + Copy,
@@ -205,14 +197,16 @@ impl Tokenizer {
     }
 
     pub fn consume_until_matches(&mut self, pattern: &str) {
-        while self.get_current().is_some() {
-            println!("consumed {}", self.get_current().unwrap());
+        while self.next().is_some() {
             if self.matches(pattern) {
-                for _ in 0..pattern.len() {
-                    self.next();
-                }
+                self.skip(pattern.len());
                 break;
             }
+        }
+    }
+
+    fn skip(&mut self, n: usize) {
+        for _ in 0..n {
             self.next();
         }
     }
@@ -301,7 +295,7 @@ mod test {
             Token::Symbol('}'),
         ];
 
-        let result = tokenize("/* a comment*/\nif (x = y) {\n /* more\n comments\n*/\n}");
+        let result = tokenize("/* a comment*/\nif (x = y) {\n /*/ more\n comments\n*/\n}");
         assert_eq!(result, expected);
     }
 }
