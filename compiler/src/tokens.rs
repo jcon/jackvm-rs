@@ -117,15 +117,17 @@ fn advance_to<'a>(ptr: &'a str, needle: &str) -> &'a str {
 
 fn advance_to_after<'a>(ptr: &'a str, needle: &str) -> &'a str {
     let ptr = advance_to(ptr, needle);
-    if ptr.len() > 0 {
-        &ptr[1..]
+    if needle.len() < ptr.len() {
+        &ptr[needle.len()..]
     } else {
         ""
     }
 }
 
 fn next_word<'a>(ptr: &'a str) -> (&'a str, &'a str) {
-    let end = ptr.find(|c| is_whitespace(c) || is_symbol(c)).unwrap_or(ptr.len());
+    let end = ptr
+        .find(|c| is_whitespace(c) || is_symbol(c))
+        .unwrap_or(ptr.len());
     (&ptr[..end], &ptr[end..])
 }
 
@@ -135,7 +137,7 @@ pub fn tokenize(source: &str) -> Vec<Token> {
     let mut ptr = source;
 
     loop {
-    // for _ in 0..3 {
+        // for _ in 0..3 {
         // println!("ptr is {}", ptr);
         let next_c = match ptr.chars().next() {
             Some(c) => c,
@@ -143,7 +145,7 @@ pub fn tokenize(source: &str) -> Vec<Token> {
         };
         match ptr.chars().next() {
             None => break, // We're done.
-            Some(c) if is_whitespace(c) => {
+            Some(next_c) if is_whitespace(next_c) => {
                 ptr = &ptr[1..];
                 continue;
             }
@@ -152,17 +154,7 @@ pub fn tokenize(source: &str) -> Vec<Token> {
                 continue;
             }
             Some(_) if ptr.starts_with("/*") => {
-                ptr = &ptr[2..];
-                match ptr.find("*/") {
-                    Some(i) => {
-                        if i + 2 < ptr.len() {
-                            ptr = &ptr[i + 2..];
-                        } else {
-                            ptr = "";
-                        }
-                    }
-                    None => ptr = "",
-                }
+                ptr = advance_to_after(&ptr[2..], "*/");
                 continue;
             }
             _ => (),
