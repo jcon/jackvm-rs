@@ -45,7 +45,7 @@ fn is_symbol(c: char) -> bool {
 }
 fn parse_symbol_char(c: char) -> Option<Token> {
     if is_symbol(c) {
-        println!("{} is a symbol", c);
+//        println!("{} is a symbol", c);
         Some(Token::Symbol(c))
     } else {
         None
@@ -103,7 +103,7 @@ fn parse_string(it: &mut Tokenizer) -> Option<Token> {
 }
 
 fn is_whitespace(c: char) -> bool {
-    println!("is_whitespace? {}", c);
+    // println!("is_whitespace? {}", c);
     match c {
         ' ' | '\t' | '\n' | '\r' => true,
         _ => false,
@@ -190,7 +190,7 @@ pub fn tokenize(source: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = vec![];
     let mut chars = Tokenizer::new(source.chars());
 
-    println!("got some chars");
+    // println!("got some chars");
 
     let mut dummy = String::new();
     // TODO: handle multi-line comments
@@ -202,24 +202,32 @@ pub fn tokenize(source: &str) -> Vec<Token> {
             Some(_) if chars.matches("//") => {
                 println!("matched comment begin");
                 chars.read_until(&mut dummy, |c| c != '\n');
+                // chars.consume_until_matches("\n");
+                continue;
+            },
+            Some(_) if chars.matches("/*") => {
+                println!("matched multi-line comment begin");
+                chars.next();
+                chars.consume_until_matches("*/");
                 continue;
             },
             None => break,
             _ => (),
         };
 
-        println!("next c is {}", chars.get_current().unwrap());
+        // println!("next c is {}", chars.get_current().unwrap());
 
         let token = parse_symbol(&mut chars)
             .or_else(|| parse_string(&mut chars))
             .or_else(|| {
                 let word = chars.next_word();
-                println!("got word {}", word);
+                // println!("got word {}", word);
                 parse_keyword(&word)
                     .or_else(|| parse_int(&word))
                     .or_else(|| Some(Token::Identifier(word)))
             });
         tokens.push(token.unwrap());
+        // tokens.push(Token::Identifier("Hello".to_string()));
     }
 
     tokens
