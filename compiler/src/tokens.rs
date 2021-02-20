@@ -117,6 +117,7 @@ pub fn tokenize(source: &str) -> Vec<Token> {
     let mut dummy = String::new();
     loop {
         match chars.next() {
+            None => break, // We're done.
             Some(c) if is_whitespace(c) => {
                 continue;
             }
@@ -129,7 +130,6 @@ pub fn tokenize(source: &str) -> Vec<Token> {
                 chars.consume_until_matches("*/");
                 continue;
             }
-            None => break,
             _ => (),
         };
 
@@ -296,6 +296,21 @@ mod test {
         ];
 
         let result = tokenize("/* a comment*/\nif (x = y) {\n /*/ more\n comments\n*/\n}");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_multi_line_comment_no_close() {
+        let expected = vec![
+            Token::Keyword(Keyword::FUNCTION),
+            Token::Symbol('('),
+            Token::Keyword(Keyword::INT),
+            Token::Identifier("x".to_string()),
+            Token::Symbol(')'),
+            Token::Symbol('{'),
+        ];
+
+        let result = tokenize("function (int x) { /* }");
         assert_eq!(result, expected);
     }
 }
