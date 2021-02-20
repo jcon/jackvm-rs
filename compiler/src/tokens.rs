@@ -172,6 +172,28 @@ impl Tokenizer {
         self.read_until(&mut word, is_word_char);
         word
     }
+
+    pub fn matches(&mut self, pattern: &str) -> bool {
+        let source = pattern;
+        let mut pattern = pattern.chars();
+        let still_matches= |c: &char| self.get_current().filter(|b| b == c).is_some();
+        if pattern.next().filter(still_matches).is_none() {
+            false
+        } else {
+            let mut look_ahead = 1;
+            for c in pattern {
+                look_ahead += 1;
+                if self.next().filter(|b| *b == c).is_none() {
+                    break;
+                }
+            }
+            for _ in 0..look_ahead-1 {
+                self.backup();
+            }
+            look_ahead == source.len()
+        }
+    }
+
 }
 
 pub fn tokenize(source: &str) -> Vec<Token> {
@@ -180,12 +202,18 @@ pub fn tokenize(source: &str) -> Vec<Token> {
 
     println!("got some chars");
 
-    // TODO: handle comments
+    let mut dummy = String::new();
+    // TODO: handle multi-line comments
     loop {
         match chars.next() {
             Some(c) if is_whitespace(c) => {
                 continue;
-            }
+            },
+            Some(_) if chars.matches("//") => {
+                println!("matched comment begin");
+                chars.read_until(&mut dummy, |c| c != '\n');
+                continue;
+            },
             None => break,
             _ => (),
         };
@@ -238,6 +266,22 @@ mod test {
         ];
 
         let result = tokenize("let b = \"+hello;\" ;");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_single_line_comment() {
+        let expected = vec![
+            Token::Keyword(Keyword::LET),
+            Token::Identifier("a".to_string()),
+            Token::Symbol('='),
+            Token::Identifier("b".to_string()),
+            Token::Symbol('-'),
+            Token::Identifier("c".to_string()),
+            Token::Symbol(';'),
+        ];
+
+        let result = tokenize("// a comment\nlet a = b // more comment\n - c;");
         assert_eq!(result, expected);
     }
 }
