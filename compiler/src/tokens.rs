@@ -93,13 +93,13 @@ fn parse_int(word: &str) -> Option<Token> {
     word.parse::<i16>().map(|i| Token::IntConstant(i)).ok()
 }
 
-fn parse_string(s: &str) -> Option<Token> {
+fn parse_string_constant(s: &str) -> Option<Token> {
     match s.chars().next() {
         Some(c) if c != '"' => return None,
         _ => (),
     }
 
-    let mut ptr = &s[1..];
+    let ptr = &s[1..];
 
     let end = ptr.find('"').unwrap_or(ptr.len());
 
@@ -136,53 +136,40 @@ pub fn tokenize(source: &str) -> Vec<Token> {
 
     let mut ptr = source;
 
-    loop {
-        // for _ in 0..3 {
-        // println!("ptr is {}", ptr);
-        let next_c = match ptr.chars().next() {
-            Some(c) => c,
-            None => break,
+    while ptr.len() > 0 {
+        let next_c = ptr.chars().next().unwrap();
+        if is_whitespace(next_c) {
+            ptr = &ptr[1..];
+        } else if ptr.starts_with("//") {
+            ptr = advance_to_after(ptr, "\n");
+        } else if ptr.starts_with("/*") {
+            ptr = advance_to_after(&ptr[2..], "*/");
+        } else {
+            let token = parse_symbol_char(next_c)
+                .and_then(|t| {
+                    ptr = &ptr[1..];
+                    Some(t)
+                })
+                .or_else(|| {
+                    let s = parse_string_constant(ptr);
+                    if s.is_some() {
+                        // move pointer past second '"'
+                        ptr = advance_to_after(ptr, "\"");
+                        ptr = advance_to_after(ptr, "\"");
+                    }
+                    s
+                })
+                .or_else(|| {
+                    let (word, next) = next_word(ptr);
+                    ptr = next;
+                    parse_keyword(&word)
+                        .or_else(|| parse_int(&word))
+                        .or_else(|| Some(Token::Identifier(word.to_string())))
+                });
+            if let Some(tok) = token {
+                tokens.push(tok);
+            }
         };
-        match ptr.chars().next() {
-            None => break, // We're done.
-            Some(next_c) if is_whitespace(next_c) => {
-                ptr = &ptr[1..];
-                continue;
-            }
-            Some(_) if ptr.starts_with("//") => {
-                ptr = advance_to(ptr, "\n");
-                continue;
-            }
-            Some(_) if ptr.starts_with("/*") => {
-                ptr = advance_to_after(&ptr[2..], "*/");
-                continue;
-            }
-            _ => (),
-        };
-
-        let token = parse_symbol_char(next_c)
-            .and_then(|t| {
-                ptr = &ptr[1..];
-                Some(t)
-            })
-            .or_else(|| {
-                let s = parse_string(ptr);
-                if s.is_some() {
-                    ptr = advance_to_after(ptr, "\"");
-                    ptr = advance_to_after(ptr, "\"");
-                }
-                s
-            })
-            .or_else(|| {
-                let (word, next) = next_word(ptr);
-                ptr = next;
-                // println!("got word {}", word);
-                parse_keyword(&word)
-                    .or_else(|| parse_int(&word))
-                    .or_else(|| Some(Token::Identifier(word.to_string())))
-            });
-        // println!("added token: {}", token.unwrap());
-        tokens.push(token.unwrap());
     }
 
     tokens
@@ -209,16 +196,16 @@ mod test {
     }
 
     #[test]
-    fn test_parse_string() {
+    fn test_parse_string_constant() {
         let expected = vec![
             Token::Keyword(Keyword::LET),
-            Token::Identifier("b".to_string()),
+            Token::Identifier("world".to_string()),
             Token::Symbol('='),
             Token::StringConstant("+hello;".to_string()),
             Token::Symbol(';'),
         ];
 
-        let result = tokenize("let b = \"+hello;\" ;");
+        let result = tokenize("let world = \"+hello;\" ;");
         assert_eq!(result, expected);
     }
 
