@@ -1,4 +1,3 @@
-use std::iter::Peekable;
 use std::str::Chars;
 use std::vec::Vec;
 
@@ -89,24 +88,26 @@ fn parse_int(word: &str) -> Option<Token> {
     word.parse::<i16>().map(|i| Token::IntConstant(i)).ok()
 }
 
+fn parse_string(it: &mut Tokenizer) -> Option<Token> {
+    match it.get_current() {
+        Some(c) if c != '"' => return None,
+        _ => (),
+    }
+
+    let mut word = String::new();
+    it.read_until(&mut word, |c| c != '"');
+
+    it.next();
+
+    Some(Token::StringConstant(word))
+}
+
 fn is_whitespace(c: char) -> bool {
     println!("is_whitespace? {}", c);
     match c {
         ' ' | '\t' | '\n' | '\r' => true,
         _ => false,
     }
-}
-
-fn next_word(it: &mut Tokenizer) -> String {
-    let mut word = String::new();
-    word.push(it.get_current().unwrap());
-
-    let is_word_char = |c| !is_whitespace(c) && !is_symbol(c);
-    while it.has_next(is_word_char) {
-        let next = it.next().unwrap();
-        word.push(next);
-    }
-    word
 }
 
 struct Tokenizer {
@@ -152,6 +153,25 @@ impl Tokenizer {
             self.pos -= 1;
         }
     }
+
+    pub fn read_until<F>(self: &mut Tokenizer, dest: &mut String, test: F)
+    where
+        F: FnOnce(char) -> bool + Copy,
+    {
+        while self.has_next(test) {
+            let next = self.next().unwrap();
+            dest.push(next);
+        }
+    }
+
+    fn next_word(self: &mut Tokenizer) -> String {
+        let mut word = String::new();
+        word.push(self.get_current().unwrap());
+
+        let is_word_char = |c| !is_whitespace(c) && !is_symbol(c);
+        self.read_until(&mut word, is_word_char);
+        word
+    }
 }
 
 pub fn tokenize(source: &str) -> Vec<Token> {
@@ -172,13 +192,15 @@ pub fn tokenize(source: &str) -> Vec<Token> {
 
         println!("next c is {}", chars.get_current().unwrap());
 
-        let token = parse_symbol(&mut chars).or_else(|| {
-            let word = next_word(&mut chars);
-            println!("got word {}", word);
-            parse_keyword(&word)
-                .or_else(|| parse_int(&word))
-                .or_else(|| Some(Token::Identifier(word)))
-        });
+        let token = parse_symbol(&mut chars)
+            .or_else(|| parse_string(&mut chars))
+            .or_else(|| {
+                let word = chars.next_word();
+                println!("got word {}", word);
+                parse_keyword(&word)
+                    .or_else(|| parse_int(&word))
+                    .or_else(|| Some(Token::Identifier(word)))
+            });
         tokens.push(token.unwrap());
     }
 
@@ -202,6 +224,20 @@ mod test {
         assert_eq!(result, expected);
 
         let result = tokenize("a + 5");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_parse_string() {
+        let expected = vec![
+            Token::Keyword(Keyword::LET),
+            Token::Identifier("b".to_string()),
+            Token::Symbol('='),
+            Token::StringConstant("+hello;".to_string()),
+            Token::Symbol(';'),
+        ];
+
+        let result = tokenize("let b = \"+hello;\" ;");
         assert_eq!(result, expected);
     }
 }
