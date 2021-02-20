@@ -43,6 +43,15 @@ fn is_symbol(c: char) -> bool {
         _ => false,
     }
 }
+
+fn is_whitespace(c: char) -> bool {
+    // println!("is_whitespace? {}", c);
+    match c {
+        ' ' | '\t' | '\n' | '\r' => true,
+        _ => false,
+    }
+}
+
 fn parse_symbol_char(c: char) -> Option<Token> {
     if is_symbol(c) {
         //        println!("{} is a symbol", c);
@@ -50,10 +59,6 @@ fn parse_symbol_char(c: char) -> Option<Token> {
     } else {
         None
     }
-}
-
-fn parse_symbol(chars: &mut Tokenizer) -> Option<Token> {
-    chars.get_current().and_then(|c| parse_symbol_char(c))
 }
 
 // NOTE: a lazy_static HashMap would have bee more concise, but lazy_static uses features that add 36k to WASM output.
@@ -88,148 +93,107 @@ fn parse_int(word: &str) -> Option<Token> {
     word.parse::<i16>().map(|i| Token::IntConstant(i)).ok()
 }
 
-fn parse_string(it: &mut Tokenizer) -> Option<Token> {
-    match it.get_current() {
+fn parse_string(s: &str) -> Option<Token> {
+    match s.chars().next() {
         Some(c) if c != '"' => return None,
         _ => (),
     }
 
-    let mut word = String::new();
-    it.read_until(&mut word, |c| c != '"');
+    let mut ptr = &s[1..];
 
-    it.next();
+    let end = ptr.find('"').unwrap_or(ptr.len());
+
+    let word = ptr[0..end].to_string();
 
     Some(Token::StringConstant(word))
 }
 
-fn is_whitespace(c: char) -> bool {
-    // println!("is_whitespace? {}", c);
-    match c {
-        ' ' | '\t' | '\n' | '\r' => true,
-        _ => false,
+fn advance_to<'a>(ptr: &'a str, needle: &str) -> &'a str {
+    match ptr.find(needle) {
+        Some(i) => &ptr[i..],
+        None => "",
     }
+}
+
+fn advance_to_after<'a>(ptr: &'a str, needle: &str) -> &'a str {
+    let ptr = advance_to(ptr, needle);
+    if ptr.len() > 0 {
+        &ptr[1..]
+    } else {
+        ""
+    }
+}
+
+fn next_word<'a>(ptr: &'a str) -> (&'a str, &'a str) {
+    let end = ptr.find(|c| is_whitespace(c) || is_symbol(c)).unwrap_or(ptr.len());
+    (&ptr[..end], &ptr[end..])
 }
 
 pub fn tokenize(source: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = vec![];
-    let mut chars = Tokenizer::new(source.chars());
 
-    let mut dummy = String::new();
+    let mut ptr = source;
+
     loop {
-        match chars.next() {
+    // for _ in 0..3 {
+        // println!("ptr is {}", ptr);
+        let next_c = match ptr.chars().next() {
+            Some(c) => c,
+            None => break,
+        };
+        match ptr.chars().next() {
             None => break, // We're done.
             Some(c) if is_whitespace(c) => {
+                ptr = &ptr[1..];
                 continue;
             }
-            Some(_) if chars.matches("//") => {
-                chars.read_until(&mut dummy, |c| c != '\n');
+            Some(_) if ptr.starts_with("//") => {
+                ptr = advance_to(ptr, "\n");
                 continue;
             }
-            Some(_) if chars.matches("/*") => {
-                chars.next(); // consume *, so we don't accidentally work for this pattern: /*/
-                chars.consume_until_matches("*/");
+            Some(_) if ptr.starts_with("/*") => {
+                ptr = &ptr[2..];
+                match ptr.find("*/") {
+                    Some(i) => {
+                        if i + 2 < ptr.len() {
+                            ptr = &ptr[i + 2..];
+                        } else {
+                            ptr = "";
+                        }
+                    }
+                    None => ptr = "",
+                }
                 continue;
             }
             _ => (),
         };
 
-        let token = parse_symbol(&mut chars)
-            .or_else(|| parse_string(&mut chars))
+        let token = parse_symbol_char(next_c)
+            .and_then(|t| {
+                ptr = &ptr[1..];
+                Some(t)
+            })
             .or_else(|| {
-                let word = chars.next_word();
+                let s = parse_string(ptr);
+                if s.is_some() {
+                    ptr = advance_to_after(ptr, "\"");
+                    ptr = advance_to_after(ptr, "\"");
+                }
+                s
+            })
+            .or_else(|| {
+                let (word, next) = next_word(ptr);
+                ptr = next;
                 // println!("got word {}", word);
                 parse_keyword(&word)
                     .or_else(|| parse_int(&word))
-                    .or_else(|| Some(Token::Identifier(word)))
+                    .or_else(|| Some(Token::Identifier(word.to_string())))
             });
+        // println!("added token: {}", token.unwrap());
         tokens.push(token.unwrap());
     }
 
     tokens
-}
-
-struct Tokenizer {
-    chars: Vec<char>,
-    current: Option<char>,
-    pos: i32,
-}
-
-impl Tokenizer {
-    pub fn new(chars: Chars<'_>) -> Tokenizer {
-        Tokenizer {
-            chars: chars.collect(),
-            current: None,
-            pos: -1,
-        }
-    }
-
-    pub fn next(&mut self) -> Option<char> {
-        self.pos += 1;
-        let pos = self.pos as usize;
-        if pos < self.chars.len() {
-            self.current = Some(self.chars[pos]);
-            self.current
-        } else {
-            None
-        }
-    }
-
-    pub fn has_next<F>(&mut self, test: F) -> bool
-    where
-        F: FnOnce(char) -> bool,
-    {
-        let pos = (self.pos + 1) as usize;
-        pos < self.chars.len() && test(self.chars[pos])
-    }
-
-    pub fn get_current(&self) -> Option<char> {
-        self.current
-    }
-
-    pub fn read_until<F>(self: &mut Tokenizer, dest: &mut String, test: F)
-    where
-        F: FnOnce(char) -> bool + Copy,
-    {
-        while self.has_next(test) {
-            let next = self.next().unwrap();
-            dest.push(next);
-        }
-    }
-
-    pub fn consume_until_matches(&mut self, pattern: &str) {
-        while self.next().is_some() {
-            if self.matches(pattern) {
-                self.skip(pattern.len());
-                break;
-            }
-        }
-    }
-
-    fn skip(&mut self, n: usize) {
-        for _ in 0..n {
-            self.next();
-        }
-    }
-
-    fn next_word(self: &mut Tokenizer) -> String {
-        let mut word = String::new();
-        word.push(self.get_current().unwrap());
-
-        let is_word_char = |c| !is_whitespace(c) && !is_symbol(c);
-        self.read_until(&mut word, is_word_char);
-        word
-    }
-
-    pub fn matches(&mut self, pattern: &str) -> bool {
-        let pos = self.pos as usize;
-        if pos + pattern.len() >= self.chars.len() {
-            return false;
-        }
-
-        let source = &self.chars[pos..(pos + pattern.len())];
-        let pattern: Vec<char> = pattern.chars().collect();
-        source == &pattern
-    }
 }
 
 #[cfg(test)]
@@ -283,7 +247,7 @@ mod test {
     }
 
     #[test]
-    fn test_multi_line_comment() {
+    fn test_multi_line_comment_with_close() {
         let expected = vec![
             Token::Keyword(Keyword::IF),
             Token::Symbol('('),
