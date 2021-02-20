@@ -45,7 +45,7 @@ fn is_symbol(c: char) -> bool {
 }
 fn parse_symbol_char(c: char) -> Option<Token> {
     if is_symbol(c) {
-//        println!("{} is a symbol", c);
+        //        println!("{} is a symbol", c);
         Some(Token::Symbol(c))
     } else {
         None
@@ -108,6 +108,46 @@ fn is_whitespace(c: char) -> bool {
         ' ' | '\t' | '\n' | '\r' => true,
         _ => false,
     }
+}
+
+pub fn tokenize(source: &str) -> Vec<Token> {
+    let mut tokens: Vec<Token> = vec![];
+    let mut chars = Tokenizer::new(source.chars());
+
+    let mut dummy = String::new();
+    loop {
+        match chars.next() {
+            Some(c) if is_whitespace(c) => {
+                continue;
+            }
+            Some(_) if chars.matches("//") => {
+                println!("matched comment begin");
+                chars.read_until(&mut dummy, |c| c != '\n');
+                continue;
+            }
+            Some(_) if chars.matches("/*") => {
+                println!("matched multi-line comment begin");
+                chars.next();
+                chars.consume_until_matches("*/");
+                continue;
+            }
+            None => break,
+            _ => (),
+        };
+
+        let token = parse_symbol(&mut chars)
+            .or_else(|| parse_string(&mut chars))
+            .or_else(|| {
+                let word = chars.next_word();
+                // println!("got word {}", word);
+                parse_keyword(&word)
+                    .or_else(|| parse_int(&word))
+                    .or_else(|| Some(Token::Identifier(word)))
+            });
+        tokens.push(token.unwrap());
+    }
+
+    tokens
 }
 
 struct Tokenizer {
@@ -196,48 +236,6 @@ impl Tokenizer {
         let pattern: Vec<char> = pattern.chars().collect();
         source == &pattern
     }
-
-}
-
-pub fn tokenize(source: &str) -> Vec<Token> {
-    let mut tokens: Vec<Token> = vec![];
-    let mut chars = Tokenizer::new(source.chars());
-
-
-    let mut dummy = String::new();
-    loop {
-        match chars.next() {
-            Some(c) if is_whitespace(c) => {
-                continue;
-            },
-            Some(_) if chars.matches("//") => {
-                println!("matched comment begin");
-                chars.read_until(&mut dummy, |c| c != '\n');
-                continue;
-            },
-            Some(_) if chars.matches("/*") => {
-                println!("matched multi-line comment begin");
-                chars.next();
-                chars.consume_until_matches("*/");
-                continue;
-            },
-            None => break,
-            _ => (),
-        };
-
-        let token = parse_symbol(&mut chars)
-            .or_else(|| parse_string(&mut chars))
-            .or_else(|| {
-                let word = chars.next_word();
-                // println!("got word {}", word);
-                parse_keyword(&word)
-                    .or_else(|| parse_int(&word))
-                    .or_else(|| Some(Token::Identifier(word)))
-            });
-        tokens.push(token.unwrap());
-    }
-
-    tokens
 }
 
 #[cfg(test)]
@@ -285,7 +283,6 @@ mod test {
             Token::Identifier("c".to_string()),
             Token::Symbol(';'),
         ];
-
 
         let result = tokenize("// a comment\nlet a = b // more comment\n - c;");
         assert_eq!(result, expected);
