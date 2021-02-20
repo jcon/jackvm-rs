@@ -44,14 +44,6 @@ fn is_symbol(c: char) -> bool {
     }
 }
 
-fn is_whitespace(c: char) -> bool {
-    // println!("is_whitespace? {}", c);
-    match c {
-        ' ' | '\t' | '\n' | '\r' => true,
-        _ => false,
-    }
-}
-
 fn parse_symbol_char(c: char) -> Option<Token> {
     if is_symbol(c) {
         //        println!("{} is a symbol", c);
@@ -126,7 +118,7 @@ fn advance_to_after<'a>(ptr: &'a str, needle: &str) -> &'a str {
 
 fn next_word<'a>(ptr: &'a str) -> (&'a str, &'a str) {
     let end = ptr
-        .find(|c| is_whitespace(c) || is_symbol(c))
+        .find(|c: char| c.is_whitespace() || is_symbol(c))
         .unwrap_or(ptr.len());
     (&ptr[..end], &ptr[end..])
 }
@@ -138,7 +130,7 @@ pub fn tokenize(source: &str) -> Vec<Token> {
 
     while ptr.len() > 0 {
         let next_c = ptr.chars().next().unwrap();
-        if is_whitespace(next_c) {
+        if next_c.is_whitespace() {
             ptr = &ptr[1..];
         } else if ptr.starts_with("//") {
             ptr = advance_to_after(ptr, "\n");
