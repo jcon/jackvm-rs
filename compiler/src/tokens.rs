@@ -164,6 +164,19 @@ impl Tokenizer {
         }
     }
 
+    pub fn consume_until_matches(&mut self, pattern: &str) {
+        while self.get_current().is_some() {
+            println!("consumed {}", self.get_current().unwrap());
+            if self.matches(pattern) {
+                for _ in 0..pattern.len() {
+                    self.next();
+                }
+                break;
+            }
+            self.next();
+        }
+    }
+
     fn next_word(self: &mut Tokenizer) -> String {
         let mut word = String::new();
         word.push(self.get_current().unwrap());
@@ -190,10 +203,8 @@ pub fn tokenize(source: &str) -> Vec<Token> {
     let mut tokens: Vec<Token> = vec![];
     let mut chars = Tokenizer::new(source.chars());
 
-    // println!("got some chars");
 
     let mut dummy = String::new();
-    // TODO: handle multi-line comments
     loop {
         match chars.next() {
             Some(c) if is_whitespace(c) => {
@@ -202,7 +213,6 @@ pub fn tokenize(source: &str) -> Vec<Token> {
             Some(_) if chars.matches("//") => {
                 println!("matched comment begin");
                 chars.read_until(&mut dummy, |c| c != '\n');
-                // chars.consume_until_matches("\n");
                 continue;
             },
             Some(_) if chars.matches("/*") => {
@@ -215,8 +225,6 @@ pub fn tokenize(source: &str) -> Vec<Token> {
             _ => (),
         };
 
-        // println!("next c is {}", chars.get_current().unwrap());
-
         let token = parse_symbol(&mut chars)
             .or_else(|| parse_string(&mut chars))
             .or_else(|| {
@@ -227,7 +235,6 @@ pub fn tokenize(source: &str) -> Vec<Token> {
                     .or_else(|| Some(Token::Identifier(word)))
             });
         tokens.push(token.unwrap());
-        // tokens.push(Token::Identifier("Hello".to_string()));
     }
 
     tokens
@@ -279,7 +286,25 @@ mod test {
             Token::Symbol(';'),
         ];
 
+
         let result = tokenize("// a comment\nlet a = b // more comment\n - c;");
+        assert_eq!(result, expected);
+    }
+
+    #[test]
+    fn test_multi_line_comment() {
+        let expected = vec![
+            Token::Keyword(Keyword::IF),
+            Token::Symbol('('),
+            Token::Identifier("x".to_string()),
+            Token::Symbol('='),
+            Token::Identifier("y".to_string()),
+            Token::Symbol(')'),
+            Token::Symbol('{'),
+            Token::Symbol('}'),
+        ];
+
+        let result = tokenize("/* a comment*/\nif (x = y) {\n /* more\n comments\n*/\n}");
         assert_eq!(result, expected);
     }
 }
