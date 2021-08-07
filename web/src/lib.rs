@@ -33,13 +33,14 @@ extern "C" {
 #[wasm_bindgen]
 pub struct JackVmPlayer {
     vm: Rc<RefCell<web_vm::JackVirtualMachine>>,
+    animator: Rc<RefCell<Option<Closure<dyn FnMut()>>>>,
 }
 
 #[wasm_bindgen]
 impl JackVmPlayer {
     #[wasm_bindgen(constructor)]
     pub fn new(container: JsValue, options: &JsValue) -> JackVmPlayer {
-        log!("version 0.1.8.2");
+        log!("version 0.1.12.3");
         let options: web_vm::Options = if options.is_undefined() {
             web_vm::Options {
                 on_color: 0x000000ff,
@@ -82,6 +83,7 @@ impl JackVmPlayer {
 
         JackVmPlayer {
             vm: Rc::clone(&vm),
+            animator: Rc::new(RefCell::new(None)),
         }
     }
 
@@ -144,8 +146,14 @@ impl JackVmPlayer {
         // Clone VM so we can share it with the callback requestAnimationFrame receives
         let vm = Rc::clone(&self.vm);
 
+        // Ensure we don't run multiple animation loops.
+        if self.animator.borrow().is_some() {
+            return;
+        }
+
         let f = Rc::new(RefCell::new(None));
         let g = f.clone();
+        self.animator = f.clone();
 
         // This closure borrows the VM instance for each animation frame.
         // This code will be safe as long as the VM is running inside the main thread of the browser.
